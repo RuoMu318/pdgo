@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-system-debugging"
+display_name: "FlowState System Debugging"
+description: "Investigate a concrete failure with controlled experiments, preserve evidence, and stop at uncertainty instead of guessing."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["a reproducible system failure needs diagnosis"]
+positive_triggers: ["A reproducible system error is reported","The user asks for diagnosis before a fix"]
+negative_triggers: ["Do not apply an unapproved production fix","Do not claim root cause without evidence"]
+boundaries: ["Do not apply an unapproved production fix","Do not claim root cause without evidence"]
+required_inputs: ["symptom","reproduction","runtime context","logs"]
+expected_outputs: ["reproduction record","hypotheses","evidence","bounded remediation options"]
+prerequisites: ["diagnostic access","safe reproduction"]
+side_effects: ["may run diagnostic commands"]
+risk_level: "high"
+priority: 50
+category: "debugging"
+subcategory: "system-debugging"
+tags: ["debugging","system-debugging"]

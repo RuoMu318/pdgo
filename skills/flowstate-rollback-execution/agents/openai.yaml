@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Rollback Execution","short_description":"Debugging workflow for rollback evidence","default_prompt":"Use $flowstate-rollback-execution for Execute an approved rollback and verify it and produce rollback evidence."}
+policy: {"allow_implicit_invocation":true}

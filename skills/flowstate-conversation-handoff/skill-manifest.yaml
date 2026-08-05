@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-conversation-handoff"
+display_name: "Flowstate Conversation Handoff"
+description: "Apply the FlowState memory and knowledge workflow when the concrete scenario is: Pass structured artifacts between isolated sessions. Produce handoff packet with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Pass structured artifacts between isolated sessions"]
+positive_triggers: ["Pass structured artifacts between isolated sessions"]
+negative_triggers: ["Do not use outside memory and knowledge scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside memory and knowledge scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["handoff packet","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "medium"
+priority: 50
+category: "memory"
+subcategory: "conversation-handoff"
+tags: ["memory","conversation-handoff"]

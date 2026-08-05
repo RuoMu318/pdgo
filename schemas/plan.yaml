@@ -3,6 +3,8 @@ plan_series_id: PROJECT-YYYYMMDD-NNN
 plan_version: v1
 plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
 project_id: project-id
+series_relation: new
+parallel_of: null
 title: "Human-readable plan title"
 summary: "One sentence that explains the plan."
 search_terms: []

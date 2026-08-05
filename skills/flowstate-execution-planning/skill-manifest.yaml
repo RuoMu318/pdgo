@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-execution-planning"
+display_name: "FlowState Execution Planning"
+description: "Turn a clarified objective into bounded tasks, dependencies, evidence, risks, blockers, and rollback conditions."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["approved-scope decomposition into executable tasks"]
+positive_triggers: ["A goal needs an executable task ledger","A plan must be prepared for user approval"]
+negative_triggers: ["Do not dispatch before approval","Do not hide risks or blockers"]
+boundaries: ["Do not dispatch before approval","Do not hide risks or blockers"]
+required_inputs: ["goal","repository context","constraints","acceptance needs"]
+expected_outputs: ["descriptive plan","task ledger","risk register","approval request"]
+prerequisites: ["classified project scenario"]
+side_effects: ["writes plan and index records"]
+risk_level: "medium"
+priority: 50
+category: "planning"
+subcategory: "execution-planning"
+tags: ["planning","execution-planning"]

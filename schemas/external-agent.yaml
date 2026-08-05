@@ -1,0 +1,14 @@
+schema_version: "1.0"
+provider_id: agency-agents
+agent_id: "agency-agents/engineering/engineering-backend-architect.md"
+name: "Backend Architect"
+division: engineering
+description: "External Agent description."
+source_repository: "msitarzewski/agency-agents"
+source_ref: main
+source_commit: tree-sha
+source_path: engineering/engineering-backend-architect.md
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/main/engineering/engineering-backend-architect.md"
+prompt_path: integrations/external-agents/agency-agents/prompts/engineering/engineering-backend-architect.md
+routing_terms: []
+invocation_status: cataloged | selected | dispatched | returned | unavailable

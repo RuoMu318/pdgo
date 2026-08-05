@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-receive-review"
+display_name: "FlowState Receive Review"
+description: "Record accepted, revision-required, blocked, or failed outcomes without silently changing the approved scope."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["an independent review report returns to planning"]
+positive_triggers: ["A reviewer returns a decision","A planning controller must unlock or block a task"]
+negative_triggers: ["Do not accept missing evidence","Do not unlock dependents on a blocked decision"]
+boundaries: ["Do not accept missing evidence","Do not unlock dependents on a blocked decision"]
+required_inputs: ["review decision","acceptance criteria","evidence"]
+expected_outputs: ["review record","task status","next dispatch or blocker"]
+prerequisites: ["independent reviewer","matching plan version"]
+side_effects: ["may unlock a dependent task"]
+risk_level: "medium"
+priority: 50
+category: "review"
+subcategory: "receive-review"
+tags: ["review","receive-review"]

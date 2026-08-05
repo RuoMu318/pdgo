@@ -7,6 +7,8 @@ parent_session_id: null
 work_item_id: null
 plan_series_id: null
 plan_version: null
+series_relation: null
+parallel_of: null
 mode: discuss-only
 instruction: ""
 allowed_scope: []

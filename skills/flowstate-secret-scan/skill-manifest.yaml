@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-secret-scan"
+display_name: "Flowstate Secret Scan"
+description: "Apply the FlowState release, audit, and external effects workflow when the concrete scenario is: Scan staged changes for credentials or sensitive data. Produce secret scan with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Scan staged changes for credentials or sensitive data"]
+positive_triggers: ["Scan staged changes for credentials or sensitive data"]
+negative_triggers: ["Do not use outside release, audit, and external effects scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside release, audit, and external effects scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["secret scan","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "high"
+priority: 50
+category: "release-audit"
+subcategory: "secret-scan"
+tags: ["release-audit","secret-scan"]

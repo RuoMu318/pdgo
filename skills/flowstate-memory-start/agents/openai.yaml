@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Memory Start","short_description":"Memory workflow for session start record","default_prompt":"Use $flowstate-memory-start for Record a conversation instruction and scope and produce session start record."}
+policy: {"allow_implicit_invocation":true}

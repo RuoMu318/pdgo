@@ -19,6 +19,13 @@ with a domain Skill only after scenario routing.
 
 Read [routing.md](references/routing.md) for the selection contract.
 
+## Skill families
+
+FlowState Skills are grouped into coordination, planning, dispatch, development, review, debugging, memory,
+skill-authoring, release-audit, and adapter families. The family is a discovery filter only. Select a concrete Skill
+from its positive triggers, boundaries, inputs, outputs, prerequisites, stage, department, and risk. Read a project's
+`skills/category-index.json` and `skills/skill-index.json` before choosing among candidates when those indexes exist.
+
 ## Mode and approval gate
 
 Respect the current mode:
@@ -36,11 +43,18 @@ comment that does not authorize execution.
 
 Read [approval-gate.md](references/approval-gate.md) for the complete gate.
 
-## Conversation isolation and memory
+## Conversation isolation, continuity, and memory
 
-Use separate sessions for planning controllers, planning workers, execution controllers, execution workers, and
-reviewers. Do not copy or assume another session's transcript. Pass only task-local artifact IDs and structured
-inputs.
+Create one planning-controller session and one execution-controller session for each `plan_series_id`. A plan
+version that is an extension of that same series MUST reuse those two controller sessions, so the series can be
+executed continuously in the same conversations. Do not create a new controller conversation for a version bump or
+scope-preserving extension.
+
+A genuinely parallel plan MUST use a new `plan_series_id`, new planning and execution controller sessions, and a
+`parallel_of` reference to the parent series. Its accepted reports are synchronized to the parent planning session
+through a structured `PARALLEL_PLAN_SYNC` message. Task workers and reviewers always use separate task-scoped
+sessions and return structured reports to the fixed controller sessions. Never copy or assume another session's
+transcript; pass artifact IDs and structured inputs.
 
 At session start record the instruction. During work record checkpoints, references, risks, blockers, and artifacts.
 At close record the result, summary, decisions, unresolved items, and next action. Find historical content through

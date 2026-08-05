@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Bounded Implementation","short_description":"Development workflow for changed artifacts","default_prompt":"Use $flowstate-bounded-implementation for Implement exactly the approved task scope and produce changed artifacts."}
+policy: {"allow_implicit_invocation":true}

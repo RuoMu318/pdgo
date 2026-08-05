@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Skill Category Classification","short_description":"Skill Authoring workflow for category decision","default_prompt":"Use $flowstate-skill-category-classification for Assign the narrowest taxonomy category and produce category decision."}
+policy: {"allow_implicit_invocation":true}

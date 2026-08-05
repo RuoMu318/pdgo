@@ -7,8 +7,18 @@
 - Project: {{project_id}}
 - Series: {{plan_series_id}}
 - Version: {{plan_version}}
+- Relation: {{series_relation}}
+- Parallel parent: {{parallel_of}}
+- Planning session: {{planning_session_id}}
+- Execution session: {{execution_session_id}}
 - Status: awaiting-user-approval
 - Mode: {{mode}}
+
+## Search and knowledge index
+
+- Search terms: {{search_terms}}
+- Knowledge domains: {{knowledge_domains}}
+- Descriptive plan title: use `PROJECT-YYYYMMDD-NNN-readable-topic-vN`, not a bare version number.
 
 ## Objective and non-goals
 

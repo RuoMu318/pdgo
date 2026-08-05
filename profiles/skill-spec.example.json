@@ -1,0 +1,32 @@
+{
+  "skillId": "project-runtime-debugging",
+  "scope": "project",
+  "scenario": "runtime debugging",
+  "action": "reproduce and diagnose",
+  "outcome": "diagnostic report",
+  "displayName": "Project Runtime Debugging",
+  "shortDescription": "Scenario-based runtime debugging workflow",
+  "description": "Diagnose a concrete runtime failure with reproducible evidence and a bounded remediation recommendation.",
+  "positiveTriggers": [
+    "A reproducible runtime error is reported",
+    "The user requests diagnosis before implementation"
+  ],
+  "boundaries": [
+    "Do not use for unrelated documentation work",
+    "Do not modify production systems without approval"
+  ],
+  "inputs": [
+    "error message or symptom",
+    "reproduction steps",
+    "repository and runtime context"
+  ],
+  "outputs": [
+    "root-cause assessment",
+    "evidence log",
+    "bounded remediation plan"
+  ],
+  "prerequisites": ["repository access", "reproducible test or trace"],
+  "sideEffects": ["may run diagnostic commands"],
+  "riskLevel": "medium",
+  "priority": 70
+}

@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Dispatch Contract","short_description":"Dispatch workflow for dispatch contract","default_prompt":"Use $flowstate-dispatch-contract for Build a complete PLAN_DISPATCH message and produce dispatch contract."}
+policy: {"allow_implicit_invocation":true}

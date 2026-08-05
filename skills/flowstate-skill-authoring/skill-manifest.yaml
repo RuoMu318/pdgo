@@ -1,0 +1,19 @@
+schema_version: "1.0"
+skill_id: flowstate-skill-authoring
+display_name: "FlowState Skill Authoring"
+description: "Generate scenario-bound Skills and searchable metadata."
+project_scope: [global]
+department: [planning, coordination]
+stage: [discovery, design, maintenance]
+scenarios: ["author or update a reusable Skill from a concrete scenario"]
+positive_triggers: ["a repeatable scenario lacks a reliable Skill", "Skill boundaries or metadata need revision"]
+negative_triggers: ["an existing Skill already matches", "product execution is requested"]
+required_inputs: ["scenario", "action", "outcome", "positive triggers", "boundaries", "inputs", "outputs"]
+expected_outputs: ["SKILL.md", "skill-manifest.yaml", "agents/openai.yaml", "updated Skill index"]
+prerequisites: ["unambiguous scenario"]
+side_effects: ["writes Skill and index files"]
+risk_level: low
+priority: 90
+category: skill-authoring
+subcategory: skill-metadata
+tags: [skill-authoring, routing, metadata]

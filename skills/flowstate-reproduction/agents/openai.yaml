@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Reproduction","short_description":"Debugging workflow for reproduction record","default_prompt":"Use $flowstate-reproduction for Create a minimal reliable reproduction and produce reproduction record."}
+policy: {"allow_implicit_invocation":true}

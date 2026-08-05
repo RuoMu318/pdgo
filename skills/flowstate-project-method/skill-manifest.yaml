@@ -1,0 +1,19 @@
+schema_version: "1.0"
+skill_id: flowstate-project-method
+display_name: "FlowState Project Method"
+description: "Universal project workflow for classification, memory retrieval, approval, dispatch, review, and audit."
+project_scope: [global]
+department: [planning, execution, review, coordination]
+stage: [intake, discovery, design, implementation, validation, release, maintenance]
+scenarios: ["any project task requiring governed planning or execution"]
+positive_triggers: ["a project task starts", "a plan, Skill, dispatch, review, risk, blocker, or memory operation is requested"]
+negative_triggers: ["a purely casual conversation with no project operation"]
+required_inputs: ["project context", "current user instruction"]
+expected_outputs: ["classified task", "selected Skills", "governed plan or execution record"]
+prerequisites: ["project guidance"]
+side_effects: ["may create planning and audit records"]
+risk_level: medium
+priority: 100
+category: coordination
+subcategory: project-governance
+tags: [flowstate, routing, approval, audit]

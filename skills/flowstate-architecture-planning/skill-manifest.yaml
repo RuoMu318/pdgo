@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-architecture-planning"
+display_name: "Flowstate Architecture Planning"
+description: "Apply the FlowState planning and discovery workflow when the concrete scenario is: Design bounded architecture options. Produce architecture decision with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Design bounded architecture options"]
+positive_triggers: ["Design bounded architecture options"]
+negative_triggers: ["Do not use outside planning and discovery scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside planning and discovery scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["architecture decision","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "medium"
+priority: 50
+category: "planning"
+subcategory: "architecture-planning"
+tags: ["planning","architecture-planning"]

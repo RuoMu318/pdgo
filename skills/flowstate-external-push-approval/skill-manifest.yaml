@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-external-push-approval"
+display_name: "Flowstate External Push Approval"
+description: "Apply the FlowState release, audit, and external effects workflow when the concrete scenario is: Gate a remote push on explicit authorization. Produce push approval with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Gate a remote push on explicit authorization"]
+positive_triggers: ["Gate a remote push on explicit authorization"]
+negative_triggers: ["Do not use outside release, audit, and external effects scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside release, audit, and external effects scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["push approval","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "high"
+priority: 50
+category: "release-audit"
+subcategory: "external-push-approval"
+tags: ["release-audit","external-push-approval"]

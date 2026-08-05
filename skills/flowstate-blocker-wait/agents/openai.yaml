@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Blocker Wait","short_description":"Debugging workflow for waiting record","default_prompt":"Use $flowstate-blocker-wait for Pause execution and expose a blocking decision and produce waiting record."}
+policy: {"allow_implicit_invocation":true}

@@ -1,0 +1,2 @@
+interface: {"display_name":"FlowState Subagent Development","short_description":"Give a task worker bounded scope and collect evidence","default_prompt":"Use $flowstate-subagent-development for one bounded task should be performed by a task worker and produce structured execution report."}
+policy: {"allow_implicit_invocation":true}

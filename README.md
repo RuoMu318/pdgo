@@ -47,6 +47,9 @@ schemas/                          Interchange contracts
 templates/                        Plan, summary, and report templates
 profiles/                         Project profile examples
 skills/flowstate-project-method/  Installable Codex Skill
+skills/flowstate-skill-authoring/ Scenario-driven Skill generator Skill
+scripts/                          Skill authoring and dispatch tools
+skills/skill-index.json            Searchable Skill routing index
 ```
 
 ## Installing the Skill
@@ -67,7 +70,22 @@ Use `profiles/project-profile.example.yaml` as the starting point for a project.
 repositories, memory locations, project-specific Skills, worktree rules, approval policy, test commands,
 and risk thresholds. They do not override explicit user instructions or system safety rules.
 
+## Runtime tools
+
+The repository includes a deterministic dispatcher and Skill authoring tool:
+
+```powershell
+npm.cmd run create-skill -- --spec profiles/skill-spec.example.json --root .
+npm.cmd run test:node
+node scripts/flowstate-dispatcher.mjs --action create-plan --input plan.json --root .flowstate --project demo
+```
+
+The dispatcher persists state in an explicit directory and uses the file queue by default. Replace the adapter with
+`CodexAppServerAdapter` only when a reachable App Server transport is configured. A plan extension reuses the same
+series controller sessions; only a parallel branch creates new controller conversations and synchronizes its
+accepted result to the parent.
+
 ## Status
 
-This repository contains the universal specification and Codex integration layer. Runtime dispatchers,
-platform adapters, and optional indexes can be added without changing the core contracts.
+This repository contains the universal specification, scenario-based Skill authoring, and an auditable runtime
+dispatcher with file-queue and Codex App Server adapter boundaries.

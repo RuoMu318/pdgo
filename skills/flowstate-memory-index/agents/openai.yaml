@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Memory Index","short_description":"Memory workflow for index document","default_prompt":"Use $flowstate-memory-index for Update plan, session, and knowledge indexes and produce index document."}
+policy: {"allow_implicit_invocation":true}

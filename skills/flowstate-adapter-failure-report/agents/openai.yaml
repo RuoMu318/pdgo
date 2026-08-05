@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Adapter Failure Report","short_description":"Adapters workflow for adapter failure record","default_prompt":"Use $flowstate-adapter-failure-report for Report unavailable or failed platform operations honestly and produce adapter failure record."}
+policy: {"allow_implicit_invocation":true}

@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Execution Controller","short_description":"Dispatch workflow for execution control record","default_prompt":"Use $flowstate-execution-controller for Dispatch approved tasks and collect worker reports and produce execution control record."}
+policy: {"allow_implicit_invocation":true}

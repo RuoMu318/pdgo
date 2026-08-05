@@ -2,6 +2,7 @@ schema_version: "1.0"
 message_type: REVIEW_DECISION
 review_id: review-YYYYMMDD-NNN
 trace_id: trace-YYYYMMDD-NNN
+plan_series_id: PROJECT-YYYYMMDD-NNN
 plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
 plan_version: v1
 task_id: T01

@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Adapter Capability Check","short_description":"Adapters workflow for capability result","default_prompt":"Use $flowstate-adapter-capability-check for Check whether a platform supports a required operation and produce capability result."}
+policy: {"allow_implicit_invocation":true}

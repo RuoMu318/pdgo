@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Architecture Planning","short_description":"Planning workflow for architecture decision","default_prompt":"Use $flowstate-architecture-planning for Design bounded architecture options and produce architecture decision."}
+policy: {"allow_implicit_invocation":true}

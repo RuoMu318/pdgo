@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-parallel-dispatch"
+display_name: "FlowState Parallel Dispatch"
+description: "Dispatch only independent tasks with isolated workspaces, then synchronize accepted evidence to the parent planning session."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["independent tasks need concurrent execution"]
+positive_triggers: ["Tasks have no hidden dependency or shared mutable writes","A parallel plan is explicitly approved"]
+negative_triggers: ["Do not parallelize shared writes","Do not create a parallel branch without a parent series"]
+boundaries: ["Do not parallelize shared writes","Do not create a parallel branch without a parent series"]
+required_inputs: ["approved parallel plan","task dependencies","workspace policy"]
+expected_outputs: ["parallel dispatches","worker reports","fan-in synchronization"]
+prerequisites: ["user approval","isolated workspaces"]
+side_effects: ["creates parallel worker sessions"]
+risk_level: "high"
+priority: 50
+category: "execution"
+subcategory: "parallel-dispatch"
+tags: ["execution","parallel-dispatch"]

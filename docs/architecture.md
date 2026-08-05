@@ -83,8 +83,11 @@ worker      performs one bounded operation
 reviewer    checks outputs independently
 ```
 
-Controllers and workers use different sessions when the task is handed off. Reviewers receive artifacts and
-evidence, not an assumed shared transcript. This prevents accidental context leakage and makes each handoff auditable.
+Controllers and workers use different sessions when the task is handed off. For one `plan_series_id`, the planning
+controller and execution controller are persistent sessions: series extensions reuse them so planning and execution
+continue in the same conversations. A parallel series gets a new controller pair and a `parallel_of` link; its
+accepted result is synchronized back to the parent planning session. Reviewers receive artifacts and evidence, not
+an assumed shared transcript. This keeps handoffs auditable without losing series continuity.
 
 ## 5. Skill organization
 
@@ -120,6 +123,7 @@ clarify goal
 → return report to planning
 → accept or revise
 → unlock dependent task
+→ dispatch next task in the same series controller sessions
 ```
 
 A module can stop the workflow. For example, missing requirements stop at clarification, an open blocker stops at
@@ -142,6 +146,9 @@ memory/
 ├── knowledge/<domain>/
 └── indexes/
 ```
+
+The dispatcher also emits a derived `plan-index.json` and `session-index.json` beside its state file. These indexes
+are discovery aids only; the plan, session records, reports, and summaries remain authoritative source artifacts.
 
 Indexes are for discovery. Source records remain authoritative for evidence. Cross-project retrieval is disabled
 unless the current task explicitly records the relationship and reason.

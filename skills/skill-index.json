@@ -1,0 +1,4757 @@
+{
+  "schema_version": "1.0",
+  "skills": [
+    {
+      "skill_id": "flowstate-acceptance-design",
+      "display_name": "Flowstate Acceptance Design",
+      "path": "skills/flowstate-acceptance-design",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Define criteria and evidence before execution"
+      ],
+      "positive_triggers": [
+        "Define criteria and evidence before execution"
+      ],
+      "negative_triggers": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "acceptance contract",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "acceptance-design",
+      "tags": [
+        "planning",
+        "acceptance-design"
+      ]
+    },
+    {
+      "skill_id": "flowstate-adapter-capability-check",
+      "display_name": "Flowstate Adapter Capability Check",
+      "path": "skills/flowstate-adapter-capability-check",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Check whether a platform supports a required operation"
+      ],
+      "positive_triggers": [
+        "Check whether a platform supports a required operation"
+      ],
+      "negative_triggers": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "capability result",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "adapters",
+      "subcategory": "adapter-capability-check",
+      "tags": [
+        "adapters",
+        "adapter-capability-check"
+      ]
+    },
+    {
+      "skill_id": "flowstate-adapter-failure-report",
+      "display_name": "Flowstate Adapter Failure Report",
+      "path": "skills/flowstate-adapter-failure-report",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Report unavailable or failed platform operations honestly"
+      ],
+      "positive_triggers": [
+        "Report unavailable or failed platform operations honestly"
+      ],
+      "negative_triggers": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "adapter failure record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "adapters",
+      "subcategory": "adapter-failure-report",
+      "tags": [
+        "adapters",
+        "adapter-failure-report"
+      ]
+    },
+    {
+      "skill_id": "flowstate-approval-gate",
+      "display_name": "Flowstate Approval Gate",
+      "path": "skills/flowstate-approval-gate",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Request and verify version-bound user approval"
+      ],
+      "positive_triggers": [
+        "Request and verify version-bound user approval"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "approval record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "approval-gate",
+      "tags": [
+        "coordination",
+        "approval-gate"
+      ]
+    },
+    {
+      "skill_id": "flowstate-architecture-planning",
+      "display_name": "Flowstate Architecture Planning",
+      "path": "skills/flowstate-architecture-planning",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Design bounded architecture options"
+      ],
+      "positive_triggers": [
+        "Design bounded architecture options"
+      ],
+      "negative_triggers": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "architecture decision",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "architecture-planning",
+      "tags": [
+        "planning",
+        "architecture-planning"
+      ]
+    },
+    {
+      "skill_id": "flowstate-auto-next-task",
+      "display_name": "Flowstate Auto Next Task",
+      "path": "skills/flowstate-auto-next-task",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Unlock and dispatch the next accepted dependent task"
+      ],
+      "positive_triggers": [
+        "Unlock and dispatch the next accepted dependent task"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "next-task dispatch",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "auto-next-task",
+      "tags": [
+        "dispatch",
+        "auto-next-task"
+      ]
+    },
+    {
+      "skill_id": "flowstate-blocker-management",
+      "display_name": "Flowstate Blocker Management",
+      "path": "skills/flowstate-blocker-management",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Register, wait for, and resolve blockers"
+      ],
+      "positive_triggers": [
+        "Register, wait for, and resolve blockers"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "blocker record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "blocker-management",
+      "tags": [
+        "coordination",
+        "blocker-management"
+      ]
+    },
+    {
+      "skill_id": "flowstate-blocker-wait",
+      "display_name": "Flowstate Blocker Wait",
+      "path": "skills/flowstate-blocker-wait",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Pause execution and expose a blocking decision"
+      ],
+      "positive_triggers": [
+        "Pause execution and expose a blocking decision"
+      ],
+      "negative_triggers": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "waiting record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "debugging",
+      "subcategory": "blocker-wait",
+      "tags": [
+        "debugging",
+        "blocker-wait"
+      ]
+    },
+    {
+      "skill_id": "flowstate-bounded-implementation",
+      "display_name": "Flowstate Bounded Implementation",
+      "path": "skills/flowstate-bounded-implementation",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Implement exactly the approved task scope"
+      ],
+      "positive_triggers": [
+        "Implement exactly the approved task scope"
+      ],
+      "negative_triggers": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "changed artifacts",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "development",
+      "subcategory": "bounded-implementation",
+      "tags": [
+        "development",
+        "bounded-implementation"
+      ]
+    },
+    {
+      "skill_id": "flowstate-brainstorming",
+      "display_name": "FlowState Brainstorming",
+      "path": "skills/flowstate-brainstorming",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "ambiguous project discovery and idea exploration"
+      ],
+      "positive_triggers": [
+        "The goal or solution space is ambiguous",
+        "The user asks for alternatives before a plan"
+      ],
+      "negative_triggers": [
+        "Do not make product changes",
+        "Do not treat ideas as approved execution scope"
+      ],
+      "boundaries": [
+        "Do not make product changes",
+        "Do not treat ideas as approved execution scope"
+      ],
+      "inputs": [
+        "user goal",
+        "known constraints",
+        "available context"
+      ],
+      "outputs": [
+        "options",
+        "tradeoffs",
+        "open questions",
+        "decision-ready brief"
+      ],
+      "risk_level": "low",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "brainstorming",
+      "tags": [
+        "planning",
+        "brainstorming"
+      ]
+    },
+    {
+      "skill_id": "flowstate-branch-completion",
+      "display_name": "FlowState Branch Completion",
+      "path": "skills/flowstate-branch-completion",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "an approved development branch is ready for handoff"
+      ],
+      "positive_triggers": [
+        "A task or branch reports implementation complete",
+        "A handoff or merge decision is requested"
+      ],
+      "negative_triggers": [
+        "Do not merge or push without authorization",
+        "Do not omit failing checks"
+      ],
+      "boundaries": [
+        "Do not merge or push without authorization",
+        "Do not omit failing checks"
+      ],
+      "inputs": [
+        "branch diff",
+        "test results",
+        "plan acceptance"
+      ],
+      "outputs": [
+        "completion checklist",
+        "handoff report",
+        "residual risks"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "release",
+      "subcategory": "branch-completion",
+      "tags": [
+        "release",
+        "branch-completion"
+      ]
+    },
+    {
+      "skill_id": "flowstate-change-audit",
+      "display_name": "Flowstate Change Audit",
+      "path": "skills/flowstate-change-audit",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Link changes to plan, task, session, evidence, and commit"
+      ],
+      "positive_triggers": [
+        "Link changes to plan, task, session, evidence, and commit"
+      ],
+      "negative_triggers": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "change audit",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "release-audit",
+      "subcategory": "change-audit",
+      "tags": [
+        "release-audit",
+        "change-audit"
+      ]
+    },
+    {
+      "skill_id": "flowstate-change-summary",
+      "display_name": "Flowstate Change Summary",
+      "path": "skills/flowstate-change-summary",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Record a concise user-facing change summary"
+      ],
+      "positive_triggers": [
+        "Record a concise user-facing change summary"
+      ],
+      "negative_triggers": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "change summary",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "release-audit",
+      "subcategory": "change-summary",
+      "tags": [
+        "release-audit",
+        "change-summary"
+      ]
+    },
+    {
+      "skill_id": "flowstate-codex-app-server-adapter",
+      "display_name": "Flowstate Codex App Server Adapter",
+      "path": "skills/flowstate-codex-app-server-adapter",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Map dispatch messages to Codex App Server turns"
+      ],
+      "positive_triggers": [
+        "Map dispatch messages to Codex App Server turns"
+      ],
+      "negative_triggers": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "platform turn",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "adapters",
+      "subcategory": "codex-app-server-adapter",
+      "tags": [
+        "adapters",
+        "codex-app-server-adapter"
+      ]
+    },
+    {
+      "skill_id": "flowstate-compatibility-review",
+      "display_name": "Flowstate Compatibility Review",
+      "path": "skills/flowstate-compatibility-review",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Check changes against existing contracts"
+      ],
+      "positive_triggers": [
+        "Check changes against existing contracts"
+      ],
+      "negative_triggers": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "compatibility report",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "compatibility-review",
+      "tags": [
+        "review",
+        "compatibility-review"
+      ]
+    },
+    {
+      "skill_id": "flowstate-configuration-change",
+      "display_name": "Flowstate Configuration Change",
+      "path": "skills/flowstate-configuration-change",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Apply a bounded configuration change"
+      ],
+      "positive_triggers": [
+        "Apply a bounded configuration change"
+      ],
+      "negative_triggers": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "configuration diff",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "development",
+      "subcategory": "configuration-change",
+      "tags": [
+        "development",
+        "configuration-change"
+      ]
+    },
+    {
+      "skill_id": "flowstate-context-research",
+      "display_name": "Flowstate Context Research",
+      "path": "skills/flowstate-context-research",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Research repository, dependencies, and prior decisions"
+      ],
+      "positive_triggers": [
+        "Research repository, dependencies, and prior decisions"
+      ],
+      "negative_triggers": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "research notes",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "context-research",
+      "tags": [
+        "planning",
+        "context-research"
+      ]
+    },
+    {
+      "skill_id": "flowstate-conversation-handoff",
+      "display_name": "Flowstate Conversation Handoff",
+      "path": "skills/flowstate-conversation-handoff",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Pass structured artifacts between isolated sessions"
+      ],
+      "positive_triggers": [
+        "Pass structured artifacts between isolated sessions"
+      ],
+      "negative_triggers": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "handoff packet",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "memory",
+      "subcategory": "conversation-handoff",
+      "tags": [
+        "memory",
+        "conversation-handoff"
+      ]
+    },
+    {
+      "skill_id": "flowstate-conversation-thread-sync",
+      "display_name": "Flowstate Conversation Thread Sync",
+      "path": "skills/flowstate-conversation-thread-sync",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Synchronize structured results between conversations"
+      ],
+      "positive_triggers": [
+        "Synchronize structured results between conversations"
+      ],
+      "negative_triggers": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "thread sync",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "adapters",
+      "subcategory": "conversation-thread-sync",
+      "tags": [
+        "adapters",
+        "conversation-thread-sync"
+      ]
+    },
+    {
+      "skill_id": "flowstate-cross-session-reference",
+      "display_name": "Flowstate Cross Session Reference",
+      "path": "skills/flowstate-cross-session-reference",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Record why another conversation was read"
+      ],
+      "positive_triggers": [
+        "Record why another conversation was read"
+      ],
+      "negative_triggers": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "reference record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "memory",
+      "subcategory": "cross-session-reference",
+      "tags": [
+        "memory",
+        "cross-session-reference"
+      ]
+    },
+    {
+      "skill_id": "flowstate-data-change",
+      "display_name": "Flowstate Data Change",
+      "path": "skills/flowstate-data-change",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Apply a bounded data or migration change"
+      ],
+      "positive_triggers": [
+        "Apply a bounded data or migration change"
+      ],
+      "negative_triggers": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "data change report",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "development",
+      "subcategory": "data-change",
+      "tags": [
+        "development",
+        "data-change"
+      ]
+    },
+    {
+      "skill_id": "flowstate-dependency-analysis",
+      "display_name": "Flowstate Dependency Analysis",
+      "path": "skills/flowstate-dependency-analysis",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Map task and external dependencies"
+      ],
+      "positive_triggers": [
+        "Map task and external dependencies"
+      ],
+      "negative_triggers": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "dependency graph",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "dependency-analysis",
+      "tags": [
+        "planning",
+        "dependency-analysis"
+      ]
+    },
+    {
+      "skill_id": "flowstate-design-change",
+      "display_name": "Flowstate Design Change",
+      "path": "skills/flowstate-design-change",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Apply a bounded design or visual change"
+      ],
+      "positive_triggers": [
+        "Apply a bounded design or visual change"
+      ],
+      "negative_triggers": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "design evidence",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "development",
+      "subcategory": "design-change",
+      "tags": [
+        "development",
+        "design-change"
+      ]
+    },
+    {
+      "skill_id": "flowstate-destructive-action-gate",
+      "display_name": "Flowstate Destructive Action Gate",
+      "path": "skills/flowstate-destructive-action-gate",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Gate deletion, overwrite, or migration actions"
+      ],
+      "positive_triggers": [
+        "Gate deletion, overwrite, or migration actions"
+      ],
+      "negative_triggers": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "destructive action decision",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "release-audit",
+      "subcategory": "destructive-action-gate",
+      "tags": [
+        "release-audit",
+        "destructive-action-gate"
+      ]
+    },
+    {
+      "skill_id": "flowstate-dispatch-contract",
+      "display_name": "Flowstate Dispatch Contract",
+      "path": "skills/flowstate-dispatch-contract",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Build a complete PLAN_DISPATCH message"
+      ],
+      "positive_triggers": [
+        "Build a complete PLAN_DISPATCH message"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "dispatch contract",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "dispatch-contract",
+      "tags": [
+        "dispatch",
+        "dispatch-contract"
+      ]
+    },
+    {
+      "skill_id": "flowstate-document-change",
+      "display_name": "Flowstate Document Change",
+      "path": "skills/flowstate-document-change",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Apply a bounded document change"
+      ],
+      "positive_triggers": [
+        "Apply a bounded document change"
+      ],
+      "negative_triggers": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "document artifact",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "development",
+      "subcategory": "document-change",
+      "tags": [
+        "development",
+        "document-change"
+      ]
+    },
+    {
+      "skill_id": "flowstate-evidence-validation",
+      "display_name": "Flowstate Evidence Validation",
+      "path": "skills/flowstate-evidence-validation",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Check evidence against exact acceptance criteria"
+      ],
+      "positive_triggers": [
+        "Check evidence against exact acceptance criteria"
+      ],
+      "negative_triggers": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "evidence decision",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "evidence-validation",
+      "tags": [
+        "review",
+        "evidence-validation"
+      ]
+    },
+    {
+      "skill_id": "flowstate-execution-controller",
+      "display_name": "Flowstate Execution Controller",
+      "path": "skills/flowstate-execution-controller",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Dispatch approved tasks and collect worker reports"
+      ],
+      "positive_triggers": [
+        "Dispatch approved tasks and collect worker reports"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "execution control record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "execution-controller",
+      "tags": [
+        "dispatch",
+        "execution-controller"
+      ]
+    },
+    {
+      "skill_id": "flowstate-execution-planning",
+      "display_name": "FlowState Execution Planning",
+      "path": "skills/flowstate-execution-planning",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "approved-scope decomposition into executable tasks"
+      ],
+      "positive_triggers": [
+        "A goal needs an executable task ledger",
+        "A plan must be prepared for user approval"
+      ],
+      "negative_triggers": [
+        "Do not dispatch before approval",
+        "Do not hide risks or blockers"
+      ],
+      "boundaries": [
+        "Do not dispatch before approval",
+        "Do not hide risks or blockers"
+      ],
+      "inputs": [
+        "goal",
+        "repository context",
+        "constraints",
+        "acceptance needs"
+      ],
+      "outputs": [
+        "descriptive plan",
+        "task ledger",
+        "risk register",
+        "approval request"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "execution-planning",
+      "tags": [
+        "planning",
+        "execution-planning"
+      ]
+    },
+    {
+      "skill_id": "flowstate-execution-worker",
+      "display_name": "Flowstate Execution Worker",
+      "path": "skills/flowstate-execution-worker",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Perform one exact approved task"
+      ],
+      "positive_triggers": [
+        "Perform one exact approved task"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "execution report",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "execution-worker",
+      "tags": [
+        "dispatch",
+        "execution-worker"
+      ]
+    },
+    {
+      "skill_id": "flowstate-external-push-approval",
+      "display_name": "Flowstate External Push Approval",
+      "path": "skills/flowstate-external-push-approval",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Gate a remote push on explicit authorization"
+      ],
+      "positive_triggers": [
+        "Gate a remote push on explicit authorization"
+      ],
+      "negative_triggers": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "push approval",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "release-audit",
+      "subcategory": "external-push-approval",
+      "tags": [
+        "release-audit",
+        "external-push-approval"
+      ]
+    },
+    {
+      "skill_id": "flowstate-failure-recovery",
+      "display_name": "Flowstate Failure Recovery",
+      "path": "skills/flowstate-failure-recovery",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Recover from a failed task within policy"
+      ],
+      "positive_triggers": [
+        "Recover from a failed task within policy"
+      ],
+      "negative_triggers": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "recovery decision",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "debugging",
+      "subcategory": "failure-recovery",
+      "tags": [
+        "debugging",
+        "failure-recovery"
+      ]
+    },
+    {
+      "skill_id": "flowstate-file-queue-adapter",
+      "display_name": "Flowstate File Queue Adapter",
+      "path": "skills/flowstate-file-queue-adapter",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Use an auditable local queue without a conversation API"
+      ],
+      "positive_triggers": [
+        "Use an auditable local queue without a conversation API"
+      ],
+      "negative_triggers": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "queue message",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "adapters",
+      "subcategory": "file-queue-adapter",
+      "tags": [
+        "adapters",
+        "file-queue-adapter"
+      ]
+    },
+    {
+      "skill_id": "flowstate-git-commit-audit",
+      "display_name": "Flowstate Git Commit Audit",
+      "path": "skills/flowstate-git-commit-audit",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Inspect and record a safe commit"
+      ],
+      "positive_triggers": [
+        "Inspect and record a safe commit"
+      ],
+      "negative_triggers": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "commit record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "release-audit",
+      "subcategory": "git-commit-audit",
+      "tags": [
+        "release-audit",
+        "git-commit-audit"
+      ]
+    },
+    {
+      "skill_id": "flowstate-git-worktree",
+      "display_name": "FlowState Git Worktree",
+      "path": "skills/flowstate-git-worktree",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "concurrent task workers need isolated Git workspaces"
+      ],
+      "positive_triggers": [
+        "Independent tasks write to the same repository",
+        "A parallel dispatch needs workspace isolation"
+      ],
+      "negative_triggers": [
+        "Do not rewrite another worker's worktree",
+        "Do not delete worktrees without approval"
+      ],
+      "boundaries": [
+        "Do not rewrite another worker's worktree",
+        "Do not delete worktrees without approval"
+      ],
+      "inputs": [
+        "repository",
+        "branch policy",
+        "task IDs"
+      ],
+      "outputs": [
+        "worktree mapping",
+        "cleanup record",
+        "merge evidence"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "execution",
+      "subcategory": "git-worktree",
+      "tags": [
+        "execution",
+        "git-worktree"
+      ]
+    },
+    {
+      "skill_id": "flowstate-hypothesis-analysis",
+      "display_name": "Flowstate Hypothesis Analysis",
+      "path": "skills/flowstate-hypothesis-analysis",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Compare root-cause hypotheses with evidence"
+      ],
+      "positive_triggers": [
+        "Compare root-cause hypotheses with evidence"
+      ],
+      "negative_triggers": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "hypothesis matrix",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "debugging",
+      "subcategory": "hypothesis-analysis",
+      "tags": [
+        "debugging",
+        "hypothesis-analysis"
+      ]
+    },
+    {
+      "skill_id": "flowstate-independent-plan-review",
+      "display_name": "Flowstate Independent Plan Review",
+      "path": "skills/flowstate-independent-plan-review",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Review a plan before user approval"
+      ],
+      "positive_triggers": [
+        "Review a plan before user approval"
+      ],
+      "negative_triggers": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "plan review",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "independent-plan-review",
+      "tags": [
+        "review",
+        "independent-plan-review"
+      ]
+    },
+    {
+      "skill_id": "flowstate-knowledge-catalog",
+      "display_name": "Flowstate Knowledge Catalog",
+      "path": "skills/flowstate-knowledge-catalog",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Organize reusable decisions by knowledge domain"
+      ],
+      "positive_triggers": [
+        "Organize reusable decisions by knowledge domain"
+      ],
+      "negative_triggers": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "knowledge catalog",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "memory",
+      "subcategory": "knowledge-catalog",
+      "tags": [
+        "memory",
+        "knowledge-catalog"
+      ]
+    },
+    {
+      "skill_id": "flowstate-knowledge-mapping",
+      "display_name": "Flowstate Knowledge Mapping",
+      "path": "skills/flowstate-knowledge-mapping",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Assign plans to searchable knowledge domains"
+      ],
+      "positive_triggers": [
+        "Assign plans to searchable knowledge domains"
+      ],
+      "negative_triggers": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "knowledge map",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "knowledge-mapping",
+      "tags": [
+        "planning",
+        "knowledge-mapping"
+      ]
+    },
+    {
+      "skill_id": "flowstate-lifecycle-validation",
+      "display_name": "Flowstate Lifecycle Validation",
+      "path": "skills/flowstate-lifecycle-validation",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Check resource ownership and cleanup lifecycle"
+      ],
+      "positive_triggers": [
+        "Check resource ownership and cleanup lifecycle"
+      ],
+      "negative_triggers": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "lifecycle report",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "lifecycle-validation",
+      "tags": [
+        "review",
+        "lifecycle-validation"
+      ]
+    },
+    {
+      "skill_id": "flowstate-memory-checkpoint",
+      "display_name": "Flowstate Memory Checkpoint",
+      "path": "skills/flowstate-memory-checkpoint",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Record progress, decisions, and evidence"
+      ],
+      "positive_triggers": [
+        "Record progress, decisions, and evidence"
+      ],
+      "negative_triggers": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "checkpoint record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "memory",
+      "subcategory": "memory-checkpoint",
+      "tags": [
+        "memory",
+        "memory-checkpoint"
+      ]
+    },
+    {
+      "skill_id": "flowstate-memory-close",
+      "display_name": "Flowstate Memory Close",
+      "path": "skills/flowstate-memory-close",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Summarize a completed or blocked conversation"
+      ],
+      "positive_triggers": [
+        "Summarize a completed or blocked conversation"
+      ],
+      "negative_triggers": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "conversation summary",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "memory",
+      "subcategory": "memory-close",
+      "tags": [
+        "memory",
+        "memory-close"
+      ]
+    },
+    {
+      "skill_id": "flowstate-memory-index",
+      "display_name": "Flowstate Memory Index",
+      "path": "skills/flowstate-memory-index",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Update plan, session, and knowledge indexes"
+      ],
+      "positive_triggers": [
+        "Update plan, session, and knowledge indexes"
+      ],
+      "negative_triggers": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "index document",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "memory",
+      "subcategory": "memory-index",
+      "tags": [
+        "memory",
+        "memory-index"
+      ]
+    },
+    {
+      "skill_id": "flowstate-memory-retrieval",
+      "display_name": "FlowState Memory Retrieval",
+      "path": "skills/flowstate-memory-retrieval",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "a task needs information from another conversation"
+      ],
+      "positive_triggers": [
+        "The current task depends on another conversation",
+        "A plan or knowledge record must be found"
+      ],
+      "negative_triggers": [
+        "Do not assume a transcript was shared",
+        "Do not use draft memory as an execution fact"
+      ],
+      "boundaries": [
+        "Do not assume a transcript was shared",
+        "Do not use draft memory as an execution fact"
+      ],
+      "inputs": [
+        "project ID",
+        "search terms",
+        "knowledge domain"
+      ],
+      "outputs": [
+        "retrieved summaries",
+        "source references",
+        "context decision"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "memory",
+      "subcategory": "memory-retrieval",
+      "tags": [
+        "memory",
+        "memory-retrieval"
+      ]
+    },
+    {
+      "skill_id": "flowstate-memory-start",
+      "display_name": "Flowstate Memory Start",
+      "path": "skills/flowstate-memory-start",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Record a conversation instruction and scope"
+      ],
+      "positive_triggers": [
+        "Record a conversation instruction and scope"
+      ],
+      "negative_triggers": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside memory and knowledge scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "session start record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "memory",
+      "subcategory": "memory-start",
+      "tags": [
+        "memory",
+        "memory-start"
+      ]
+    },
+    {
+      "skill_id": "flowstate-mode-control",
+      "display_name": "Flowstate Mode Control",
+      "path": "skills/flowstate-mode-control",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Switch or enforce discuss, plan, or execute mode"
+      ],
+      "positive_triggers": [
+        "Switch or enforce discuss, plan, or execute mode"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "mode decision",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "mode-control",
+      "tags": [
+        "coordination",
+        "mode-control"
+      ]
+    },
+    {
+      "skill_id": "flowstate-parallel-dispatch",
+      "display_name": "FlowState Parallel Dispatch",
+      "path": "skills/flowstate-parallel-dispatch",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "independent tasks need concurrent execution"
+      ],
+      "positive_triggers": [
+        "Tasks have no hidden dependency or shared mutable writes",
+        "A parallel plan is explicitly approved"
+      ],
+      "negative_triggers": [
+        "Do not parallelize shared writes",
+        "Do not create a parallel branch without a parent series"
+      ],
+      "boundaries": [
+        "Do not parallelize shared writes",
+        "Do not create a parallel branch without a parent series"
+      ],
+      "inputs": [
+        "approved parallel plan",
+        "task dependencies",
+        "workspace policy"
+      ],
+      "outputs": [
+        "parallel dispatches",
+        "worker reports",
+        "fan-in synchronization"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "execution",
+      "subcategory": "parallel-dispatch",
+      "tags": [
+        "execution",
+        "parallel-dispatch"
+      ]
+    },
+    {
+      "skill_id": "flowstate-parallel-series-sync",
+      "display_name": "Flowstate Parallel Series Sync",
+      "path": "skills/flowstate-parallel-series-sync",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Create a parallel branch and synchronize accepted results"
+      ],
+      "positive_triggers": [
+        "Create a parallel branch and synchronize accepted results"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "fan-in record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "parallel-series-sync",
+      "tags": [
+        "coordination",
+        "parallel-series-sync"
+      ]
+    },
+    {
+      "skill_id": "flowstate-performance-validation",
+      "display_name": "Flowstate Performance Validation",
+      "path": "skills/flowstate-performance-validation",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Measure performance against a target"
+      ],
+      "positive_triggers": [
+        "Measure performance against a target"
+      ],
+      "negative_triggers": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "performance report",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "performance-validation",
+      "tags": [
+        "review",
+        "performance-validation"
+      ]
+    },
+    {
+      "skill_id": "flowstate-plan-versioning",
+      "display_name": "Flowstate Plan Versioning",
+      "path": "skills/flowstate-plan-versioning",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Create immutable plan versions and migration links"
+      ],
+      "positive_triggers": [
+        "Create immutable plan versions and migration links"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "version lineage",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "plan-versioning",
+      "tags": [
+        "coordination",
+        "plan-versioning"
+      ]
+    },
+    {
+      "skill_id": "flowstate-planning-controller",
+      "display_name": "Flowstate Planning Controller",
+      "path": "skills/flowstate-planning-controller",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Coordinate planning workers and user approval"
+      ],
+      "positive_triggers": [
+        "Coordinate planning workers and user approval"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "planning control record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "planning-controller",
+      "tags": [
+        "dispatch",
+        "planning-controller"
+      ]
+    },
+    {
+      "skill_id": "flowstate-planning-worker",
+      "display_name": "Flowstate Planning Worker",
+      "path": "skills/flowstate-planning-worker",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Perform bounded research or planning work"
+      ],
+      "positive_triggers": [
+        "Perform bounded research or planning work"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "planning worker report",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "planning-worker",
+      "tags": [
+        "dispatch",
+        "planning-worker"
+      ]
+    },
+    {
+      "skill_id": "flowstate-platform-session-management",
+      "display_name": "Flowstate Platform Session Management",
+      "path": "skills/flowstate-platform-session-management",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Create and reuse real controller and worker sessions"
+      ],
+      "positive_triggers": [
+        "Create and reuse real controller and worker sessions"
+      ],
+      "negative_triggers": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside platform adapters and session transport scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "session mapping",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "adapters",
+      "subcategory": "platform-session-management",
+      "tags": [
+        "adapters",
+        "platform-session-management"
+      ]
+    },
+    {
+      "skill_id": "flowstate-precompletion-validation",
+      "display_name": "FlowState Precompletion Validation",
+      "path": "skills/flowstate-precompletion-validation",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "a task is about to be marked complete"
+      ],
+      "positive_triggers": [
+        "A worker reports completion",
+        "A dependent task is about to unlock"
+      ],
+      "negative_triggers": [
+        "Do not treat self-reported success as evidence",
+        "Do not close unresolved blockers"
+      ],
+      "boundaries": [
+        "Do not treat self-reported success as evidence",
+        "Do not close unresolved blockers"
+      ],
+      "inputs": [
+        "plan acceptance",
+        "execution report",
+        "tests",
+        "diff"
+      ],
+      "outputs": [
+        "completion decision",
+        "evidence checklist",
+        "remaining risks"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "precompletion-validation",
+      "tags": [
+        "review",
+        "precompletion-validation"
+      ]
+    },
+    {
+      "skill_id": "flowstate-project-intake",
+      "display_name": "Flowstate Project Intake",
+      "path": "skills/flowstate-project-intake",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Identify project, repository, and authority"
+      ],
+      "positive_triggers": [
+        "Identify project, repository, and authority"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "intake record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "project-intake",
+      "tags": [
+        "coordination",
+        "project-intake"
+      ]
+    },
+    {
+      "skill_id": "flowstate-project-method",
+      "display_name": "FlowState Project Method",
+      "path": "skills/flowstate-project-method",
+      "project_scope": [
+        "global"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review",
+        "coordination"
+      ],
+      "stages": [
+        "intake",
+        "discovery",
+        "design",
+        "implementation",
+        "validation",
+        "release",
+        "maintenance"
+      ],
+      "scenarios": [
+        "any project task requiring governed planning or execution"
+      ],
+      "positive_triggers": [
+        "a project task starts",
+        "a plan, Skill, dispatch, review, risk, blocker, or memory operation is requested"
+      ],
+      "negative_triggers": [
+        "a purely casual conversation with no project operation"
+      ],
+      "boundaries": [
+        "a purely casual conversation with no project operation"
+      ],
+      "inputs": [
+        "project context",
+        "current user instruction"
+      ],
+      "outputs": [
+        "classified task",
+        "selected Skills",
+        "governed plan or execution record"
+      ],
+      "risk_level": "medium",
+      "priority": 100,
+      "category": "coordination",
+      "subcategory": "project-governance",
+      "tags": [
+        "flowstate",
+        "routing",
+        "approval",
+        "audit"
+      ]
+    },
+    {
+      "skill_id": "flowstate-project-profile",
+      "display_name": "Flowstate Project Profile",
+      "path": "skills/flowstate-project-profile",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Load project paths, policies, roles, and tools"
+      ],
+      "positive_triggers": [
+        "Load project paths, policies, roles, and tools"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "project profile",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "project-profile",
+      "tags": [
+        "coordination",
+        "project-profile"
+      ]
+    },
+    {
+      "skill_id": "flowstate-receive-review",
+      "display_name": "FlowState Receive Review",
+      "path": "skills/flowstate-receive-review",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "an independent review report returns to planning"
+      ],
+      "positive_triggers": [
+        "A reviewer returns a decision",
+        "A planning controller must unlock or block a task"
+      ],
+      "negative_triggers": [
+        "Do not accept missing evidence",
+        "Do not unlock dependents on a blocked decision"
+      ],
+      "boundaries": [
+        "Do not accept missing evidence",
+        "Do not unlock dependents on a blocked decision"
+      ],
+      "inputs": [
+        "review decision",
+        "acceptance criteria",
+        "evidence"
+      ],
+      "outputs": [
+        "review record",
+        "task status",
+        "next dispatch or blocker"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "receive-review",
+      "tags": [
+        "review",
+        "receive-review"
+      ]
+    },
+    {
+      "skill_id": "flowstate-refactoring",
+      "display_name": "Flowstate Refactoring",
+      "path": "skills/flowstate-refactoring",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Improve structure without changing the approved behavior"
+      ],
+      "positive_triggers": [
+        "Improve structure without changing the approved behavior"
+      ],
+      "negative_triggers": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside implementation and workspace scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "refactor evidence",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "development",
+      "subcategory": "refactoring",
+      "tags": [
+        "development",
+        "refactoring"
+      ]
+    },
+    {
+      "skill_id": "flowstate-release-handoff",
+      "display_name": "Flowstate Release Handoff",
+      "path": "skills/flowstate-release-handoff",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Prepare release notes, evidence, and rollback handoff"
+      ],
+      "positive_triggers": [
+        "Prepare release notes, evidence, and rollback handoff"
+      ],
+      "negative_triggers": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "release handoff",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "release-audit",
+      "subcategory": "release-handoff",
+      "tags": [
+        "release-audit",
+        "release-handoff"
+      ]
+    },
+    {
+      "skill_id": "flowstate-report-return",
+      "display_name": "Flowstate Report Return",
+      "path": "skills/flowstate-report-return",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Return worker evidence to the fixed controller sessions"
+      ],
+      "positive_triggers": [
+        "Return worker evidence to the fixed controller sessions"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "report handoff",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "report-return",
+      "tags": [
+        "dispatch",
+        "report-return"
+      ]
+    },
+    {
+      "skill_id": "flowstate-reproduction",
+      "display_name": "Flowstate Reproduction",
+      "path": "skills/flowstate-reproduction",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Create a minimal reliable reproduction"
+      ],
+      "positive_triggers": [
+        "Create a minimal reliable reproduction"
+      ],
+      "negative_triggers": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "reproduction record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "debugging",
+      "subcategory": "reproduction",
+      "tags": [
+        "debugging",
+        "reproduction"
+      ]
+    },
+    {
+      "skill_id": "flowstate-request-review",
+      "display_name": "FlowState Request Review",
+      "path": "skills/flowstate-request-review",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "completed work needs an independent review"
+      ],
+      "positive_triggers": [
+        "A worker report is ready for review",
+        "The plan requires independent acceptance"
+      ],
+      "negative_triggers": [
+        "Do not ask the worker to approve itself",
+        "Do not change acceptance criteria in the review request"
+      ],
+      "boundaries": [
+        "Do not ask the worker to approve itself",
+        "Do not change acceptance criteria in the review request"
+      ],
+      "inputs": [
+        "execution report",
+        "plan acceptance",
+        "evidence"
+      ],
+      "outputs": [
+        "review request",
+        "review scope",
+        "review questions"
+      ],
+      "risk_level": "low",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "request-review",
+      "tags": [
+        "review",
+        "request-review"
+      ]
+    },
+    {
+      "skill_id": "flowstate-requirements-discovery",
+      "display_name": "Flowstate Requirements Discovery",
+      "path": "skills/flowstate-requirements-discovery",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Turn user intent into explicit requirements"
+      ],
+      "positive_triggers": [
+        "Turn user intent into explicit requirements"
+      ],
+      "negative_triggers": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "requirements record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "requirements-discovery",
+      "tags": [
+        "planning",
+        "requirements-discovery"
+      ]
+    },
+    {
+      "skill_id": "flowstate-retry-escalation",
+      "display_name": "Flowstate Retry Escalation",
+      "path": "skills/flowstate-retry-escalation",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Retry bounded failures and escalate after the limit"
+      ],
+      "positive_triggers": [
+        "Retry bounded failures and escalate after the limit"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "retry decision",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "retry-escalation",
+      "tags": [
+        "dispatch",
+        "retry-escalation"
+      ]
+    },
+    {
+      "skill_id": "flowstate-review-handoff",
+      "display_name": "Flowstate Review Handoff",
+      "path": "skills/flowstate-review-handoff",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Send reports from execution to planning review"
+      ],
+      "positive_triggers": [
+        "Send reports from execution to planning review"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "review handoff",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "review-handoff",
+      "tags": [
+        "dispatch",
+        "review-handoff"
+      ]
+    },
+    {
+      "skill_id": "flowstate-risk-register",
+      "display_name": "Flowstate Risk Register",
+      "path": "skills/flowstate-risk-register",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Identify, treat, and obtain decisions on risks"
+      ],
+      "positive_triggers": [
+        "Identify, treat, and obtain decisions on risks"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "risk register",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "risk-register",
+      "tags": [
+        "coordination",
+        "risk-register"
+      ]
+    },
+    {
+      "skill_id": "flowstate-risk-rereview",
+      "display_name": "Flowstate Risk Rereview",
+      "path": "skills/flowstate-risk-rereview",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Return new high-impact risk to planning and the user"
+      ],
+      "positive_triggers": [
+        "Return new high-impact risk to planning and the user"
+      ],
+      "negative_triggers": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "reapproval request",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "debugging",
+      "subcategory": "risk-rereview",
+      "tags": [
+        "debugging",
+        "risk-rereview"
+      ]
+    },
+    {
+      "skill_id": "flowstate-rollback-design",
+      "display_name": "Flowstate Rollback Design",
+      "path": "skills/flowstate-rollback-design",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Define stop, rollback, and recovery conditions"
+      ],
+      "positive_triggers": [
+        "Define stop, rollback, and recovery conditions"
+      ],
+      "negative_triggers": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "rollback plan",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "rollback-design",
+      "tags": [
+        "planning",
+        "rollback-design"
+      ]
+    },
+    {
+      "skill_id": "flowstate-rollback-execution",
+      "display_name": "Flowstate Rollback Execution",
+      "path": "skills/flowstate-rollback-execution",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Execute an approved rollback and verify it"
+      ],
+      "positive_triggers": [
+        "Execute an approved rollback and verify it"
+      ],
+      "negative_triggers": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside debugging and recovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "rollback evidence",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "debugging",
+      "subcategory": "rollback-execution",
+      "tags": [
+        "debugging",
+        "rollback-execution"
+      ]
+    },
+    {
+      "skill_id": "flowstate-rollback-record",
+      "display_name": "Flowstate Rollback Record",
+      "path": "skills/flowstate-rollback-record",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Record rollback readiness and actual rollback results"
+      ],
+      "positive_triggers": [
+        "Record rollback readiness and actual rollback results"
+      ],
+      "negative_triggers": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "rollback record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "release-audit",
+      "subcategory": "rollback-record",
+      "tags": [
+        "release-audit",
+        "rollback-record"
+      ]
+    },
+    {
+      "skill_id": "flowstate-scenario-classification",
+      "display_name": "Flowstate Scenario Classification",
+      "path": "skills/flowstate-scenario-classification",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Classify operation, department, stage, and concrete scenario"
+      ],
+      "positive_triggers": [
+        "Classify operation, department, stage, and concrete scenario"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "classification tuple",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "scenario-classification",
+      "tags": [
+        "coordination",
+        "scenario-classification"
+      ]
+    },
+    {
+      "skill_id": "flowstate-secret-scan",
+      "display_name": "Flowstate Secret Scan",
+      "path": "skills/flowstate-secret-scan",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Scan staged changes for credentials or sensitive data"
+      ],
+      "positive_triggers": [
+        "Scan staged changes for credentials or sensitive data"
+      ],
+      "negative_triggers": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside release, audit, and external effects scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "secret scan",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "release-audit",
+      "subcategory": "secret-scan",
+      "tags": [
+        "release-audit",
+        "secret-scan"
+      ]
+    },
+    {
+      "skill_id": "flowstate-security-review",
+      "display_name": "Flowstate Security Review",
+      "path": "skills/flowstate-security-review",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Review permissions, secrets, and unsafe side effects"
+      ],
+      "positive_triggers": [
+        "Review permissions, secrets, and unsafe side effects"
+      ],
+      "negative_triggers": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "security findings",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "security-review",
+      "tags": [
+        "review",
+        "security-review"
+      ]
+    },
+    {
+      "skill_id": "flowstate-serial-dispatch",
+      "display_name": "Flowstate Serial Dispatch",
+      "path": "skills/flowstate-serial-dispatch",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Run dependent tasks one at a time"
+      ],
+      "positive_triggers": [
+        "Run dependent tasks one at a time"
+      ],
+      "negative_triggers": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside controllers, dispatch, and agents scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "serial dispatch record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "dispatch",
+      "subcategory": "serial-dispatch",
+      "tags": [
+        "dispatch",
+        "serial-dispatch"
+      ]
+    },
+    {
+      "skill_id": "flowstate-series-continuity",
+      "display_name": "Flowstate Series Continuity",
+      "path": "skills/flowstate-series-continuity",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Reuse controller conversations for a series extension"
+      ],
+      "positive_triggers": [
+        "Reuse controller conversations for a series extension"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "series session mapping",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "series-continuity",
+      "tags": [
+        "coordination",
+        "series-continuity"
+      ]
+    },
+    {
+      "skill_id": "flowstate-skill-authoring",
+      "display_name": "FlowState Skill Authoring",
+      "path": "skills/flowstate-skill-authoring",
+      "project_scope": [
+        "global"
+      ],
+      "departments": [
+        "planning",
+        "coordination"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "maintenance"
+      ],
+      "scenarios": [
+        "author or update a reusable Skill from a concrete scenario"
+      ],
+      "positive_triggers": [
+        "a repeatable scenario lacks a reliable Skill",
+        "Skill boundaries or metadata need revision"
+      ],
+      "negative_triggers": [
+        "an existing Skill already matches",
+        "product execution is requested"
+      ],
+      "boundaries": [
+        "an existing Skill already matches",
+        "product execution is requested"
+      ],
+      "inputs": [
+        "scenario",
+        "action",
+        "outcome",
+        "positive triggers",
+        "boundaries",
+        "inputs",
+        "outputs"
+      ],
+      "outputs": [
+        "SKILL.md",
+        "skill-manifest.yaml",
+        "agents/openai.yaml",
+        "updated Skill index"
+      ],
+      "risk_level": "low",
+      "priority": 90,
+      "category": "skill-authoring",
+      "subcategory": "skill-metadata",
+      "tags": [
+        "skill-authoring",
+        "routing",
+        "metadata"
+      ]
+    },
+    {
+      "skill_id": "flowstate-skill-category-classification",
+      "display_name": "Flowstate Skill Category Classification",
+      "path": "skills/flowstate-skill-category-classification",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Assign the narrowest taxonomy category"
+      ],
+      "positive_triggers": [
+        "Assign the narrowest taxonomy category"
+      ],
+      "negative_triggers": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "category decision",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "skill-authoring",
+      "subcategory": "skill-category-classification",
+      "tags": [
+        "skill-authoring",
+        "skill-category-classification"
+      ]
+    },
+    {
+      "skill_id": "flowstate-skill-compatibility-migration",
+      "display_name": "Flowstate Skill Compatibility Migration",
+      "path": "skills/flowstate-skill-compatibility-migration",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Extend a Skill without breaking its contract"
+      ],
+      "positive_triggers": [
+        "Extend a Skill without breaking its contract"
+      ],
+      "negative_triggers": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "migration record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "skill-authoring",
+      "subcategory": "skill-compatibility-migration",
+      "tags": [
+        "skill-authoring",
+        "skill-compatibility-migration"
+      ]
+    },
+    {
+      "skill_id": "flowstate-skill-index-generation",
+      "display_name": "Flowstate Skill Index Generation",
+      "path": "skills/flowstate-skill-index-generation",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Update searchable JSON and Markdown Skill indexes"
+      ],
+      "positive_triggers": [
+        "Update searchable JSON and Markdown Skill indexes"
+      ],
+      "negative_triggers": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "Skill index",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "skill-authoring",
+      "subcategory": "skill-index-generation",
+      "tags": [
+        "skill-authoring",
+        "skill-index-generation"
+      ]
+    },
+    {
+      "skill_id": "flowstate-skill-metadata",
+      "display_name": "Flowstate Skill Metadata",
+      "path": "skills/flowstate-skill-metadata",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Write triggers, boundaries, inputs, outputs, and risk metadata"
+      ],
+      "positive_triggers": [
+        "Write triggers, boundaries, inputs, outputs, and risk metadata"
+      ],
+      "negative_triggers": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "Skill manifest",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "skill-authoring",
+      "subcategory": "skill-metadata",
+      "tags": [
+        "skill-authoring",
+        "skill-metadata"
+      ]
+    },
+    {
+      "skill_id": "flowstate-skill-name-generation",
+      "display_name": "Flowstate Skill Name Generation",
+      "path": "skills/flowstate-skill-name-generation",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Generate a concise descriptive Skill name"
+      ],
+      "positive_triggers": [
+        "Generate a concise descriptive Skill name"
+      ],
+      "negative_triggers": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "Skill ID",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "skill-authoring",
+      "subcategory": "skill-name-generation",
+      "tags": [
+        "skill-authoring",
+        "skill-name-generation"
+      ]
+    },
+    {
+      "skill_id": "flowstate-skill-routing",
+      "display_name": "Flowstate Skill Routing",
+      "path": "skills/flowstate-skill-routing",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Choose Skills from scenario metadata"
+      ],
+      "positive_triggers": [
+        "Choose Skills from scenario metadata"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "selection record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "skill-routing",
+      "tags": [
+        "coordination",
+        "skill-routing"
+      ]
+    },
+    {
+      "skill_id": "flowstate-skill-routing-review",
+      "display_name": "Flowstate Skill Routing Review",
+      "path": "skills/flowstate-skill-routing-review",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Check routing candidates against a scenario"
+      ],
+      "positive_triggers": [
+        "Check routing candidates against a scenario"
+      ],
+      "negative_triggers": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside skill authoring and routing scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "routing decision",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "skill-authoring",
+      "subcategory": "skill-routing-review",
+      "tags": [
+        "skill-authoring",
+        "skill-routing-review"
+      ]
+    },
+    {
+      "skill_id": "flowstate-subagent-development",
+      "display_name": "FlowState Subagent Development",
+      "path": "skills/flowstate-subagent-development",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "one bounded task should be performed by a task worker"
+      ],
+      "positive_triggers": [
+        "A plan task is approved and ready",
+        "The execution controller needs a bounded worker"
+      ],
+      "negative_triggers": [
+        "Worker cannot self-approve",
+        "Worker cannot expand scope"
+      ],
+      "boundaries": [
+        "Worker cannot self-approve",
+        "Worker cannot expand scope"
+      ],
+      "inputs": [
+        "PLAN_DISPATCH",
+        "allowed paths",
+        "acceptance criteria"
+      ],
+      "outputs": [
+        "changed artifacts",
+        "tests",
+        "evidence",
+        "risks",
+        "blockers"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "execution",
+      "subcategory": "subagent-development",
+      "tags": [
+        "execution",
+        "subagent-development"
+      ]
+    },
+    {
+      "skill_id": "flowstate-system-debugging",
+      "display_name": "FlowState System Debugging",
+      "path": "skills/flowstate-system-debugging",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "a reproducible system failure needs diagnosis"
+      ],
+      "positive_triggers": [
+        "A reproducible system error is reported",
+        "The user asks for diagnosis before a fix"
+      ],
+      "negative_triggers": [
+        "Do not apply an unapproved production fix",
+        "Do not claim root cause without evidence"
+      ],
+      "boundaries": [
+        "Do not apply an unapproved production fix",
+        "Do not claim root cause without evidence"
+      ],
+      "inputs": [
+        "symptom",
+        "reproduction",
+        "runtime context",
+        "logs"
+      ],
+      "outputs": [
+        "reproduction record",
+        "hypotheses",
+        "evidence",
+        "bounded remediation options"
+      ],
+      "risk_level": "high",
+      "priority": 50,
+      "category": "debugging",
+      "subcategory": "system-debugging",
+      "tags": [
+        "debugging",
+        "system-debugging"
+      ]
+    },
+    {
+      "skill_id": "flowstate-task-decomposition",
+      "display_name": "Flowstate Task Decomposition",
+      "path": "skills/flowstate-task-decomposition",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Split work into independently verifiable tasks"
+      ],
+      "positive_triggers": [
+        "Split work into independently verifiable tasks"
+      ],
+      "negative_triggers": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside planning and discovery scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "task ledger",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "task-decomposition",
+      "tags": [
+        "planning",
+        "task-decomposition"
+      ]
+    },
+    {
+      "skill_id": "flowstate-tdd",
+      "display_name": "FlowState Test Driven Development",
+      "path": "skills/flowstate-tdd",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "a bounded code change needs test-first implementation"
+      ],
+      "positive_triggers": [
+        "The task has a deterministic behavior contract",
+        "The project uses automated tests"
+      ],
+      "negative_triggers": [
+        "Do not invent acceptance criteria",
+        "Do not skip the verification loop"
+      ],
+      "boundaries": [
+        "Do not invent acceptance criteria",
+        "Do not skip the verification loop"
+      ],
+      "inputs": [
+        "behavior contract",
+        "test harness",
+        "approved paths"
+      ],
+      "outputs": [
+        "tests",
+        "implementation",
+        "test log",
+        "deviations"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "test-driven-development",
+      "tags": [
+        "review",
+        "test-driven-development"
+      ]
+    },
+    {
+      "skill_id": "flowstate-test-execution",
+      "display_name": "Flowstate Test Execution",
+      "path": "skills/flowstate-test-execution",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Run and capture declared automated tests"
+      ],
+      "positive_triggers": [
+        "Run and capture declared automated tests"
+      ],
+      "negative_triggers": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "test report",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "test-execution",
+      "tags": [
+        "review",
+        "test-execution"
+      ]
+    },
+    {
+      "skill_id": "flowstate-test-planning",
+      "display_name": "Flowstate Test Planning",
+      "path": "skills/flowstate-test-planning",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Choose tests for a risk and acceptance contract"
+      ],
+      "positive_triggers": [
+        "Choose tests for a risk and acceptance contract"
+      ],
+      "negative_triggers": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "test plan",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "test-planning",
+      "tags": [
+        "review",
+        "test-planning"
+      ]
+    },
+    {
+      "skill_id": "flowstate-user-clarification",
+      "display_name": "Flowstate User Clarification",
+      "path": "skills/flowstate-user-clarification",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Resolve an unanswered decision before planning or execution"
+      ],
+      "positive_triggers": [
+        "Resolve an unanswered decision before planning or execution"
+      ],
+      "negative_triggers": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside coordination and governance scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "clarification record",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "coordination",
+      "subcategory": "user-clarification",
+      "tags": [
+        "coordination",
+        "user-clarification"
+      ]
+    },
+    {
+      "skill_id": "flowstate-visual-validation",
+      "display_name": "Flowstate Visual Validation",
+      "path": "skills/flowstate-visual-validation",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "Validate visual claims with screenshots or measurements"
+      ],
+      "positive_triggers": [
+        "Validate visual claims with screenshots or measurements"
+      ],
+      "negative_triggers": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "boundaries": [
+        "Do not use outside review, testing, and validation scenarios",
+        "Do not bypass approval, scope, evidence, or safety gates"
+      ],
+      "inputs": [
+        "classified project context",
+        "plan or task-local artifacts",
+        "current constraints"
+      ],
+      "outputs": [
+        "visual evidence",
+        "evidence, risks, blockers, and next action"
+      ],
+      "risk_level": "medium",
+      "priority": 50,
+      "category": "review",
+      "subcategory": "visual-validation",
+      "tags": [
+        "review",
+        "visual-validation"
+      ]
+    },
+    {
+      "skill_id": "flowstate-writing-plans",
+      "display_name": "FlowState Writing Plans",
+      "path": "skills/flowstate-writing-plans",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "a plan needs a clear human-readable artifact"
+      ],
+      "positive_triggers": [
+        "A new plan or plan version is requested",
+        "Other conversations need to retrieve the plan"
+      ],
+      "negative_triggers": [
+        "Do not write an execution command as a plan",
+        "Do not omit an empty-section explanation"
+      ],
+      "boundaries": [
+        "Do not write an execution command as a plan",
+        "Do not omit an empty-section explanation"
+      ],
+      "inputs": [
+        "goal",
+        "context",
+        "constraints",
+        "decisions"
+      ],
+      "outputs": [
+        "plan document",
+        "plan index entry",
+        "approval request"
+      ],
+      "risk_level": "low",
+      "priority": 50,
+      "category": "planning",
+      "subcategory": "writing-plans",
+      "tags": [
+        "planning",
+        "writing-plans"
+      ]
+    },
+    {
+      "skill_id": "flowstate-writing-skills",
+      "display_name": "FlowState Writing Skills",
+      "path": "skills/flowstate-writing-skills",
+      "project_scope": [
+        "flowstate"
+      ],
+      "departments": [
+        "planning",
+        "execution",
+        "review"
+      ],
+      "stages": [
+        "discovery",
+        "design",
+        "implementation",
+        "validation"
+      ],
+      "scenarios": [
+        "a reusable capability needs a new Skill"
+      ],
+      "positive_triggers": [
+        "No existing Skill reliably matches the scenario",
+        "A Skill needs a routing contract"
+      ],
+      "negative_triggers": [
+        "Do not create a Skill from a name alone",
+        "Do not use authoring to execute product work"
+      ],
+      "boundaries": [
+        "Do not create a Skill from a name alone",
+        "Do not use authoring to execute product work"
+      ],
+      "inputs": [
+        "scenario",
+        "action",
+        "outcome",
+        "triggers",
+        "boundaries"
+      ],
+      "outputs": [
+        "Skill files",
+        "manifest",
+        "category entry",
+        "index update"
+      ],
+      "risk_level": "low",
+      "priority": 50,
+      "category": "skill-authoring",
+      "subcategory": "skill-metadata",
+      "tags": [
+        "skill-authoring",
+        "skill-metadata"
+      ]
+    }
+  ]
+}

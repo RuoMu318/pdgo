@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Scenario Classification","short_description":"Coordination workflow for classification tuple","default_prompt":"Use $flowstate-scenario-classification for Classify operation, department, stage, and concrete scenario and produce classification tuple."}
+policy: {"allow_implicit_invocation":true}

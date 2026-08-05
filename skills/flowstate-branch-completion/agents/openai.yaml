@@ -1,0 +1,2 @@
+interface: {"display_name":"FlowState Branch Completion","short_description":"Verify a completed branch and prepare its audited handoff","default_prompt":"Use $flowstate-branch-completion for an approved development branch is ready for handoff and produce handoff and change audit report."}
+policy: {"allow_implicit_invocation":true}

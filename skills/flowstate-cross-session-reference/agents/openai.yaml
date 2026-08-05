@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Cross Session Reference","short_description":"Memory workflow for reference record","default_prompt":"Use $flowstate-cross-session-reference for Record why another conversation was read and produce reference record."}
+policy: {"allow_implicit_invocation":true}

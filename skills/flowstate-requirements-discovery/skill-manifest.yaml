@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-requirements-discovery"
+display_name: "Flowstate Requirements Discovery"
+description: "Apply the FlowState planning and discovery workflow when the concrete scenario is: Turn user intent into explicit requirements. Produce requirements record with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Turn user intent into explicit requirements"]
+positive_triggers: ["Turn user intent into explicit requirements"]
+negative_triggers: ["Do not use outside planning and discovery scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside planning and discovery scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["requirements record","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "medium"
+priority: 50
+category: "planning"
+subcategory: "requirements-discovery"
+tags: ["planning","requirements-discovery"]

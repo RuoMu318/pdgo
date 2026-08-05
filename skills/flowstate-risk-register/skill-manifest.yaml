@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-risk-register"
+display_name: "Flowstate Risk Register"
+description: "Apply the FlowState coordination and governance workflow when the concrete scenario is: Identify, treat, and obtain decisions on risks. Produce risk register with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Identify, treat, and obtain decisions on risks"]
+positive_triggers: ["Identify, treat, and obtain decisions on risks"]
+negative_triggers: ["Do not use outside coordination and governance scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside coordination and governance scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["risk register","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "medium"
+priority: 50
+category: "coordination"
+subcategory: "risk-register"
+tags: ["coordination","risk-register"]

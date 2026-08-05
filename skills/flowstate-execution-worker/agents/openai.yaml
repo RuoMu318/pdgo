@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Execution Worker","short_description":"Dispatch workflow for execution report","default_prompt":"Use $flowstate-execution-worker for Perform one exact approved task and produce execution report."}
+policy: {"allow_implicit_invocation":true}

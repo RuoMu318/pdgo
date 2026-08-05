@@ -6,12 +6,21 @@ project_id: project-id
 plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
 plan_version: v1
 task_id: T01
-parent_session_id: planning-session-id
-target_session_id: execution-session-id
+parent_session_id: execution-session-id
+target_session_id: execution-worker-session-id
+planning_session_id: planning-session-id
+execution_session_id: execution-session-id
+worker_session_id: execution-worker-session-id
+platform_worker_session_id: null
+worker_delivery_status: connected | adapter-unavailable
+plan_series_id: PROJECT-YYYYMMDD-NNN
 objective: ""
 scope: []
 input_artifacts: []
 required_skills: []
+external_agent_id: null
+external_agent_query: null
+external_agent_division: null
 allowed_paths: []
 forbidden_actions: []
 dependencies: []
@@ -20,3 +29,5 @@ expected_evidence: []
 risk_profile: []
 stop_conditions: []
 return_to: planning-session-id
+execution_return_to: execution-session-id
+planning_return_to: planning-session-id

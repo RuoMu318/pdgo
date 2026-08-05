@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-codex-app-server-adapter"
+display_name: "Flowstate Codex App Server Adapter"
+description: "Apply the FlowState platform adapters and session transport workflow when the concrete scenario is: Map dispatch messages to Codex App Server turns. Produce platform turn with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Map dispatch messages to Codex App Server turns"]
+positive_triggers: ["Map dispatch messages to Codex App Server turns"]
+negative_triggers: ["Do not use outside platform adapters and session transport scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside platform adapters and session transport scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["platform turn","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "high"
+priority: 50
+category: "adapters"
+subcategory: "codex-app-server-adapter"
+tags: ["adapters","codex-app-server-adapter"]

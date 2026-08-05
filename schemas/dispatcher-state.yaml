@@ -1,0 +1,17 @@
+schema_version: "1.0"
+project_id: project-id
+series:
+  SERIES-YYYYMMDD-NNN:
+    plan_series_id: SERIES-YYYYMMDD-NNN
+    relation: new | extension | parallel
+    parallel_of: null
+    planning_session_id: planning-session-id
+    execution_session_id: execution-session-id
+    current_plan_version: v1
+    plans: {}
+    dispatches: {}
+    reports: {}
+    reviews: {}
+    blockers: {}
+    status: planning | approved | executing | waiting-on-planning | completed
+events: []

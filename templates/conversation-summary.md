@@ -7,6 +7,10 @@
 - Role: {{agent_role}}
 - Parent session: {{parent_session_id}}
 - Plan: {{plan_id}}
+- Plan series: {{plan_series_id}}
+- Series relation: {{series_relation}}
+- Controller session: {{controller_session_id}}
+- Worker session: {{worker_session_id}}
 - Mode: {{mode}}
 
 ## Instruction

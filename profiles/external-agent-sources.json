@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "providers": [
+    {
+      "provider_id": "agency-agents",
+      "repository": "msitarzewski/agency-agents",
+      "ref": "main",
+      "enabled": true,
+      "invocation": "explicit-or-scenario-match",
+      "cache_policy": "commit-index-and-prompt-cache",
+      "index_path": "integrations/external-agents/agency-agents/index.json",
+      "license_path": "integrations/external-agents/agency-agents/LICENSE"
+    }
+  ]
+}

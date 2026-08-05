@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-auto-next-task"
+display_name: "Flowstate Auto Next Task"
+description: "Apply the FlowState controllers, dispatch, and agents workflow when the concrete scenario is: Unlock and dispatch the next accepted dependent task. Produce next-task dispatch with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Unlock and dispatch the next accepted dependent task"]
+positive_triggers: ["Unlock and dispatch the next accepted dependent task"]
+negative_triggers: ["Do not use outside controllers, dispatch, and agents scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside controllers, dispatch, and agents scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["next-task dispatch","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "high"
+priority: 50
+category: "dispatch"
+subcategory: "auto-next-task"
+tags: ["dispatch","auto-next-task"]

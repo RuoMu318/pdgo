@@ -1,0 +1,2 @@
+interface: {"display_name":"FlowState Receive Review","short_description":"Evaluate returned evidence and decide the next governed action","default_prompt":"Use $flowstate-receive-review for an independent review report returns to planning and produce review decision and next action."}
+policy: {"allow_implicit_invocation":true}

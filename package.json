@@ -6,6 +6,11 @@
   "license": "MIT",
   "scripts": {
     "validate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-flowstate.ps1",
-    "test": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/smoke-test.ps1"
+    "test": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/smoke-test.ps1",
+    "test:node": "node --test tests/*.test.mjs",
+    "create-skill": "node scripts/create-flowstate-skill.mjs",
+    "catalog": "node scripts/generate-skill-catalog.mjs",
+    "seed-skills": "node scripts/seed-flowstate-skills.mjs",
+    "seed-inventory": "node scripts/seed-flowstate-inventory.mjs"
   }
 }

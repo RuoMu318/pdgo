@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Test Planning","short_description":"Review workflow for test plan","default_prompt":"Use $flowstate-test-planning for Choose tests for a risk and acceptance contract and produce test plan."}
+policy: {"allow_implicit_invocation":true}

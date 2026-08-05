@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-knowledge-mapping"
+display_name: "Flowstate Knowledge Mapping"
+description: "Apply the FlowState planning and discovery workflow when the concrete scenario is: Assign plans to searchable knowledge domains. Produce knowledge map with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Assign plans to searchable knowledge domains"]
+positive_triggers: ["Assign plans to searchable knowledge domains"]
+negative_triggers: ["Do not use outside planning and discovery scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside planning and discovery scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["knowledge map","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "medium"
+priority: 50
+category: "planning"
+subcategory: "knowledge-mapping"
+tags: ["planning","knowledge-mapping"]

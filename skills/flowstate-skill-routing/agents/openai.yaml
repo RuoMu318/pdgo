@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Skill Routing","short_description":"Coordination workflow for selection record","default_prompt":"Use $flowstate-skill-routing for Choose Skills from scenario metadata and produce selection record."}
+policy: {"allow_implicit_invocation":true}

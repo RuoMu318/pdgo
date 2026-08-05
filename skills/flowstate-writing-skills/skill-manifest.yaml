@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-writing-skills"
+display_name: "FlowState Writing Skills"
+description: "Author a Skill from its scenario, boundaries, inputs, outputs, prerequisites, side effects, category, and risk."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["a reusable capability needs a new Skill"]
+positive_triggers: ["No existing Skill reliably matches the scenario","A Skill needs a routing contract"]
+negative_triggers: ["Do not create a Skill from a name alone","Do not use authoring to execute product work"]
+boundaries: ["Do not create a Skill from a name alone","Do not use authoring to execute product work"]
+required_inputs: ["scenario","action","outcome","triggers","boundaries"]
+expected_outputs: ["Skill files","manifest","category entry","index update"]
+prerequisites: ["clear scenario"]
+side_effects: ["writes Skill catalog files"]
+risk_level: "low"
+priority: 50
+category: "skill-authoring"
+subcategory: "skill-metadata"
+tags: ["skill-authoring","skill-metadata"]

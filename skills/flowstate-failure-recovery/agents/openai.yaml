@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Failure Recovery","short_description":"Debugging workflow for recovery decision","default_prompt":"Use $flowstate-failure-recovery for Recover from a failed task within policy and produce recovery decision."}
+policy: {"allow_implicit_invocation":true}

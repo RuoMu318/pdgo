@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-rollback-execution"
+display_name: "Flowstate Rollback Execution"
+description: "Apply the FlowState debugging and recovery workflow when the concrete scenario is: Execute an approved rollback and verify it. Produce rollback evidence with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Execute an approved rollback and verify it"]
+positive_triggers: ["Execute an approved rollback and verify it"]
+negative_triggers: ["Do not use outside debugging and recovery scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside debugging and recovery scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["rollback evidence","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "high"
+priority: 50
+category: "debugging"
+subcategory: "rollback-execution"
+tags: ["debugging","rollback-execution"]

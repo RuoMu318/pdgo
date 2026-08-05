@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-brainstorming"
+display_name: "FlowState Brainstorming"
+description: "Explore alternatives without prematurely committing to implementation, then converge on explicit options and decisions."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["ambiguous project discovery and idea exploration"]
+positive_triggers: ["The goal or solution space is ambiguous","The user asks for alternatives before a plan"]
+negative_triggers: ["Do not make product changes","Do not treat ideas as approved execution scope"]
+boundaries: ["Do not make product changes","Do not treat ideas as approved execution scope"]
+required_inputs: ["user goal","known constraints","available context"]
+expected_outputs: ["options","tradeoffs","open questions","decision-ready brief"]
+prerequisites: ["current user goal"]
+side_effects: ["creates planning artifacts only"]
+risk_level: "low"
+priority: 50
+category: "planning"
+subcategory: "brainstorming"
+tags: ["planning","brainstorming"]

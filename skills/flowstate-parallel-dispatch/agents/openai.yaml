@@ -1,0 +1,2 @@
+interface: {"display_name":"FlowState Parallel Dispatch","short_description":"Fan out independent tasks and reconcile an audited result","default_prompt":"Use $flowstate-parallel-dispatch for independent tasks need concurrent execution and produce audited parallel execution and fan-in report."}
+policy: {"allow_implicit_invocation":true}

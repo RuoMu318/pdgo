@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Serial Dispatch","short_description":"Dispatch workflow for serial dispatch record","default_prompt":"Use $flowstate-serial-dispatch for Run dependent tasks one at a time and produce serial dispatch record."}
+policy: {"allow_implicit_invocation":true}

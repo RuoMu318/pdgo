@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-subagent-development"
+display_name: "FlowState Subagent Development"
+description: "Use an independent task worker with explicit paths, Skills, stop conditions, and a fixed return destination."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["one bounded task should be performed by a task worker"]
+positive_triggers: ["A plan task is approved and ready","The execution controller needs a bounded worker"]
+negative_triggers: ["Worker cannot self-approve","Worker cannot expand scope"]
+boundaries: ["Worker cannot self-approve","Worker cannot expand scope"]
+required_inputs: ["PLAN_DISPATCH","allowed paths","acceptance criteria"]
+expected_outputs: ["changed artifacts","tests","evidence","risks","blockers"]
+prerequisites: ["approved plan version","worker adapter"]
+side_effects: ["may change an isolated workspace"]
+risk_level: "medium"
+priority: 50
+category: "execution"
+subcategory: "subagent-development"
+tags: ["execution","subagent-development"]

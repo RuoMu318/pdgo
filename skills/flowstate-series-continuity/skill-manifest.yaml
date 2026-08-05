@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-series-continuity"
+display_name: "Flowstate Series Continuity"
+description: "Apply the FlowState coordination and governance workflow when the concrete scenario is: Reuse controller conversations for a series extension. Produce series session mapping with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Reuse controller conversations for a series extension"]
+positive_triggers: ["Reuse controller conversations for a series extension"]
+negative_triggers: ["Do not use outside coordination and governance scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside coordination and governance scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["series session mapping","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "medium"
+priority: 50
+category: "coordination"
+subcategory: "series-continuity"
+tags: ["coordination","series-continuity"]

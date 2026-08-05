@@ -12,6 +12,13 @@ memory:
   plan_index: plan-index.json
   knowledge_index: knowledge-index.json
   cross_session_references: required
+dispatch:
+  state_root: .agent-memory/dispatcher
+  adapter: file-queue
+  series_extension_reuses_sessions: true
+  parallel_requires_new_series: true
+  parallel_sync_requires_review: true
+  auto_dispatch_after_accepted_review: true
 policy:
   mode_default: plan-only
   approval_mode: human-gated

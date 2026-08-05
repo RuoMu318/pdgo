@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Conversation Handoff","short_description":"Memory workflow for handoff packet","default_prompt":"Use $flowstate-conversation-handoff for Pass structured artifacts between isolated sessions and produce handoff packet."}
+policy: {"allow_implicit_invocation":true}

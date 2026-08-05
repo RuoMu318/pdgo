@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Requirements Discovery","short_description":"Planning workflow for requirements record","default_prompt":"Use $flowstate-requirements-discovery for Turn user intent into explicit requirements and produce requirements record."}
+policy: {"allow_implicit_invocation":true}

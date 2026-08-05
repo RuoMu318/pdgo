@@ -17,6 +17,17 @@ risk: low | medium | high | critical
 mode: discuss-only | plan-only | execute
 ```
 
+The category index is a discovery layer. Current FlowState families are:
+
+```text
+coordination | planning | dispatch | development | review
+debugging   | memory   | skill-authoring | release-audit | adapters
+```
+
+Use the family to narrow the candidate set, then apply each Skill's concrete metadata. The complete inventory is in
+`profiles/flowstate-skill-inventory.json`; generated discovery views are `skills/category-index.json` and
+`docs/skill-catalog.md`.
+
 ## Routing order
 
 1. Load global guidance and the nearest project `AGENTS.md` files.
@@ -27,6 +38,10 @@ mode: discuss-only | plan-only | execute
 6. Rank remaining Skills by scenario, input/output fit, project specificity, and risk coverage.
 7. Select one primary Skill and only the supporting Skills required by the scenario.
 8. Explain the selection in the session record.
+
+Within a family, prefer the narrowest subcategory and the Skill whose output contract exactly matches the requested
+artifact. A broad governance Skill remains the coordination layer, but it does not replace a more specific workflow
+Skill when one matches.
 
 ## Examples
 

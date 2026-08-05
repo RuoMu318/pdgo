@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Retry Escalation","short_description":"Dispatch workflow for retry decision","default_prompt":"Use $flowstate-retry-escalation for Retry bounded failures and escalate after the limit and produce retry decision."}
+policy: {"allow_implicit_invocation":true}

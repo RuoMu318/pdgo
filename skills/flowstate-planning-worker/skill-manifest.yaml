@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-planning-worker"
+display_name: "Flowstate Planning Worker"
+description: "Apply the FlowState controllers, dispatch, and agents workflow when the concrete scenario is: Perform bounded research or planning work. Produce planning worker report with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Perform bounded research or planning work"]
+positive_triggers: ["Perform bounded research or planning work"]
+negative_triggers: ["Do not use outside controllers, dispatch, and agents scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside controllers, dispatch, and agents scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["planning worker report","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "high"
+priority: 50
+category: "dispatch"
+subcategory: "planning-worker"
+tags: ["dispatch","planning-worker"]

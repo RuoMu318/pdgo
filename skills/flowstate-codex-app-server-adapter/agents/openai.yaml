@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Codex App Server Adapter","short_description":"Adapters workflow for platform turn","default_prompt":"Use $flowstate-codex-app-server-adapter for Map dispatch messages to Codex App Server turns and produce platform turn."}
+policy: {"allow_implicit_invocation":true}

@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Parallel Series Sync","short_description":"Coordination workflow for fan-in record","default_prompt":"Use $flowstate-parallel-series-sync for Create a parallel branch and synchronize accepted results and produce fan-in record."}
+policy: {"allow_implicit_invocation":true}

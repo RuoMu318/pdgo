@@ -7,6 +7,8 @@
 - Version: {{plan_version}}
 - Task: {{task_id}}
 - Session: {{session_id}}
+- Execution controller session: {{execution_session_id}}
+- Planning return session: {{planning_session_id}}
 
 ## Status
 

@@ -1,0 +1,2 @@
+interface: {"display_name":"FlowState Writing Plans","short_description":"Write descriptive, searchable plans with risks and gates","default_prompt":"Use $flowstate-writing-plans for a plan needs a clear human-readable artifact and produce indexed plan document."}
+policy: {"allow_implicit_invocation":true}

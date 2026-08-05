@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-scenario-classification"
+display_name: "Flowstate Scenario Classification"
+description: "Apply the FlowState coordination and governance workflow when the concrete scenario is: Classify operation, department, stage, and concrete scenario. Produce classification tuple with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Classify operation, department, stage, and concrete scenario"]
+positive_triggers: ["Classify operation, department, stage, and concrete scenario"]
+negative_triggers: ["Do not use outside coordination and governance scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside coordination and governance scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["classification tuple","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "medium"
+priority: 50
+category: "coordination"
+subcategory: "scenario-classification"
+tags: ["coordination","scenario-classification"]

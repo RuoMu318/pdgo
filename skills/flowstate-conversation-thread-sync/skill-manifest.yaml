@@ -1,0 +1,20 @@
+schema_version: "1.0"
+skill_id: "flowstate-conversation-thread-sync"
+display_name: "Flowstate Conversation Thread Sync"
+description: "Apply the FlowState platform adapters and session transport workflow when the concrete scenario is: Synchronize structured results between conversations. Produce thread sync with evidence and status."
+project_scope: ["flowstate"]
+department: ["planning","execution","review"]
+stage: ["discovery","design","implementation","validation"]
+scenarios: ["Synchronize structured results between conversations"]
+positive_triggers: ["Synchronize structured results between conversations"]
+negative_triggers: ["Do not use outside platform adapters and session transport scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+boundaries: ["Do not use outside platform adapters and session transport scenarios","Do not bypass approval, scope, evidence, or safety gates"]
+required_inputs: ["classified project context","plan or task-local artifacts","current constraints"]
+expected_outputs: ["thread sync","evidence, risks, blockers, and next action"]
+prerequisites: ["FlowState startup classification","declared scope"]
+side_effects: ["may create governed planning, execution, review, or audit records"]
+risk_level: "high"
+priority: 50
+category: "adapters"
+subcategory: "conversation-thread-sync"
+tags: ["adapters","conversation-thread-sync"]

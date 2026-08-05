@@ -1,0 +1,2 @@
+interface: {"display_name":"Flowstate Independent Plan Review","short_description":"Review workflow for plan review","default_prompt":"Use $flowstate-independent-plan-review for Review a plan before user approval and produce plan review."}
+policy: {"allow_implicit_invocation":true}

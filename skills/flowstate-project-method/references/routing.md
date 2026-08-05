@@ -8,6 +8,10 @@
 
 Use the tuple before selecting a Skill. A filename or Skill name is not a scenario.
 
+Use the project's category and Skill indexes as discovery aids. FlowState families are coordination, planning,
+dispatch, development, review, debugging, memory, skill-authoring, release-audit, and adapters. A family narrows
+the candidates but never invokes a Skill by itself.
+
 ## Hard filters
 
 Reject a candidate when any of these fail:

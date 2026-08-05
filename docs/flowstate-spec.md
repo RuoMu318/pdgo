@@ -65,8 +65,11 @@ project controller
 ```
 
 Controllers coordinate. Workers perform bounded work. Reviewers independently evaluate artifacts.
-Each node has a separate conversation and receives only the task-local context and artifact IDs it needs.
-Cross-department communication uses versioned artifacts and control messages, not copied chat history.
+Each worker and reviewer has a separate conversation and receives only the task-local context and artifact IDs it
+needs. A series has one persistent planning-controller conversation and one persistent execution-controller
+conversation. A version that extends the same series reuses that pair; a genuinely parallel series creates a new
+pair, records `parallel_of`, and sends a structured fan-in message to the parent planning conversation. Cross-
+department communication uses versioned artifacts and control messages, not copied chat history.
 
 ## 5. Universal startup routing
 
@@ -241,32 +244,47 @@ Workers never self-approve. Reviewers compare the result with the exact acceptan
 The execution report returns to planning. Planning accepts, revises, blocks, or closes the task. Only an
 accepted task unlocks its dependents. High-impact releases require an additional user acceptance gate.
 
-## 14. Serial and parallel execution
+## 14. Series continuity and serial/parallel execution
+
+The series ID is the continuity key:
+
+```text
+same plan_series_id + extension -> reuse planning_session_id and execution_session_id
+parallel plan                  -> new plan_series_id and new controller sessions
+parallel completion             -> PARALLEL_PLAN_SYNC to parent planning session
+```
+
+An extension may add a new immutable plan version, tasks, or evidence while preserving the objective, owner,
+target system, and acceptance lineage. A material change still requires a new version and approval. It does not
+create a new controller conversation. A parallel plan is an independently executable branch with no unsafe shared
+mutable writes; its worker reports are reviewed in the branch and synchronized only after acceptance.
+
+## 15. Serial and parallel execution
 
 Serial execution is the default. Parallel fan-out is allowed only for independent tasks with no shared
 mutable writes, no hidden dependency, and separate workspaces. A fan-in review must reconcile outputs before
 dependent tasks are unlocked.
 
-## 15. Evidence and completion
+## 16. Evidence and completion
 
 Evidence may include test logs, build output, diffs, screenshots, runtime observations, measurements,
 source references, reproduction steps, and rollback checks. A self-reported success without evidence cannot
 be marked `completed`.
 
-## 16. Git and audit
+## 17. Git and audit
 
 Every completed change is linked to project, plan, version, task, session, dispatch, files, tests, and commit
 when applicable. Before commit, inspect status, stage only current task paths, scan for secrets and oversized
 files, and record known risks or deviations. External pushes and destructive operations follow project approval
 policy.
 
-## 17. Failure and recovery
+## 18. Failure and recovery
 
 Failures must state the attempted actions, observed evidence, cause hypothesis, remaining uncertainty, and next
 decision. Retry limits are project-configurable; the default is two attempts before escalation. Never loop
 indefinitely or silently switch scope.
 
-## 18. Security and least privilege
+## 19. Security and least privilege
 
 Tasks specify allowed paths, commands, network policy, external effects, and secret handling. Secrets never enter
 ordinary memory or examples. A project profile cannot weaken system safety or override a current user instruction.
