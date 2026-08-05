@@ -1,0 +1,11 @@
+{
+  "name": "pdgo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FlowState universal project development governance and orchestration method.",
+  "license": "MIT",
+  "scripts": {
+    "validate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-flowstate.ps1",
+    "test": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/smoke-test.ps1"
+  }
+}

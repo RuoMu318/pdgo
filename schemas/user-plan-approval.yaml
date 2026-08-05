@@ -1,0 +1,17 @@
+schema_version: "1.0"
+message_type: USER_PLAN_APPROVAL
+approval_id: approval-YYYYMMDD-NNN
+project_id: project-id
+plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+plan_version: v1
+approved_scope: []
+acknowledged_risks: []
+resolved_blockers: []
+accepted_assumptions: []
+accepted_residual_risks: []
+conditions: []
+exception_approvals: []
+decision: approved
+approver: user
+timestamp: "YYYY-MM-DDThh:mm:ssZ"
+comments: ""

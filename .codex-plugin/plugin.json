@@ -1,0 +1,24 @@
+{
+  "name": "flowstate",
+  "version": "0.1.0",
+  "description": "Universal project planning, routing, approval, execution, review, and audit workflow.",
+  "author": {
+    "name": "RuoMu318"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "FlowState",
+    "shortDescription": "Project routing and approval workflow",
+    "longDescription": "A human-gated project method for memory, scenario-based Skill routing, isolated execution, evidence-based review, and change audit.",
+    "developerName": "RuoMu318",
+    "category": "Productivity",
+    "capabilities": [
+      "project-intake",
+      "skill-routing",
+      "plan-approval",
+      "execution-review",
+      "memory-and-audit"
+    ],
+    "defaultPrompt": "Use FlowState to classify this project task, select Skills by scenario, and enforce user approval before execution."
+  }
+}

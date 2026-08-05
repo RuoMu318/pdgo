@@ -1,0 +1,28 @@
+# Runtime state
+.agent-memory/
+.flowstate/
+.codex/
+.tmp/
+tmp/
+logs/
+*.log
+
+# Local environments
+.env
+.env.*
+!.env.example
+.venv/
+node_modules/
+
+# Generated files
+coverage/
+dist/
+build/
+*.sqlite
+*.sqlite-*
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

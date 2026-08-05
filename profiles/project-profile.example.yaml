@@ -1,0 +1,31 @@
+schema_version: "1.0"
+project_id: example-project
+display_name: Example Project
+repository:
+  root: C:/path/to/project
+  remote: https://github.com/example/project.git
+  default_branch: main
+  worktree_policy: one-writer-per-worktree
+memory:
+  root: .agent-memory
+  session_root: conversations
+  plan_index: plan-index.json
+  knowledge_index: knowledge-index.json
+  cross_session_references: required
+policy:
+  mode_default: plan-only
+  approval_mode: human-gated
+  new_risk_policy: pause-and-reapprove
+  retry_limit: 2
+  external_push_requires_user: true
+  destructive_actions_require_user: true
+skills:
+  project_specific: []
+  generic_allowed: true
+roles:
+  planning_controller: true
+  execution_controller: true
+  independent_reviewer: true
+validation:
+  commands: []
+  required_evidence: []

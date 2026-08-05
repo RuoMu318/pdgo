@@ -1,0 +1,7 @@
+interface:
+  display_name: "FlowState Project Method"
+  short_description: "Universal project routing and approval workflow"
+  default_prompt: "Use $flowstate-project-method to classify this task, route Skills by scenario, and enforce approval before execution."
+
+policy:
+  allow_implicit_invocation: true

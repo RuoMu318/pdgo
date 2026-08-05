@@ -1,0 +1,16 @@
+schema_version: "1.0"
+message_type: REVIEW_DECISION
+review_id: review-YYYYMMDD-NNN
+trace_id: trace-YYYYMMDD-NNN
+plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+plan_version: v1
+task_id: T01
+reviewer_session_id: review-session-id
+decision: accepted
+criteria_results: []
+evidence_checked: []
+defects: []
+new_risks: []
+new_blockers: []
+required_changes: []
+next_action: unlock-next-task

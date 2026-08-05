@@ -1,0 +1,27 @@
+schema_version: "1.0"
+plan_series_id: PROJECT-YYYYMMDD-NNN
+plan_version: v1
+plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+project_id: project-id
+title: "Human-readable plan title"
+summary: "One sentence that explains the plan."
+search_terms: []
+knowledge_domains: []
+status: awaiting-user-approval
+mode: plan-only
+objective: ""
+non_goals: []
+assumptions: []
+dependencies: []
+tasks: []
+acceptance_criteria: []
+expected_evidence: []
+rollback: []
+allowed_paths: []
+forbidden_actions: []
+blockers: []
+risks: []
+questions_decisions: []
+residual_risks: []
+related_sessions: []
+approval_id: null

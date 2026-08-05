@@ -1,0 +1,16 @@
+schema_version: "1.0"
+skill_id: project-skill-id
+display_name: Project Skill
+description: "What this Skill does and the situations where it applies."
+project_scope: [global]
+department: [planning, execution, review]
+stage: [discovery, design, implementation, validation]
+scenarios: []
+positive_triggers: []
+negative_triggers: []
+required_inputs: []
+expected_outputs: []
+prerequisites: []
+side_effects: []
+risk_level: medium
+priority: 50

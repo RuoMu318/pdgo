@@ -1,0 +1,6 @@
+{
+  "name": "flowstate",
+  "version": "0.1.0",
+  "description": "Universal project planning, routing, approval, execution, review, and audit workflow.",
+  "skills": "../skills/"
+}

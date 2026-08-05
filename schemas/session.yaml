@@ -1,0 +1,17 @@
+schema_version: "1.0"
+session_id: session-YYYYMMDD-NNN
+project_id: project-id
+department: planning
+agent_role: controller
+parent_session_id: null
+work_item_id: null
+plan_series_id: null
+plan_version: null
+mode: discuss-only
+instruction: ""
+allowed_scope: []
+forbidden_scope: []
+input_artifacts: []
+output_artifacts: []
+references: []
+status: active
