@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO TDD Work"
+  short_description: "Drive bounded changes through a red-green-refactor loop"
+  default_prompt: "Use $pdgo-tdd-work for test-first implementation of an approved behavior change and return governed evidence."
+policy:
+  allow_implicit_invocation: true

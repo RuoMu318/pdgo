@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Risk Register","short_description":"Coordination workflow for risk register","default_prompt":"Use $flowstate-risk-register for Identify, treat, and obtain decisions on risks and produce risk register."}
-policy: {"allow_implicit_invocation":true}

@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Skill Routing Review","short_description":"Skill Authoring workflow for routing decision","default_prompt":"Use $flowstate-skill-routing-review for Check routing candidates against a scenario and produce routing decision."}
-policy: {"allow_implicit_invocation":true}

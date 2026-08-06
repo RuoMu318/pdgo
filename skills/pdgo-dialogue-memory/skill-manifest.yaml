@@ -1,0 +1,51 @@
+schema_version: "1.0"
+skill_id: "pdgo-dialogue-memory"
+display_name: "PDGO Dialogue Memory"
+description: "Record and retrieve session, plan, decision, evidence, and cross-session memory without assuming transcript sharing."
+project_scope:
+  - "pdgo"
+  - "tianyan"
+department:
+  - "coordination"
+  - "planning"
+  - "execution"
+  - "review"
+stage:
+  - "discovery"
+  - "design"
+  - "implementation"
+  - "validation"
+scenarios:
+  - "conversation memory, checkpoint, retrieval, and handoff"
+positive_triggers:
+  - "The scenario is conversation memory, checkpoint, retrieval, and handoff"
+negative_triggers:
+  - "The scenario is outside this Skill's declared workflow"
+  - "Required inputs or approval are missing"
+boundaries:
+  - "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+required_inputs:
+  - "classified project context"
+  - "approved or planning-scoped artifacts"
+  - "current constraints"
+expected_outputs:
+  - "governed result"
+  - "evidence"
+  - "risks"
+  - "blockers"
+  - "next action"
+prerequisites:
+  - "startup routing completed"
+  - "mode permits the requested side effect"
+side_effects:
+  - "writes governed artifacts or changes only approved paths"
+upstream_skills:
+  []
+tags:
+  - "pdgo"
+  - "tianyan"
+  - "governed-work"
+risk_level: "high"
+priority: 10
+category: "memory"
+subcategory: "conversation memory, checkpoint, retrieval, and handoff"

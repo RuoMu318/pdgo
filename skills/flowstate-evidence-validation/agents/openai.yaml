@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Evidence Validation","short_description":"Review workflow for evidence decision","default_prompt":"Use $flowstate-evidence-validation for Check evidence against exact acceptance criteria and produce evidence decision."}
-policy: {"allow_implicit_invocation":true}

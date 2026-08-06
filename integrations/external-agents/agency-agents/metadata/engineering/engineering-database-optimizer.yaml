@@ -1,0 +1,41 @@
+schema_version: "1.0"
+agent_id: "agency-agents/engineering/engineering-database-optimizer.md"
+name: "Database Optimizer"
+division: "engineering"
+provider_id: "agency-agents"
+source_path: "engineering/engineering-database-optimizer.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/engineering/engineering-database-optimizer.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "3af7da68e6d37c66894d123791a29ddbfa7965e2"
+prompt_sha256: "a58860b44590ed643ca02b6faf738b889c99bd889df78c695f519b5288ea018d"
+specific_description: "Expert database specialist focusing on schema design, query optimization, indexing strategies, and performance tuning for PostgreSQL, MySQL, and modern databases like Supabase and PlanetScale."
+when_to_use: "Use only when the approved task explicitly matches the source description: Expert database specialist focusing on schema design, query optimization, indexing strategies, and performance tuning for PostgreSQL, MySQL, and modern databases like Supabase and PlanetScale."
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "unknown: the source prompt does not declare structured outputs"
+stage:
+  - "planning"
+  - "implementation"
+department:
+  - "execution"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-debug-work"
+  - "pdgo-execute-work"
+confidence: "medium"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "Database Optimizer"
+  source_frontmatter_description: "Expert database specialist focusing on schema design, query optimization, indexing strategies, and performance tuning for PostgreSQL, MySQL, and modern databases like Supabase and PlanetScale."
+  source_frontmatter_vibe: "Indexes, query plans, and schema design — databases that don't wake you at 3am."
+  headings:
+    - "🗄️ Database Optimizer"
+    - "Identity & Memory"
+    - "Core Mission"
+    - "Critical Rules"
+    - "Communication Style"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."

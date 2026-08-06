@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Data Change","short_description":"Development workflow for data change report","default_prompt":"Use $flowstate-data-change for Apply a bounded data or migration change and produce data change report."}
-policy: {"allow_implicit_invocation":true}

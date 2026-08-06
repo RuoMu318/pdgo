@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Memory Close","short_description":"Memory workflow for conversation summary","default_prompt":"Use $flowstate-memory-close for Summarize a completed or blocked conversation and produce conversation summary."}
-policy: {"allow_implicit_invocation":true}

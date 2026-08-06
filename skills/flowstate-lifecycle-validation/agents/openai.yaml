@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Lifecycle Validation","short_description":"Review workflow for lifecycle report","default_prompt":"Use $flowstate-lifecycle-validation for Check resource ownership and cleanup lifecycle and produce lifecycle report."}
-policy: {"allow_implicit_invocation":true}

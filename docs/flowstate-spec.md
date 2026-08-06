@@ -1,8 +1,8 @@
-# FlowState Universal Project Method
+# PDGO Universal Project Method
 
 ## 1. Purpose and scope
 
-FlowState is a human-gated, evidence-based method for coordinating project planning, execution,
+PDGO is a human-gated, evidence-based method for coordinating project planning, execution,
 memory, Skill selection, review, and change audit across independent Agent conversations.
 
 It applies to code, documentation, configuration, research, design, data, release, and operational
@@ -70,6 +70,15 @@ needs. A series has one persistent planning-controller conversation and one pers
 conversation. A version that extends the same series reuses that pair; a genuinely parallel series creates a new
 pair, records `parallel_of`, and sends a structured fan-in message to the parent planning conversation. Cross-
 department communication uses versioned artifacts and control messages, not copied chat history.
+
+### No-project same-window mode
+
+If no repository, project profile, or product path can be identified, the orchestrator uses an explicit unscoped
+project identity and still completes the planning, execution reasoning, and review phases in the current visible
+Codex window. The state records preserve the logical departments and approval gates, but no unknown product artifact
+may be changed and no external dispatch may be created until a concrete scope and user approval exist. This mode
+keeps the workflow usable for research, design, clarification, and method-level changes without pretending that a
+project repository or remote worker exists.
 
 ## 5. Universal startup routing
 
@@ -155,11 +164,17 @@ Every plan contains:
 
 ```text
 goal and non-goals
+project goal and observable target outcome
+allowed modification scope and explicitly excluded scope
+detail policy: do not deepen implementation detail without a user request or approved plan change
+brainstorming discovery record and decisions
+planning policy, including in-scope correction and revision limits
 current state
 inputs and sources
 assumptions and constraints
 technical or operational approach
 task ledger and dependencies
+ordered stages with serial/parallel policy and stage-level Skills/agents
 serial/parallel policy
 acceptance criteria and evidence
 risks and mitigations
@@ -169,7 +184,11 @@ permissions and allowed paths
 rollback and stop conditions
 residual uncertainty
 user approval request
+declared next_plan template, if any
 ```
+
+The planning controller must make the goal, target outcome, modification scope, excluded scope, and detail policy
+explicit before asking for approval. These fields are auditable boundaries, not suggestions.
 
 The plan index records the title, one-sentence summary, search terms, knowledge domains, status,
 related sessions, tasks, dependencies, and current version.
@@ -184,8 +203,7 @@ Required statuses:
 
 ```text
 open
-resolved with evidence
-accepted non-blocking with owner and impact
+resolved
 ```
 
 If a section has no entries, the plan must state `none` and explain the basis. Unknown risks cannot be
@@ -214,15 +232,29 @@ revision-required
 ```
 
 Hard blockers remain non-executable until resolved or an explicit policy exception changes the scope.
-An approved-with-conditions plan may dispatch only after every condition is machine-checkable and true.
+An approved-with-conditions plan may dispatch only after every condition is machine-checkable and true. A blocker is
+not conditionally accepted: it must be resolved with recorded evidence before execution or automatic progression.
 
 ## 11. Version locking and change control
 
 An approved plan version is immutable. Any material change to scope, architecture, dependency, risk,
 acceptance, permission, or rollback creates a new version in the same series and invalidates the old approval.
 
-New high-impact risks or blockers discovered during execution pause the task, return it to planning, and
-require re-review and user approval before continuation.
+New risks or blockers discovered during execution pause automatic progression and return the task to planning. High
+or critical risks immediately clear the current approval; any risk or blocker must be dispositioned before correction,
+dependent-task unlock, completion, or next-plan creation can continue. The user must re-review and approve a new
+version whenever the change is outside the approved contract.
+
+Any new risk, blocker, permission change, acceptance change, architecture change, rollback change, or material
+scope change invalidates the current approval for automatic progression. An open blocker, including one discovered
+in a report or review, prevents correction dispatch, dependent-task unlock, plan completion, and next-plan creation.
+The blocker must have an explicit resolution and evidence before the plan can return to `approved`.
+
+An in-scope correction is limited to redoing omitted approved work, repairing a defect, or using another
+implementation method without changing the approved contract. It may reuse the current version when no new risk or
+blocker exists, the approval still matches, and the revision limit is not exceeded. A correction outside those bounds
+returns to planning and requires a new version and user approval. A task accepted with a new risk or blocker does not
+make the plan `completed` and cannot create or dispatch `next_plan`.
 
 ## 12. Dispatch and execution
 
@@ -244,6 +276,36 @@ Workers never self-approve. Reviewers compare the result with the exact acceptan
 The execution report returns to planning. Planning accepts, revises, blocks, or closes the task. Only an
 accepted task unlocks its dependents. High-impact releases require an additional user acceptance gate.
 
+### Planning controller responsibilities
+
+The planning controller works with the user to clarify the objective and owns the full plan lifecycle. For a long
+plan it creates ordered stages, classifies each stage as `serial` or `parallel`, and assigns stage-level Skills and
+agent selectors. A serial stage must be accepted before a later stage becomes active. A parallel stage may dispatch
+only independent tasks with no shared mutable writes, bounded by `max_parallel`; each result is reviewed and the
+stage is not complete until its fan-in conditions pass.
+
+After each execution report the controller performs or requests independent acceptance and classifies the result:
+
+```text
+accepted          -> record evidence and activate the next ready stage/task
+revision-required -> issue an in-scope correction and repeat execution/review
+blocked/failed    -> wait for resolution, retry within policy, or return to planning
+```
+
+An in-scope correction means redoing an omitted approved item, repairing a defect, or changing the implementation
+method without changing the approved contract. It may reuse the same plan version while the approval is valid, no
+new risk or blocker exists, and the revision limit is not exceeded. A new risk, blocker, permission, acceptance,
+architecture, rollback, or scope change, or an explicit reapproval request, stops the loop and requires a new plan
+version and user approval. The controller continues correction and review until acceptance or a stop condition;
+it cannot skip an unsuccessful correction or proactively expand detail.
+
+When every task is accepted and no blocker is open, the controller may prepare the declared `next_plan` in the same
+series. Preparing it does not approve it: the new version remains `awaiting-user-approval` and cannot dispatch.
+
+Brainstorming is a planning discovery aid for alternatives, assumptions, risks, questions, and trade-offs. It must
+converge into explicit scope and acceptance, cannot modify product artifacts, cannot grant approval, and cannot
+clear a blocker.
+
 ## 14. Series continuity and serial/parallel execution
 
 The series ID is the continuity key:
@@ -264,6 +326,10 @@ mutable writes; its worker reports are reviewed in the branch and synchronized o
 Serial execution is the default. Parallel fan-out is allowed only for independent tasks with no shared
 mutable writes, no hidden dependency, and separate workspaces. A fan-in review must reconcile outputs before
 dependent tasks are unlocked.
+
+Stage contracts use `stage_id`, `order`, `kind`, `required_skills`, `agent_selectors`, and optional stage acceptance
+criteria. Tasks carry `stage_id`, `stage_order`, and `stage_kind`. The dispatcher activates only the earliest
+unfinished stage; parallel capacity is bounded and later stages remain pending until the active stage is accepted.
 
 ## 16. Evidence and completion
 

@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Knowledge Mapping","short_description":"Planning workflow for knowledge map","default_prompt":"Use $flowstate-knowledge-mapping for Assign plans to searchable knowledge domains and produce knowledge map."}
-policy: {"allow_implicit_invocation":true}

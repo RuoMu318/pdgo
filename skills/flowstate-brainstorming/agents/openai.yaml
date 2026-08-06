@@ -1,2 +1,0 @@
-interface: {"display_name":"FlowState Brainstorming","short_description":"Turn ambiguous goals into a decision-ready discovery brief","default_prompt":"Use $flowstate-brainstorming for ambiguous project discovery and idea exploration and produce decision-ready discovery brief."}
-policy: {"allow_implicit_invocation":true}

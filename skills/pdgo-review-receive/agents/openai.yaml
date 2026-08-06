@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO Receive Review"
+  short_description: "Evaluate review evidence and govern the next action"
+  default_prompt: "Use $pdgo-review-receive for receiving and deciding an independent review and return governed evidence."
+policy:
+  allow_implicit_invocation: true

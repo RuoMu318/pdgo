@@ -1,2 +1,0 @@
-interface: {"display_name":"FlowState Writing Skills","short_description":"Define reusable Skills with explicit routing and boundaries","default_prompt":"Use $flowstate-writing-skills for a reusable capability needs a new Skill and produce validated indexed Skill."}
-policy: {"allow_implicit_invocation":true}

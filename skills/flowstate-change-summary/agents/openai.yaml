@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Change Summary","short_description":"Release Audit workflow for change summary","default_prompt":"Use $flowstate-change-summary for Record a concise user-facing change summary and produce change summary."}
-policy: {"allow_implicit_invocation":true}

@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "provider": "agency-agents",
+  "source_commit": "c89557f78509868c6d4cc08e5cbc79bc8625fe1c",
+  "metadata_index": "integrations/external-agents/agency-agents/metadata-index.json",
+  "selection_contract": {
+    "candidate_discovery": "Use upstream divisions only to narrow the catalog. Match the approved task against the evidence-backed source description before selecting an Agent.",
+    "automatic_selection": "Allowed only for an Agent whose metadata has auto_route: true, where the task supplies a scenario query and the dispatch has a live connected transport.",
+    "explicit_selection": "A planner may select any evidence-backed Agent by external_agent_id in an approved task. Manual-only entries remain usable through this explicit selector.",
+    "prohibitions": [
+      "Do not infer a capability from an Agent name alone.",
+      "Do not use division membership as proof of a specific capability.",
+      "Do not allow an external Agent to approve work, resolve blockers, change scope, or replace independent review.",
+      "Do not auto-dispatch through a file queue or an adapter without a real connected worker session."
+    ]
+  },
+  "departments": {
+    "planning": {
+      "candidate_divisions": [
+        "academic",
+        "finance",
+        "marketing",
+        "paid-media",
+        "product",
+        "project-management",
+        "sales",
+        "strategy",
+        "specialized"
+      ],
+      "required_skills": [
+        "pdgo-route-work",
+        "pdgo-plan-work",
+        "pdgo-dialogue-memory"
+      ],
+      "role": "Clarify the approved goal and plan contract; Agents provide bounded research or domain input only."
+    },
+    "execution": {
+      "candidate_divisions": [
+        "design",
+        "engineering",
+        "game-development",
+        "gis",
+        "integrations",
+        "spatial-computing",
+        "specialized"
+      ],
+      "required_skills": [
+        "pdgo-route-work",
+        "pdgo-execute-work"
+      ],
+      "role": "Perform one exact approved task in an isolated worker session and return evidence."
+    },
+    "review": {
+      "candidate_divisions": [
+        "security",
+        "support",
+        "testing",
+        "healthcare",
+        "specialized"
+      ],
+      "required_skills": [
+        "pdgo-review-request",
+        "pdgo-review-receive",
+        "pdgo-completion-work"
+      ],
+      "role": "Independently assess evidence against the exact acceptance criteria; no self-review."
+    }
+  },
+  "dispatch_fields": [
+    "external_agent_id",
+    "external_agent_query",
+    "external_agent_division",
+    "required_skills",
+    "acceptance_criteria",
+    "expected_evidence",
+    "stop_conditions"
+  ]
+}

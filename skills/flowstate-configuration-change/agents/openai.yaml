@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Configuration Change","short_description":"Development workflow for configuration diff","default_prompt":"Use $flowstate-configuration-change for Apply a bounded configuration change and produce configuration diff."}
-policy: {"allow_implicit_invocation":true}

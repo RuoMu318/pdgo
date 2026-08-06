@@ -106,7 +106,7 @@ function markdown(provider, entries, divisions) {
     `Source commit: \`${provider.source_commit}\``,
     `Agents imported: **${entries.length}**`,
     "",
-    "This catalog is an external Agent prompt source, not a replacement for FlowState governance. Every invocation still needs a classified scenario, approved dispatch, scope, evidence, report, and planning review.",
+    "This catalog is an external Agent prompt source, not a replacement for PDGO governance. Every invocation still needs a classified scenario, approved dispatch, scope, evidence, report, and planning review.",
     "",
     "## Divisions",
     "",
@@ -114,7 +114,7 @@ function markdown(provider, entries, divisions) {
     "|---|---:|",
   ];
   for (const [division, count] of Object.entries(divisions).sort(([left], [right]) => left.localeCompare(right))) lines.push(`| \`${division}\` | ${count} |`);
-  lines.push("", "## Invocation", "", "1. Search `integrations/external-agents/agency-agents/index.json` by division, name, description, and routing terms.", "2. Select an Agent by scenario fit, not by name alone.", "3. Include `external_agent_id` in the approved task dispatch.", "4. The external adapter injects the cached prompt plus the FlowState dispatch contract into the worker session.", "5. Return the result as an ordinary execution report and let the planning controller review it.", "", "The cached prompt files retain their upstream paths, SHA, and source URL for auditability.", "");
+  lines.push("", "## Invocation", "", "1. Search `integrations/external-agents/agency-agents/index.json` by division, name, description, and routing terms.", "2. Select an Agent by scenario fit, not by name alone.", "3. Include `external_agent_id` in the approved task dispatch.", "4. The external adapter injects the cached prompt plus the PDGO dispatch contract into the worker session.", "5. Return the result as an ordinary execution report and let the planning controller review it.", "", "The cached prompt files retain their upstream paths, SHA, and source URL for auditability.", "");
   return `${lines.join("\n")}\n`;
 }
 

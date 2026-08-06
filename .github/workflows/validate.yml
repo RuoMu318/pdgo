@@ -1,4 +1,4 @@
-name: Validate FlowState
+name: Validate PDGO
 
 on:
   push:

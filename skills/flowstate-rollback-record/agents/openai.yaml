@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Rollback Record","short_description":"Release Audit workflow for rollback record","default_prompt":"Use $flowstate-rollback-record for Record rollback readiness and actual rollback results and produce rollback record."}
-policy: {"allow_implicit_invocation":true}

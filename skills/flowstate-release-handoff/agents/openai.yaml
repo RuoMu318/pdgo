@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Release Handoff","short_description":"Release Audit workflow for release handoff","default_prompt":"Use $flowstate-release-handoff for Prepare release notes, evidence, and rollback handoff and produce release handoff."}
-policy: {"allow_implicit_invocation":true}

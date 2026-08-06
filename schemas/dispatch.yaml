@@ -2,6 +2,8 @@ schema_version: "1.0"
 message_type: PLAN_DISPATCH
 trace_id: trace-YYYYMMDD-NNN
 dispatch_id: dispatch-YYYYMMDD-NNN
+message_id: dispatch-YYYYMMDD-NNN
+idempotency_key: dispatch-YYYYMMDD-NNN
 project_id: project-id
 plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
 plan_version: v1
@@ -13,6 +15,12 @@ execution_session_id: execution-session-id
 worker_session_id: execution-worker-session-id
 platform_worker_session_id: null
 worker_delivery_status: connected | adapter-unavailable
+manual_handoff: false
+transport_blocker_id: null
+transport_error: null
+stage_id: stage-1
+stage_order: 1
+stage_kind: serial | parallel
 plan_series_id: PROJECT-YYYYMMDD-NNN
 objective: ""
 scope: []
@@ -31,3 +39,4 @@ stop_conditions: []
 return_to: planning-session-id
 execution_return_to: execution-session-id
 planning_return_to: planning-session-id
+revision: null

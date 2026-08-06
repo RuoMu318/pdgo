@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Memory Checkpoint","short_description":"Memory workflow for checkpoint record","default_prompt":"Use $flowstate-memory-checkpoint for Record progress, decisions, and evidence and produce checkpoint record."}
-policy: {"allow_implicit_invocation":true}

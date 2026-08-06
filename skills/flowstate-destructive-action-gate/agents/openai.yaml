@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Destructive Action Gate","short_description":"Release Audit workflow for destructive action decision","default_prompt":"Use $flowstate-destructive-action-gate for Gate deletion, overwrite, or migration actions and produce destructive action decision."}
-policy: {"allow_implicit_invocation":true}

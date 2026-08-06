@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Change Audit","short_description":"Release Audit workflow for change audit","default_prompt":"Use $flowstate-change-audit for Link changes to plan, task, session, evidence, and commit and produce change audit."}
-policy: {"allow_implicit_invocation":true}

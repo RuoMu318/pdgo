@@ -1,2 +1,0 @@
-interface: {"display_name":"FlowState Git Worktree","short_description":"Isolate concurrent writers with auditable Git worktrees","default_prompt":"Use $flowstate-git-worktree for concurrent task workers need isolated Git workspaces and produce isolated workspace record."}
-policy: {"allow_implicit_invocation":true}

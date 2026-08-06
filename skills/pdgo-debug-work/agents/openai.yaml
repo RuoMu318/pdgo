@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO Debug Work"
+  short_description: "Investigate failures with controlled evidence loops"
+  default_prompt: "Use $pdgo-debug-work for systematic debugging of a reproducible failure and return governed evidence."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO Route Work"
+  short_description: "Route governed work to the right PDGO Skill and Agent"
+  default_prompt: "Use $pdgo-route-work for startup routing and governed capability selection and return governed evidence."
+policy:
+  allow_implicit_invocation: true

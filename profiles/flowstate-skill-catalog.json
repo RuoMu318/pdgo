@@ -1,268 +1,392 @@
 [
   {
-    "skillId": "flowstate-brainstorming",
-    "scope": "flowstate",
-    "category": "planning",
-    "subcategory": "brainstorming",
-    "scenario": "ambiguous project discovery and idea exploration",
-    "action": "facilitate divergent and convergent analysis",
-    "outcome": "decision-ready discovery brief",
-    "displayName": "FlowState Brainstorming",
-    "shortDescription": "Turn ambiguous goals into a decision-ready discovery brief",
-    "description": "Explore alternatives without prematurely committing to implementation, then converge on explicit options and decisions.",
-    "positiveTriggers": ["The goal or solution space is ambiguous", "The user asks for alternatives before a plan"],
-    "boundaries": ["Do not make product changes", "Do not treat ideas as approved execution scope"],
-    "inputs": ["user goal", "known constraints", "available context"],
-    "outputs": ["options", "tradeoffs", "open questions", "decision-ready brief"],
-    "prerequisites": ["current user goal"],
-    "sideEffects": ["creates planning artifacts only"],
-    "riskLevel": "low"
-  },
-  {
-    "skillId": "flowstate-execution-planning",
-    "scope": "flowstate",
-    "category": "planning",
-    "subcategory": "execution-planning",
-    "scenario": "approved-scope decomposition into executable tasks",
-    "action": "write a versioned plan and task ledger",
-    "outcome": "approval-ready execution plan",
-    "displayName": "FlowState Execution Planning",
-    "shortDescription": "Decompose approved scope into a versioned execution plan",
-    "description": "Turn a clarified objective into bounded tasks, dependencies, evidence, risks, blockers, and rollback conditions.",
-    "positiveTriggers": ["A goal needs an executable task ledger", "A plan must be prepared for user approval"],
-    "boundaries": ["Do not dispatch before approval", "Do not hide risks or blockers"],
-    "inputs": ["goal", "repository context", "constraints", "acceptance needs"],
-    "outputs": ["descriptive plan", "task ledger", "risk register", "approval request"],
-    "prerequisites": ["classified project scenario"],
-    "sideEffects": ["writes plan and index records"],
-    "riskLevel": "medium"
-  },
-  {
-    "skillId": "flowstate-parallel-dispatch",
-    "scope": "flowstate",
-    "category": "execution",
-    "subcategory": "parallel-dispatch",
-    "scenario": "independent tasks need concurrent execution",
-    "action": "fan out approved dispatches and reconcile results",
-    "outcome": "audited parallel execution and fan-in report",
-    "displayName": "FlowState Parallel Dispatch",
-    "shortDescription": "Fan out independent tasks and reconcile an audited result",
-    "description": "Dispatch only independent tasks with isolated workspaces, then synchronize accepted evidence to the parent planning session.",
-    "positiveTriggers": ["Tasks have no hidden dependency or shared mutable writes", "A parallel plan is explicitly approved"],
-    "boundaries": ["Do not parallelize shared writes", "Do not create a parallel branch without a parent series"],
-    "inputs": ["approved parallel plan", "task dependencies", "workspace policy"],
-    "outputs": ["parallel dispatches", "worker reports", "fan-in synchronization"],
-    "prerequisites": ["user approval", "isolated workspaces"],
-    "sideEffects": ["creates parallel worker sessions"],
-    "riskLevel": "high"
-  },
-  {
-    "skillId": "flowstate-subagent-development",
-    "scope": "flowstate",
-    "category": "execution",
-    "subcategory": "subagent-development",
-    "scenario": "one bounded task should be performed by a task worker",
-    "action": "send a scoped dispatch and collect evidence",
-    "outcome": "structured execution report",
-    "displayName": "FlowState Subagent Development",
-    "shortDescription": "Give a task worker bounded scope and collect evidence",
-    "description": "Use an independent task worker with explicit paths, Skills, stop conditions, and a fixed return destination.",
-    "positiveTriggers": ["A plan task is approved and ready", "The execution controller needs a bounded worker"],
-    "boundaries": ["Worker cannot self-approve", "Worker cannot expand scope"],
-    "inputs": ["PLAN_DISPATCH", "allowed paths", "acceptance criteria"],
-    "outputs": ["changed artifacts", "tests", "evidence", "risks", "blockers"],
-    "prerequisites": ["approved plan version", "worker adapter"],
-    "sideEffects": ["may change an isolated workspace"],
-    "riskLevel": "medium"
-  },
-  {
-    "skillId": "flowstate-git-worktree",
-    "scope": "flowstate",
-    "category": "execution",
-    "subcategory": "git-worktree",
-    "scenario": "concurrent task workers need isolated Git workspaces",
-    "action": "create and audit one worktree per writer",
-    "outcome": "isolated workspace record",
-    "displayName": "FlowState Git Worktree",
-    "shortDescription": "Isolate concurrent writers with auditable Git worktrees",
-    "description": "Create bounded worktrees for concurrent writers and record paths, branches, cleanup, and merge evidence.",
-    "positiveTriggers": ["Independent tasks write to the same repository", "A parallel dispatch needs workspace isolation"],
-    "boundaries": ["Do not rewrite another worker's worktree", "Do not delete worktrees without approval"],
-    "inputs": ["repository", "branch policy", "task IDs"],
-    "outputs": ["worktree mapping", "cleanup record", "merge evidence"],
-    "prerequisites": ["Git repository", "parallel isolation decision"],
-    "sideEffects": ["creates Git worktrees"],
-    "riskLevel": "medium"
-  },
-  {
-    "skillId": "flowstate-branch-completion",
-    "scope": "flowstate",
-    "category": "release",
-    "subcategory": "branch-completion",
-    "scenario": "an approved development branch is ready for handoff",
-    "action": "verify, summarize, and prepare branch completion",
-    "outcome": "handoff and change audit report",
-    "displayName": "FlowState Branch Completion",
-    "shortDescription": "Verify a completed branch and prepare its audited handoff",
-    "description": "Run completion checks, capture evidence, record deviations, and prepare a safe handoff without silently merging.",
-    "positiveTriggers": ["A task or branch reports implementation complete", "A handoff or merge decision is requested"],
-    "boundaries": ["Do not merge or push without authorization", "Do not omit failing checks"],
-    "inputs": ["branch diff", "test results", "plan acceptance"],
-    "outputs": ["completion checklist", "handoff report", "residual risks"],
-    "prerequisites": ["execution report", "review criteria"],
-    "sideEffects": ["may run validation commands"],
-    "riskLevel": "medium"
-  },
-  {
-    "skillId": "flowstate-request-review",
-    "scope": "flowstate",
+    "skillId": "pdgo-completion-work",
+    "scope": "pdgo",
     "category": "review",
-    "subcategory": "request-review",
-    "scenario": "completed work needs an independent review",
-    "action": "prepare a criteria-bound review request",
-    "outcome": "review dispatch",
-    "displayName": "FlowState Request Review",
-    "shortDescription": "Prepare an evidence-bound request for independent review",
-    "description": "Package the exact plan version, acceptance criteria, diff, tests, risks, and questions for an independent reviewer.",
-    "positiveTriggers": ["A worker report is ready for review", "The plan requires independent acceptance"],
-    "boundaries": ["Do not ask the worker to approve itself", "Do not change acceptance criteria in the review request"],
-    "inputs": ["execution report", "plan acceptance", "evidence"],
-    "outputs": ["review request", "review scope", "review questions"],
-    "prerequisites": ["execution evidence"],
-    "sideEffects": ["creates review dispatch"],
-    "riskLevel": "low"
+    "subcategory": "completion-verification-and-branch-handoff",
+    "scenario": "completion verification and branch handoff",
+    "action": "Run evidence-before-completion checks, record residual risk, and prepare a branch handoff without silently merging or pushing.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO Complete Work",
+    "shortDescription": "Verify completion and prepare an audited branch handoff",
+    "description": "Run evidence-before-completion checks, record residual risk, and prepare a branch handoff without silently merging or pushing.",
+    "positiveTriggers": [
+      "The scenario is completion verification and branch handoff"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
   },
   {
-    "skillId": "flowstate-receive-review",
-    "scope": "flowstate",
+    "skillId": "pdgo-debug-work",
+    "scope": "pdgo",
     "category": "review",
-    "subcategory": "receive-review",
-    "scenario": "an independent review report returns to planning",
-    "action": "compare evidence with exact acceptance criteria",
-    "outcome": "review decision and next action",
-    "displayName": "FlowState Receive Review",
-    "shortDescription": "Evaluate returned evidence and decide the next governed action",
-    "description": "Record accepted, revision-required, blocked, or failed outcomes without silently changing the approved scope.",
-    "positiveTriggers": ["A reviewer returns a decision", "A planning controller must unlock or block a task"],
-    "boundaries": ["Do not accept missing evidence", "Do not unlock dependents on a blocked decision"],
-    "inputs": ["review decision", "acceptance criteria", "evidence"],
-    "outputs": ["review record", "task status", "next dispatch or blocker"],
-    "prerequisites": ["independent reviewer", "matching plan version"],
-    "sideEffects": ["may unlock a dependent task"],
-    "riskLevel": "medium"
+    "subcategory": "systematic-debugging-of-a-reproducible-failure",
+    "scenario": "systematic debugging of a reproducible failure",
+    "action": "Reproduce unexpected behavior, isolate root causes, test hypotheses, and apply only approved bounded remediation.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO Debug Work",
+    "shortDescription": "Investigate failures with controlled evidence loops",
+    "description": "Reproduce unexpected behavior, isolate root causes, test hypotheses, and apply only approved bounded remediation.",
+    "positiveTriggers": [
+      "The scenario is systematic debugging of a reproducible failure"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
   },
   {
-    "skillId": "flowstate-tdd",
-    "scope": "flowstate",
-    "category": "review",
-    "subcategory": "test-driven-development",
-    "scenario": "a bounded code change needs test-first implementation",
-    "action": "write a failing test, implement, and refactor",
-    "outcome": "test-backed implementation evidence",
-    "displayName": "FlowState Test Driven Development",
-    "shortDescription": "Drive bounded changes with a red-green-refactor evidence loop",
-    "description": "Use a test-first loop inside the approved task scope and return the test evidence with the change.",
-    "positiveTriggers": ["The task has a deterministic behavior contract", "The project uses automated tests"],
-    "boundaries": ["Do not invent acceptance criteria", "Do not skip the verification loop"],
-    "inputs": ["behavior contract", "test harness", "approved paths"],
-    "outputs": ["tests", "implementation", "test log", "deviations"],
-    "prerequisites": ["test runner", "approved dispatch"],
-    "sideEffects": ["writes tests and implementation files"],
-    "riskLevel": "medium"
-  },
-  {
-    "skillId": "flowstate-system-debugging",
-    "scope": "flowstate",
-    "category": "debugging",
-    "subcategory": "system-debugging",
-    "scenario": "a reproducible system failure needs diagnosis",
-    "action": "reproduce, isolate, and report root-cause hypotheses",
-    "outcome": "evidence-backed diagnostic report",
-    "displayName": "FlowState System Debugging",
-    "shortDescription": "Reproduce system failures and return evidence-backed diagnosis",
-    "description": "Investigate a concrete failure with controlled experiments, preserve evidence, and stop at uncertainty instead of guessing.",
-    "positiveTriggers": ["A reproducible system error is reported", "The user asks for diagnosis before a fix"],
-    "boundaries": ["Do not apply an unapproved production fix", "Do not claim root cause without evidence"],
-    "inputs": ["symptom", "reproduction", "runtime context", "logs"],
-    "outputs": ["reproduction record", "hypotheses", "evidence", "bounded remediation options"],
-    "prerequisites": ["diagnostic access", "safe reproduction"],
-    "sideEffects": ["may run diagnostic commands"],
-    "riskLevel": "high"
-  },
-  {
-    "skillId": "flowstate-precompletion-validation",
-    "scope": "flowstate",
-    "category": "review",
-    "subcategory": "precompletion-validation",
-    "scenario": "a task is about to be marked complete",
-    "action": "run the declared validation and audit the evidence",
-    "outcome": "completion gate decision",
-    "displayName": "FlowState Precompletion Validation",
-    "shortDescription": "Gate completion on declared tests, evidence, and residual risk",
-    "description": "Check every acceptance criterion, required evidence item, rollback condition, and new risk before completion.",
-    "positiveTriggers": ["A worker reports completion", "A dependent task is about to unlock"],
-    "boundaries": ["Do not treat self-reported success as evidence", "Do not close unresolved blockers"],
-    "inputs": ["plan acceptance", "execution report", "tests", "diff"],
-    "outputs": ["completion decision", "evidence checklist", "remaining risks"],
-    "prerequisites": ["declared acceptance criteria"],
-    "sideEffects": ["runs validation commands"],
-    "riskLevel": "medium"
-  },
-  {
-    "skillId": "flowstate-writing-plans",
-    "scope": "flowstate",
-    "category": "planning",
-    "subcategory": "writing-plans",
-    "scenario": "a plan needs a clear human-readable artifact",
-    "action": "write a descriptive, searchable plan document",
-    "outcome": "indexed plan document",
-    "displayName": "FlowState Writing Plans",
-    "shortDescription": "Write descriptive, searchable plans with risks and gates",
-    "description": "Produce a plan whose title, summary, search terms, knowledge domains, tasks, risks, blockers, and approval request are explicit.",
-    "positiveTriggers": ["A new plan or plan version is requested", "Other conversations need to retrieve the plan"],
-    "boundaries": ["Do not write an execution command as a plan", "Do not omit an empty-section explanation"],
-    "inputs": ["goal", "context", "constraints", "decisions"],
-    "outputs": ["plan document", "plan index entry", "approval request"],
-    "prerequisites": ["scenario classification"],
-    "sideEffects": ["writes planning records"],
-    "riskLevel": "low"
-  },
-  {
-    "skillId": "flowstate-writing-skills",
-    "scope": "flowstate",
-    "category": "skill-authoring",
-    "subcategory": "skill-metadata",
-    "scenario": "a reusable capability needs a new Skill",
-    "action": "define scenario routing metadata and instructions",
-    "outcome": "validated indexed Skill",
-    "displayName": "FlowState Writing Skills",
-    "shortDescription": "Define reusable Skills with explicit routing and boundaries",
-    "description": "Author a Skill from its scenario, boundaries, inputs, outputs, prerequisites, side effects, category, and risk.",
-    "positiveTriggers": ["No existing Skill reliably matches the scenario", "A Skill needs a routing contract"],
-    "boundaries": ["Do not create a Skill from a name alone", "Do not use authoring to execute product work"],
-    "inputs": ["scenario", "action", "outcome", "triggers", "boundaries"],
-    "outputs": ["Skill files", "manifest", "category entry", "index update"],
-    "prerequisites": ["clear scenario"],
-    "sideEffects": ["writes Skill catalog files"],
-    "riskLevel": "low"
-  },
-  {
-    "skillId": "flowstate-memory-retrieval",
-    "scope": "flowstate",
+    "skillId": "pdgo-dialogue-memory",
+    "scope": "pdgo",
     "category": "memory",
-    "subcategory": "memory-retrieval",
-    "scenario": "a task needs information from another conversation",
-    "action": "search indexes, read summaries, and record references",
-    "outcome": "traceable cross-session context",
-    "displayName": "FlowState Memory Retrieval",
-    "shortDescription": "Retrieve cross-session context through indexed summaries",
-    "description": "Find conversation and plan records through indexes first, read summaries before source turns, and record every reference.",
-    "positiveTriggers": ["The current task depends on another conversation", "A plan or knowledge record must be found"],
-    "boundaries": ["Do not assume a transcript was shared", "Do not use draft memory as an execution fact"],
-    "inputs": ["project ID", "search terms", "knowledge domain"],
-    "outputs": ["retrieved summaries", "source references", "context decision"],
-    "prerequisites": ["project memory indexes"],
-    "sideEffects": ["records cross-session references"],
-    "riskLevel": "medium"
+    "subcategory": "conversation-memory-checkpoint-retrieval-and-handoff",
+    "scenario": "conversation memory, checkpoint, retrieval, and handoff",
+    "action": "Record and retrieve session, plan, decision, evidence, and cross-session memory without assuming transcript sharing.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO Dialogue Memory",
+    "shortDescription": "Preserve indexed conversation memory and handoff context",
+    "description": "Record and retrieve session, plan, decision, evidence, and cross-session memory without assuming transcript sharing.",
+    "positiveTriggers": [
+      "The scenario is conversation memory, checkpoint, retrieval, and handoff"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
+  },
+  {
+    "skillId": "pdgo-execute-work",
+    "scope": "pdgo",
+    "category": "dispatch",
+    "subcategory": "approved-implementation-dispatch-and-continuous-stage-control",
+    "scenario": "approved implementation dispatch and continuous stage control",
+    "action": "Execute an approved plan with serial or parallel task dispatch, isolated worktrees, bounded corrections, and audited worker reports.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO Execute Work",
+    "shortDescription": "Dispatch isolated approved work and collect evidence",
+    "description": "Execute an approved plan with serial or parallel task dispatch, isolated worktrees, bounded corrections, and audited worker reports.",
+    "positiveTriggers": [
+      "The scenario is approved implementation dispatch and continuous stage control"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
+  },
+  {
+    "skillId": "pdgo-plan-work",
+    "scope": "pdgo",
+    "category": "planning",
+    "subcategory": "planning-and-discovery-for-a-governed-multi-stage-change",
+    "scenario": "planning and discovery for a governed multi-stage change",
+    "action": "Explore intent, write a versioned plan, split long work into serial or parallel stages, and prepare an approval-bound task ledger.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO Plan Work",
+    "shortDescription": "Co-design a bounded staged plan with acceptance gates",
+    "description": "Explore intent, write a versioned plan, split long work into serial or parallel stages, and prepare an approval-bound task ledger.",
+    "positiveTriggers": [
+      "The scenario is planning and discovery for a governed multi-stage change"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
+  },
+  {
+    "skillId": "pdgo-review-receive",
+    "scope": "pdgo",
+    "category": "review",
+    "subcategory": "receiving-and-deciding-an-independent-review",
+    "scenario": "receiving and deciding an independent review",
+    "action": "Receive independent review feedback, verify it against the approved contract, and accept, revise, block, or fail the task.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO Receive Review",
+    "shortDescription": "Evaluate review evidence and govern the next action",
+    "description": "Receive independent review feedback, verify it against the approved contract, and accept, revise, block, or fail the task.",
+    "positiveTriggers": [
+      "The scenario is receiving and deciding an independent review"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
+  },
+  {
+    "skillId": "pdgo-review-request",
+    "scope": "pdgo",
+    "category": "review",
+    "subcategory": "requesting-an-independent-implementation-or-code-review",
+    "scenario": "requesting an independent implementation or code review",
+    "action": "Request an independent review against the immutable plan, acceptance criteria, diff, tests, risks, and questions.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO Request Review",
+    "shortDescription": "Package exact work evidence for independent review",
+    "description": "Request an independent review against the immutable plan, acceptance criteria, diff, tests, risks, and questions.",
+    "positiveTriggers": [
+      "The scenario is requesting an independent implementation or code review"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
+  },
+  {
+    "skillId": "pdgo-route-work",
+    "scope": "pdgo",
+    "category": "coordination",
+    "subcategory": "startup-routing-and-governed-capability-selection",
+    "scenario": "startup routing and governed capability selection",
+    "action": "Select the active PDGO Skill and eligible Agency Agent from the classified scenario before any governed response or dispatch.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO Route Work",
+    "shortDescription": "Route governed work to the right PDGO Skill and Agent",
+    "description": "Select the active PDGO Skill and eligible Agency Agent from the classified scenario before any governed response or dispatch.",
+    "positiveTriggers": [
+      "The scenario is startup routing and governed capability selection"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
+  },
+  {
+    "skillId": "pdgo-skill-authoring",
+    "scope": "pdgo",
+    "category": "coordination",
+    "subcategory": "authoring-and-validating-a-reusable-governed-skill",
+    "scenario": "authoring and validating a reusable governed Skill",
+    "action": "Create or update a PDGO Skill with concrete triggers, boundaries, inputs, outputs, prerequisites, evidence, and risk metadata.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO Skill Authoring",
+    "shortDescription": "Author searchable Skills with explicit routing contracts",
+    "description": "Create or update a PDGO Skill with concrete triggers, boundaries, inputs, outputs, prerequisites, evidence, and risk metadata.",
+    "positiveTriggers": [
+      "The scenario is authoring and validating a reusable governed Skill"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
+  },
+  {
+    "skillId": "pdgo-tdd-work",
+    "scope": "pdgo",
+    "category": "review",
+    "subcategory": "test-first-implementation-of-an-approved-behavior-change",
+    "scenario": "test-first implementation of an approved behavior change",
+    "action": "Implement approved behavior changes with a failing test, minimal implementation, passing verification, and controlled refactoring.",
+    "outcome": "governed result with evidence, risks, blockers, and next action",
+    "displayName": "PDGO TDD Work",
+    "shortDescription": "Drive bounded changes through a red-green-refactor loop",
+    "description": "Implement approved behavior changes with a failing test, minimal implementation, passing verification, and controlled refactoring.",
+    "positiveTriggers": [
+      "The scenario is test-first implementation of an approved behavior change"
+    ],
+    "boundaries": [
+      "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+    ],
+    "inputs": [
+      "classified project context",
+      "approved or planning-scoped artifacts",
+      "current constraints"
+    ],
+    "outputs": [
+      "governed result",
+      "evidence",
+      "risks",
+      "blockers",
+      "next action"
+    ],
+    "prerequisites": [
+      "startup routing completed",
+      "mode permits the requested side effect"
+    ],
+    "sideEffects": [
+      "writes governed artifacts or changes only approved paths"
+    ],
+    "riskLevel": "high",
+    "priority": 10
   }
 ]

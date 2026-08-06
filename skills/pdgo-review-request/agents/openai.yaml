@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO Request Review"
+  short_description: "Package exact work evidence for independent review"
+  default_prompt: "Use $pdgo-review-request for requesting an independent implementation or code review and return governed evidence."
+policy:
+  allow_implicit_invocation: true

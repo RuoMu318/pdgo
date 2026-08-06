@@ -1,0 +1,43 @@
+schema_version: "1.0"
+agent_id: "agency-agents/marketing/marketing-growth-hacker.md"
+name: "Growth Hacker"
+division: "marketing"
+provider_id: "agency-agents"
+source_path: "marketing/marketing-growth-hacker.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/marketing/marketing-growth-hacker.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "b5c20e59d361b19f277ee1410ce4ec985edde4c7"
+prompt_sha256: "6938b4fccaf4447e8c4b8fd071ce383a484cd3fb72583d87ac9835fa9741a7c7"
+specific_description: "Expert growth strategist specializing in rapid user acquisition through data-driven experimentation. Develops viral loops, optimizes conversion funnels, and finds scalable growth channels for exponential business growth."
+when_to_use: "Use only when the approved task explicitly matches the source description: Expert growth strategist specializing in rapid user acquisition through data-driven experimentation. Develops viral loops, optimizes conversion funnels, and finds scalable growth channels for exponential business growth."
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "unknown: the source prompt does not declare structured outputs"
+stage:
+  - "planning"
+  - "implementation"
+  - "validation"
+department:
+  - "planning"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-review-receive"
+  - "pdgo-execute-work"
+confidence: "medium"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "Growth Hacker"
+  source_frontmatter_description: "Expert growth strategist specializing in rapid user acquisition through data-driven experimentation. Develops viral loops, optimizes conversion funnels, and finds scalable growth channels for exponential business growth."
+  source_frontmatter_vibe: "Finds the growth channel nobody's exploited yet — then scales it."
+  headings:
+    - "Marketing Growth Hacker Agent"
+    - "Identity & Role Definition"
+    - "Core Capabilities"
+    - "Specialized Skills"
+    - "Decision Framework"
+    - "Success Metrics"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."

@@ -1,0 +1,46 @@
+schema_version: "1.0"
+agent_id: "agency-agents/specialized/sales-data-extraction-agent.md"
+name: "Sales Data Extraction Agent"
+division: "specialized"
+provider_id: "agency-agents"
+source_path: "specialized/sales-data-extraction-agent.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/specialized/sales-data-extraction-agent.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "2d1d6124ce6ea974d8972eb5660e90c2b39fa2fa"
+prompt_sha256: "202a6f04df452385fd1185a6bb23a0c9a47e624088eac14179bed4975f0b268a"
+specific_description: "AI agent specialized in monitoring Excel files and extracting key sales metrics (MTD, YTD, Year End) for internal live reporting"
+when_to_use: "Use only when the approved task explicitly matches the source description: AI agent specialized in monitoring Excel files and extracting key sales metrics (MTD, YTD, Year End) for internal live reporting"
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "unknown: the source prompt does not declare structured outputs"
+stage:
+  - "implementation"
+  - "validation"
+department:
+  - "unknown"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-review-receive"
+  - "pdgo-debug-work"
+confidence: "medium"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "Sales Data Extraction Agent"
+  source_frontmatter_description: "AI agent specialized in monitoring Excel files and extracting key sales metrics (MTD, YTD, Year End) for internal live reporting"
+  source_frontmatter_vibe: "Watches your Excel files and extracts the metrics that matter."
+  headings:
+    - "Sales Data Extraction Agent"
+    - "Identity & Memory"
+    - "Core Mission"
+    - "Critical Rules"
+    - "Technical Deliverables"
+    - "File Monitoring"
+    - "Metric Extraction"
+    - "Data Persistence"
+    - "Workflow Process"
+    - "Success Metrics"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."

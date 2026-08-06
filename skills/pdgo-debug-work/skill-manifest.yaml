@@ -1,0 +1,47 @@
+schema_version: "1.0"
+skill_id: "pdgo-debug-work"
+display_name: "PDGO Debug Work"
+description: "Reproduce unexpected behavior, isolate root causes, test hypotheses, and apply only approved bounded remediation."
+project_scope:
+  - "pdgo"
+  - "tianyan"
+department:
+  - "execution"
+  - "review"
+stage:
+  - "implementation"
+  - "validation"
+scenarios:
+  - "systematic debugging of a reproducible failure"
+positive_triggers:
+  - "The scenario is systematic debugging of a reproducible failure"
+negative_triggers:
+  - "The scenario is outside this Skill's declared workflow"
+  - "Required inputs or approval are missing"
+boundaries:
+  - "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+required_inputs:
+  - "classified project context"
+  - "approved or planning-scoped artifacts"
+  - "current constraints"
+expected_outputs:
+  - "governed result"
+  - "evidence"
+  - "risks"
+  - "blockers"
+  - "next action"
+prerequisites:
+  - "startup routing completed"
+  - "mode permits the requested side effect"
+side_effects:
+  - "writes governed artifacts or changes only approved paths"
+upstream_skills:
+  - "systematic-debugging"
+tags:
+  - "pdgo"
+  - "tianyan"
+  - "governed-work"
+risk_level: "high"
+priority: 10
+category: "coordination"
+subcategory: "systematic debugging of a reproducible failure"

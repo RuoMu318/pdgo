@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Planning Controller","short_description":"Dispatch workflow for planning control record","default_prompt":"Use $flowstate-planning-controller for Coordinate planning workers and user approval and produce planning control record."}
-policy: {"allow_implicit_invocation":true}

@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Mode Control","short_description":"Coordination workflow for mode decision","default_prompt":"Use $flowstate-mode-control for Switch or enforce discuss, plan, or execute mode and produce mode decision."}
-policy: {"allow_implicit_invocation":true}

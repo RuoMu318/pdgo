@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Rollback Design","short_description":"Planning workflow for rollback plan","default_prompt":"Use $flowstate-rollback-design for Define stop, rollback, and recovery conditions and produce rollback plan."}
-policy: {"allow_implicit_invocation":true}

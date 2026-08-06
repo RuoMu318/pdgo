@@ -1,2 +1,0 @@
-interface: {"display_name":"FlowState Precompletion Validation","short_description":"Gate completion on declared tests, evidence, and residual risk","default_prompt":"Use $flowstate-precompletion-validation for a task is about to be marked complete and produce completion gate decision."}
-policy: {"allow_implicit_invocation":true}

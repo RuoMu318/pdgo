@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Skill Metadata","short_description":"Skill Authoring workflow for Skill manifest","default_prompt":"Use $flowstate-skill-metadata for Write triggers, boundaries, inputs, outputs, and risk metadata and produce Skill manifest."}
-policy: {"allow_implicit_invocation":true}

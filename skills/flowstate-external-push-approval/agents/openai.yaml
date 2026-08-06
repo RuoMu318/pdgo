@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate External Push Approval","short_description":"Release Audit workflow for push approval","default_prompt":"Use $flowstate-external-push-approval for Gate a remote push on explicit authorization and produce push approval."}
-policy: {"allow_implicit_invocation":true}

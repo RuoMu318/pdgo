@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Refactoring","short_description":"Development workflow for refactor evidence","default_prompt":"Use $flowstate-refactoring for Improve structure without changing the approved behavior and produce refactor evidence."}
-policy: {"allow_implicit_invocation":true}

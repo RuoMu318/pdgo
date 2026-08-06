@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Security Review","short_description":"Review workflow for security findings","default_prompt":"Use $flowstate-security-review for Review permissions, secrets, and unsafe side effects and produce security findings."}
-policy: {"allow_implicit_invocation":true}

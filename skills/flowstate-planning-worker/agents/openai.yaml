@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Planning Worker","short_description":"Dispatch workflow for planning worker report","default_prompt":"Use $flowstate-planning-worker for Perform bounded research or planning work and produce planning worker report."}
-policy: {"allow_implicit_invocation":true}

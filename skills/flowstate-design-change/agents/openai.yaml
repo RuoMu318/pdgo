@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Design Change","short_description":"Development workflow for design evidence","default_prompt":"Use $flowstate-design-change for Apply a bounded design or visual change and produce design evidence."}
-policy: {"allow_implicit_invocation":true}

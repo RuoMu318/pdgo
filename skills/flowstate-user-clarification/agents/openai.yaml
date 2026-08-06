@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate User Clarification","short_description":"Coordination workflow for clarification record","default_prompt":"Use $flowstate-user-clarification for Resolve an unanswered decision before planning or execution and produce clarification record."}
-policy: {"allow_implicit_invocation":true}

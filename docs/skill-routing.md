@@ -1,59 +1,63 @@
-# FlowState startup routing
+# PDGO startup routing
 
-## Required first-pass classification
+## Required classification
 
-Every new project task starts with this internal record:
+Every project task starts with this record before a domain Skill or artifact is touched:
 
 ```yaml
 project: identify from cwd, repository, or user statement
 operation: code | docs | config | research | design | data | release | other
 department: planning | execution | review | coordination
 stage: intake | discovery | design | implementation | validation | release | maintenance
-scenario: concrete user goal, not a Skill name
+scenario: concrete user goal, never a Skill name
 inputs: files, repository, API, model, document, or evidence types
 outputs: plan, code, document, test report, decision, or release artifact
 constraints: paths, branches, permissions, deadlines, exclusions
 risk: low | medium | high | critical
 mode: discuss-only | plan-only | execute
+approval_state: absent | awaiting-user-approval | approved | paused | completed
 ```
 
-The category index is a discovery layer. Current FlowState families are:
+The category index is a discovery aid only. The ten active entries are:
 
 ```text
-coordination | planning | dispatch | development | review
-debugging   | memory   | skill-authoring | release-audit | adapters
+pdgo-route-work | pdgo-dialogue-memory | pdgo-plan-work | pdgo-execute-work
+pdgo-review-request | pdgo-review-receive | pdgo-debug-work | pdgo-tdd-work
+pdgo-completion-work | pdgo-skill-authoring
 ```
 
-Use the family to narrow the candidate set, then apply each Skill's concrete metadata. The complete inventory is in
-`profiles/flowstate-skill-inventory.json`; generated discovery views are `skills/category-index.json` and
-`docs/skill-catalog.md`.
+Use the full metadata in `skills/skill-index.json` and `skills/category-index.json`; a name, category, or keyword
+alone never invokes a Skill. The integration map under
+`integrations/external-skills/superpowers/integration-map.json` records how upstream workflow blocks enter the
+active Skills.
 
 ## Routing order
 
-1. Load global guidance and the nearest project `AGENTS.md` files.
-2. Identify the project profile and memory store.
-3. Search plan, knowledge, and session indexes before opening historical content.
-4. List candidate Skills from metadata, not filenames.
-5. Apply hard filters: scope, exclusions, stage, prerequisites, and permissions.
-6. Rank remaining Skills by scenario, input/output fit, project specificity, and risk coverage.
-7. Select one primary Skill and only the supporting Skills required by the scenario.
-8. Explain the selection in the session record.
+1. Load global guidance, the nearest project `AGENTS.md`, and the project profile.
+2. Search plan, knowledge, and session indexes before opening historical content.
+3. Classify the concrete scenario and select one primary active Skill.
+4. Apply hard filters: project scope, negative triggers, department, stage, prerequisites, permissions, and mode.
+5. Rank remaining candidates by scenario and input/output fit, project specificity, risk coverage, and explicit user choice.
+6. Record selected and rejected Skills with the reason for each decision.
+7. Route Agency Agent candidates through `profiles/pdgo-agent-routing.json` and their evidence metadata.
+8. Stop with `skill-unresolved` when no candidate satisfies the hard filters.
 
-Within a family, prefer the narrowest subcategory and the Skill whose output contract exactly matches the requested
-artifact. A broad governance Skill remains the coordination layer, but it does not replace a more specific workflow
-Skill when one matches.
+## Agent routing
 
-## Examples
+Upstream divisions narrow the search but do not prove a capability. An Agent is eligible for automatic selection only
+when its metadata says `auto_route: true`, the approved task supplies a matching scenario query, the prompt SHA is
+valid, and the transport returns a real connected session. `manual-only` Agents can be selected by exact
+`external_agent_id` in a user-approved dispatch but cannot be guessed from a name.
 
-- A Three.js runtime failure selects the project Three.js debugging Skill only when the repository and
-  symptom match its scope; a generic document Skill is not selected just because the word "model" appears.
-- A request to design a new product selects planning and architecture Skills; implementation Skills remain
-  inactive until the plan is approved.
-- A document editing task selects the document workflow Skill, not a project coding Skill.
-- A task with no reliable candidate becomes `skill-unresolved` and pauses for clarification or a new Skill.
+## Department boundary
+
+The Planning Department owns the user contract, stage decomposition, Agent selectors, risk and blocker disposition,
+and acceptance loop. The Execution Department performs one exact dispatch and returns evidence. Reviewers are
+independent and cannot self-approve. No department can silently expand scope or close a blocker without a recorded
+resolution and evidence.
 
 ## Conflicts
 
-Explicit user instructions override routing defaults. A local project Skill may add constraints, but it cannot
-remove the classification, approval gate, evidence requirement, or safety boundary. If two Skills conflict, keep
-the primary Skill's output contract and use the second only as a supporting reference after the conflict is resolved.
+Explicit user instructions override routing defaults when compatible. A project rule or active Skill may add
+constraints but cannot remove the approval gate, evidence requirement, session isolation, transport honesty, or
+safety boundary. If no compatible route remains, pause and request clarification rather than guessing.

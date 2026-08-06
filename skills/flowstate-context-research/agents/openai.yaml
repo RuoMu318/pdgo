@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Context Research","short_description":"Planning workflow for research notes","default_prompt":"Use $flowstate-context-research for Research repository, dependencies, and prior decisions and produce research notes."}
-policy: {"allow_implicit_invocation":true}

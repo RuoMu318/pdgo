@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Performance Validation","short_description":"Review workflow for performance report","default_prompt":"Use $flowstate-performance-validation for Measure performance against a target and produce performance report."}
-policy: {"allow_implicit_invocation":true}

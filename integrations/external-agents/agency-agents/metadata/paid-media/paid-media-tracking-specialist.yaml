@@ -1,0 +1,45 @@
+schema_version: "1.0"
+agent_id: "agency-agents/paid-media/paid-media-tracking-specialist.md"
+name: "Tracking & Measurement Specialist"
+division: "paid-media"
+provider_id: "agency-agents"
+source_path: "paid-media/paid-media-tracking-specialist.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/paid-media/paid-media-tracking-specialist.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "edbe1ffed0a4f400c6604c1cca3d4f1f7a8cf708"
+prompt_sha256: "8caa9bbc8f5a8aaeb5ac156dbb27818f27e79512472053b824484496b0ca5b96"
+specific_description: "Expert in conversion tracking architecture, tag management, and attribution modeling across Google Tag Manager, GA4, Google Ads, Meta CAPI, LinkedIn Insight Tag, and server-side implementations. Ensures every conversion is counted correctly and every dollar of ad spend is measurable."
+when_to_use: "Use only when the approved task explicitly matches the source description: Expert in conversion tracking architecture, tag management, and attribution modeling across Google Tag Manager, GA4, Google Ads, Meta CAPI, LinkedIn Insight Tag, and server-side implementations. Ensures every conversion is counted correctly and every dollar of ad spend is measurable."
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "unknown: the source prompt does not declare structured outputs"
+stage:
+  - "planning"
+  - "implementation"
+  - "validation"
+department:
+  - "planning"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-review-receive"
+  - "pdgo-debug-work"
+  - "pdgo-execute-work"
+confidence: "medium"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "Tracking & Measurement Specialist"
+  source_frontmatter_description: "Expert in conversion tracking architecture, tag management, and attribution modeling across Google Tag Manager, GA4, Google Ads, Meta CAPI, LinkedIn Insight Tag, and server-side implementations. Ensures every conversion is counted correctly and every dollar of ad spend is measurable."
+  source_frontmatter_vibe: "If it's not tracked correctly, it didn't happen."
+  headings:
+    - "Paid Media Tracking & Measurement Specialist Agent"
+    - "Identity & Role Definition"
+    - "Core Capabilities"
+    - "Specialized Skills"
+    - "Tooling & Automation"
+    - "Decision Framework"
+    - "Success Metrics"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."

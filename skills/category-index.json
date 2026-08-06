@@ -1,725 +1,520 @@
 {
   "schema_version": "1.0",
-  "description": "Complete FlowState methodology Skill inventory. Entries are routing candidates; each installed Skill must add explicit triggers, boundaries, inputs, outputs, prerequisites, and risk.",
+  "description": "The active PDGO Skill catalog. Legacy shell Skills were removed after migration; route only through these ten entries.",
   "categories": [
     {
-      "id": "coordination",
-      "label": "Coordination and Governance",
-      "skills": [
-        {
-          "skill_id": "flowstate-project-method",
-          "scenario": "Any governed project task starts",
-          "output": "classified task and governed workflow",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-project-intake",
-          "scenario": "Identify project, repository, and authority",
-          "output": "intake record",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-mode-control",
-          "scenario": "Switch or enforce discuss, plan, or execute mode",
-          "output": "mode decision",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-scenario-classification",
-          "scenario": "Classify operation, department, stage, and concrete scenario",
-          "output": "classification tuple",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-skill-routing",
-          "scenario": "Choose Skills from scenario metadata",
-          "output": "selection record",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-project-profile",
-          "scenario": "Load project paths, policies, roles, and tools",
-          "output": "project profile",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-user-clarification",
-          "scenario": "Resolve an unanswered decision before planning or execution",
-          "output": "clarification record",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-approval-gate",
-          "scenario": "Request and verify version-bound user approval",
-          "output": "approval record",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-risk-register",
-          "scenario": "Identify, treat, and obtain decisions on risks",
-          "output": "risk register",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-blocker-management",
-          "scenario": "Register, wait for, and resolve blockers",
-          "output": "blocker record",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-plan-versioning",
-          "scenario": "Create immutable plan versions and migration links",
-          "output": "version lineage",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-series-continuity",
-          "scenario": "Reuse controller conversations for a series extension",
-          "output": "series session mapping",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        },
-        {
-          "skill_id": "flowstate-parallel-series-sync",
-          "scenario": "Create a parallel branch and synchronize accepted results",
-          "output": "fan-in record",
-          "category": "coordination",
-          "category_label": "Coordination and Governance"
-        }
-      ]
-    },
-    {
-      "id": "planning",
-      "label": "Planning and Discovery",
-      "skills": [
-        {
-          "skill_id": "flowstate-brainstorming",
-          "scenario": "Explore ambiguous goals and alternatives",
-          "output": "discovery brief",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-requirements-discovery",
-          "scenario": "Turn user intent into explicit requirements",
-          "output": "requirements record",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-context-research",
-          "scenario": "Research repository, dependencies, and prior decisions",
-          "output": "research notes",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-architecture-planning",
-          "scenario": "Design bounded architecture options",
-          "output": "architecture decision",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-execution-planning",
-          "scenario": "Decompose approved scope into executable tasks",
-          "output": "approval-ready plan",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-writing-plans",
-          "scenario": "Write descriptive searchable plan documents",
-          "output": "indexed plan document",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-task-decomposition",
-          "scenario": "Split work into independently verifiable tasks",
-          "output": "task ledger",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-dependency-analysis",
-          "scenario": "Map task and external dependencies",
-          "output": "dependency graph",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-acceptance-design",
-          "scenario": "Define criteria and evidence before execution",
-          "output": "acceptance contract",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-rollback-design",
-          "scenario": "Define stop, rollback, and recovery conditions",
-          "output": "rollback plan",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        },
-        {
-          "skill_id": "flowstate-knowledge-mapping",
-          "scenario": "Assign plans to searchable knowledge domains",
-          "output": "knowledge map",
-          "category": "planning",
-          "category_label": "Planning and Discovery"
-        }
-      ]
-    },
-    {
-      "id": "dispatch",
-      "label": "Controllers, Dispatch, and Agents",
-      "skills": [
-        {
-          "skill_id": "flowstate-planning-controller",
-          "scenario": "Coordinate planning workers and user approval",
-          "output": "planning control record",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-execution-controller",
-          "scenario": "Dispatch approved tasks and collect worker reports",
-          "output": "execution control record",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-planning-worker",
-          "scenario": "Perform bounded research or planning work",
-          "output": "planning worker report",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-execution-worker",
-          "scenario": "Perform one exact approved task",
-          "output": "execution report",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-subagent-development",
-          "scenario": "Give a task worker isolated scope and evidence rules",
-          "output": "worker dispatch",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-parallel-dispatch",
-          "scenario": "Fan out independent tasks with isolated workspaces",
-          "output": "parallel dispatch set",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-serial-dispatch",
-          "scenario": "Run dependent tasks one at a time",
-          "output": "serial dispatch record",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-dispatch-contract",
-          "scenario": "Build a complete PLAN_DISPATCH message",
-          "output": "dispatch contract",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-report-return",
-          "scenario": "Return worker evidence to the fixed controller sessions",
-          "output": "report handoff",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-review-handoff",
-          "scenario": "Send reports from execution to planning review",
-          "output": "review handoff",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-auto-next-task",
-          "scenario": "Unlock and dispatch the next accepted dependent task",
-          "output": "next-task dispatch",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        },
-        {
-          "skill_id": "flowstate-retry-escalation",
-          "scenario": "Retry bounded failures and escalate after the limit",
-          "output": "retry decision",
-          "category": "dispatch",
-          "category_label": "Controllers, Dispatch, and Agents"
-        }
-      ]
-    },
-    {
-      "id": "development",
-      "label": "Implementation and Workspace",
-      "skills": [
-        {
-          "skill_id": "flowstate-tdd",
-          "scenario": "Drive a bounded change with a red-green-refactor loop",
-          "output": "test-backed change",
-          "category": "development",
-          "category_label": "Implementation and Workspace"
-        },
-        {
-          "skill_id": "flowstate-bounded-implementation",
-          "scenario": "Implement exactly the approved task scope",
-          "output": "changed artifacts",
-          "category": "development",
-          "category_label": "Implementation and Workspace"
-        },
-        {
-          "skill_id": "flowstate-refactoring",
-          "scenario": "Improve structure without changing the approved behavior",
-          "output": "refactor evidence",
-          "category": "development",
-          "category_label": "Implementation and Workspace"
-        },
-        {
-          "skill_id": "flowstate-git-worktree",
-          "scenario": "Give concurrent writers isolated Git worktrees",
-          "output": "worktree mapping",
-          "category": "development",
-          "category_label": "Implementation and Workspace"
-        },
-        {
-          "skill_id": "flowstate-branch-completion",
-          "scenario": "Verify a branch and prepare an audited handoff",
-          "output": "branch handoff",
-          "category": "development",
-          "category_label": "Implementation and Workspace"
-        },
-        {
-          "skill_id": "flowstate-configuration-change",
-          "scenario": "Apply a bounded configuration change",
-          "output": "configuration diff",
-          "category": "development",
-          "category_label": "Implementation and Workspace"
-        },
-        {
-          "skill_id": "flowstate-document-change",
-          "scenario": "Apply a bounded document change",
-          "output": "document artifact",
-          "category": "development",
-          "category_label": "Implementation and Workspace"
-        },
-        {
-          "skill_id": "flowstate-design-change",
-          "scenario": "Apply a bounded design or visual change",
-          "output": "design evidence",
-          "category": "development",
-          "category_label": "Implementation and Workspace"
-        },
-        {
-          "skill_id": "flowstate-data-change",
-          "scenario": "Apply a bounded data or migration change",
-          "output": "data change report",
-          "category": "development",
-          "category_label": "Implementation and Workspace"
-        }
-      ]
-    },
-    {
       "id": "review",
-      "label": "Review, Testing, and Validation",
+      "label": "PDGO Review and Completion",
       "skills": [
         {
-          "skill_id": "flowstate-request-review",
-          "scenario": "Prepare an independent code review request",
-          "output": "review request",
+          "skill_id": "pdgo-completion-work",
+          "display_name": "PDGO Complete Work",
+          "path": "skills/pdgo-completion-work",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "review",
+            "execution"
+          ],
+          "stages": [
+            "validation"
+          ],
+          "scenarios": [
+            "completion verification and branch handoff"
+          ],
+          "positive_triggers": [
+            "The scenario is completion verification and branch handoff"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
           "category": "review",
-          "category_label": "Review, Testing, and Validation"
+          "subcategory": "completion-verification-and-branch-handoff",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         },
         {
-          "skill_id": "flowstate-receive-review",
-          "scenario": "Evaluate a returned code review decision",
-          "output": "review decision",
+          "skill_id": "pdgo-debug-work",
+          "display_name": "PDGO Debug Work",
+          "path": "skills/pdgo-debug-work",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "execution",
+            "review"
+          ],
+          "stages": [
+            "implementation",
+            "validation"
+          ],
+          "scenarios": [
+            "systematic debugging of a reproducible failure"
+          ],
+          "positive_triggers": [
+            "The scenario is systematic debugging of a reproducible failure"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
           "category": "review",
-          "category_label": "Review, Testing, and Validation"
+          "subcategory": "systematic-debugging-of-a-reproducible-failure",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         },
         {
-          "skill_id": "flowstate-independent-plan-review",
-          "scenario": "Review a plan before user approval",
-          "output": "plan review",
+          "skill_id": "pdgo-review-receive",
+          "display_name": "PDGO Receive Review",
+          "path": "skills/pdgo-review-receive",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "review",
+            "planning"
+          ],
+          "stages": [
+            "validation"
+          ],
+          "scenarios": [
+            "receiving and deciding an independent review"
+          ],
+          "positive_triggers": [
+            "The scenario is receiving and deciding an independent review"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
           "category": "review",
-          "category_label": "Review, Testing, and Validation"
+          "subcategory": "receiving-and-deciding-an-independent-review",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         },
         {
-          "skill_id": "flowstate-precompletion-validation",
-          "scenario": "Gate completion on declared evidence",
-          "output": "completion gate",
+          "skill_id": "pdgo-review-request",
+          "display_name": "PDGO Request Review",
+          "path": "skills/pdgo-review-request",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "review",
+            "planning"
+          ],
+          "stages": [
+            "validation"
+          ],
+          "scenarios": [
+            "requesting an independent implementation or code review"
+          ],
+          "positive_triggers": [
+            "The scenario is requesting an independent implementation or code review"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
           "category": "review",
-          "category_label": "Review, Testing, and Validation"
+          "subcategory": "requesting-an-independent-implementation-or-code-review",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         },
         {
-          "skill_id": "flowstate-evidence-validation",
-          "scenario": "Check evidence against exact acceptance criteria",
-          "output": "evidence decision",
+          "skill_id": "pdgo-tdd-work",
+          "display_name": "PDGO TDD Work",
+          "path": "skills/pdgo-tdd-work",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "execution",
+            "review"
+          ],
+          "stages": [
+            "implementation",
+            "validation"
+          ],
+          "scenarios": [
+            "test-first implementation of an approved behavior change"
+          ],
+          "positive_triggers": [
+            "The scenario is test-first implementation of an approved behavior change"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
           "category": "review",
-          "category_label": "Review, Testing, and Validation"
-        },
-        {
-          "skill_id": "flowstate-test-planning",
-          "scenario": "Choose tests for a risk and acceptance contract",
-          "output": "test plan",
-          "category": "review",
-          "category_label": "Review, Testing, and Validation"
-        },
-        {
-          "skill_id": "flowstate-test-execution",
-          "scenario": "Run and capture declared automated tests",
-          "output": "test report",
-          "category": "review",
-          "category_label": "Review, Testing, and Validation"
-        },
-        {
-          "skill_id": "flowstate-visual-validation",
-          "scenario": "Validate visual claims with screenshots or measurements",
-          "output": "visual evidence",
-          "category": "review",
-          "category_label": "Review, Testing, and Validation"
-        },
-        {
-          "skill_id": "flowstate-performance-validation",
-          "scenario": "Measure performance against a target",
-          "output": "performance report",
-          "category": "review",
-          "category_label": "Review, Testing, and Validation"
-        },
-        {
-          "skill_id": "flowstate-lifecycle-validation",
-          "scenario": "Check resource ownership and cleanup lifecycle",
-          "output": "lifecycle report",
-          "category": "review",
-          "category_label": "Review, Testing, and Validation"
-        },
-        {
-          "skill_id": "flowstate-security-review",
-          "scenario": "Review permissions, secrets, and unsafe side effects",
-          "output": "security findings",
-          "category": "review",
-          "category_label": "Review, Testing, and Validation"
-        },
-        {
-          "skill_id": "flowstate-compatibility-review",
-          "scenario": "Check changes against existing contracts",
-          "output": "compatibility report",
-          "category": "review",
-          "category_label": "Review, Testing, and Validation"
-        }
-      ]
-    },
-    {
-      "id": "debugging",
-      "label": "Debugging and Recovery",
-      "skills": [
-        {
-          "skill_id": "flowstate-system-debugging",
-          "scenario": "Reproduce a concrete system failure",
-          "output": "diagnostic report",
-          "category": "debugging",
-          "category_label": "Debugging and Recovery"
-        },
-        {
-          "skill_id": "flowstate-reproduction",
-          "scenario": "Create a minimal reliable reproduction",
-          "output": "reproduction record",
-          "category": "debugging",
-          "category_label": "Debugging and Recovery"
-        },
-        {
-          "skill_id": "flowstate-hypothesis-analysis",
-          "scenario": "Compare root-cause hypotheses with evidence",
-          "output": "hypothesis matrix",
-          "category": "debugging",
-          "category_label": "Debugging and Recovery"
-        },
-        {
-          "skill_id": "flowstate-failure-recovery",
-          "scenario": "Recover from a failed task within policy",
-          "output": "recovery decision",
-          "category": "debugging",
-          "category_label": "Debugging and Recovery"
-        },
-        {
-          "skill_id": "flowstate-blocker-wait",
-          "scenario": "Pause execution and expose a blocking decision",
-          "output": "waiting record",
-          "category": "debugging",
-          "category_label": "Debugging and Recovery"
-        },
-        {
-          "skill_id": "flowstate-risk-rereview",
-          "scenario": "Return new high-impact risk to planning and the user",
-          "output": "reapproval request",
-          "category": "debugging",
-          "category_label": "Debugging and Recovery"
-        },
-        {
-          "skill_id": "flowstate-rollback-execution",
-          "scenario": "Execute an approved rollback and verify it",
-          "output": "rollback evidence",
-          "category": "debugging",
-          "category_label": "Debugging and Recovery"
+          "subcategory": "test-first-implementation-of-an-approved-behavior-change",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         }
       ]
     },
     {
       "id": "memory",
-      "label": "Memory and Knowledge",
+      "label": "PDGO Dialogue Memory",
       "skills": [
         {
-          "skill_id": "flowstate-memory-start",
-          "scenario": "Record a conversation instruction and scope",
-          "output": "session start record",
+          "skill_id": "pdgo-dialogue-memory",
+          "display_name": "PDGO Dialogue Memory",
+          "path": "skills/pdgo-dialogue-memory",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "coordination",
+            "planning",
+            "execution",
+            "review"
+          ],
+          "stages": [
+            "discovery",
+            "design",
+            "implementation",
+            "validation"
+          ],
+          "scenarios": [
+            "conversation memory, checkpoint, retrieval, and handoff"
+          ],
+          "positive_triggers": [
+            "The scenario is conversation memory, checkpoint, retrieval, and handoff"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
           "category": "memory",
-          "category_label": "Memory and Knowledge"
-        },
-        {
-          "skill_id": "flowstate-memory-checkpoint",
-          "scenario": "Record progress, decisions, and evidence",
-          "output": "checkpoint record",
-          "category": "memory",
-          "category_label": "Memory and Knowledge"
-        },
-        {
-          "skill_id": "flowstate-memory-close",
-          "scenario": "Summarize a completed or blocked conversation",
-          "output": "conversation summary",
-          "category": "memory",
-          "category_label": "Memory and Knowledge"
-        },
-        {
-          "skill_id": "flowstate-memory-index",
-          "scenario": "Update plan, session, and knowledge indexes",
-          "output": "index document",
-          "category": "memory",
-          "category_label": "Memory and Knowledge"
-        },
-        {
-          "skill_id": "flowstate-memory-retrieval",
-          "scenario": "Find prior context through indexes before source turns",
-          "output": "retrieved context",
-          "category": "memory",
-          "category_label": "Memory and Knowledge"
-        },
-        {
-          "skill_id": "flowstate-cross-session-reference",
-          "scenario": "Record why another conversation was read",
-          "output": "reference record",
-          "category": "memory",
-          "category_label": "Memory and Knowledge"
-        },
-        {
-          "skill_id": "flowstate-knowledge-catalog",
-          "scenario": "Organize reusable decisions by knowledge domain",
-          "output": "knowledge catalog",
-          "category": "memory",
-          "category_label": "Memory and Knowledge"
-        },
-        {
-          "skill_id": "flowstate-conversation-handoff",
-          "scenario": "Pass structured artifacts between isolated sessions",
-          "output": "handoff packet",
-          "category": "memory",
-          "category_label": "Memory and Knowledge"
+          "subcategory": "conversation-memory-checkpoint-retrieval-and-handoff",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         }
       ]
     },
     {
-      "id": "skill-authoring",
-      "label": "Skill Authoring and Routing",
+      "id": "dispatch",
+      "label": "PDGO Execution and Dispatch",
       "skills": [
         {
-          "skill_id": "flowstate-skill-authoring",
-          "scenario": "Author or update a reusable Skill from a concrete scenario",
-          "output": "Skill files and metadata index",
-          "category": "skill-authoring",
-          "category_label": "Skill Authoring and Routing"
-        },
-        {
-          "skill_id": "flowstate-writing-skills",
-          "scenario": "Define a reusable Skill from a concrete scenario",
-          "output": "validated Skill",
-          "category": "skill-authoring",
-          "category_label": "Skill Authoring and Routing"
-        },
-        {
-          "skill_id": "flowstate-skill-metadata",
-          "scenario": "Write triggers, boundaries, inputs, outputs, and risk metadata",
-          "output": "Skill manifest",
-          "category": "skill-authoring",
-          "category_label": "Skill Authoring and Routing"
-        },
-        {
-          "skill_id": "flowstate-skill-category-classification",
-          "scenario": "Assign the narrowest taxonomy category",
-          "output": "category decision",
-          "category": "skill-authoring",
-          "category_label": "Skill Authoring and Routing"
-        },
-        {
-          "skill_id": "flowstate-skill-name-generation",
-          "scenario": "Generate a concise descriptive Skill name",
-          "output": "Skill ID",
-          "category": "skill-authoring",
-          "category_label": "Skill Authoring and Routing"
-        },
-        {
-          "skill_id": "flowstate-skill-index-generation",
-          "scenario": "Update searchable JSON and Markdown Skill indexes",
-          "output": "Skill index",
-          "category": "skill-authoring",
-          "category_label": "Skill Authoring and Routing"
-        },
-        {
-          "skill_id": "flowstate-skill-routing-review",
-          "scenario": "Check routing candidates against a scenario",
-          "output": "routing decision",
-          "category": "skill-authoring",
-          "category_label": "Skill Authoring and Routing"
-        },
-        {
-          "skill_id": "flowstate-skill-compatibility-migration",
-          "scenario": "Extend a Skill without breaking its contract",
-          "output": "migration record",
-          "category": "skill-authoring",
-          "category_label": "Skill Authoring and Routing"
+          "skill_id": "pdgo-execute-work",
+          "display_name": "PDGO Execute Work",
+          "path": "skills/pdgo-execute-work",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "execution",
+            "coordination"
+          ],
+          "stages": [
+            "implementation",
+            "validation"
+          ],
+          "scenarios": [
+            "approved implementation dispatch and continuous stage control"
+          ],
+          "positive_triggers": [
+            "The scenario is approved implementation dispatch and continuous stage control"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
+          "category": "dispatch",
+          "subcategory": "approved-implementation-dispatch-and-continuous-stage-control",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         }
       ]
     },
     {
-      "id": "release-audit",
-      "label": "Release, Audit, and External Effects",
+      "id": "planning",
+      "label": "PDGO Planning and Discovery",
       "skills": [
         {
-          "skill_id": "flowstate-change-audit",
-          "scenario": "Link changes to plan, task, session, evidence, and commit",
-          "output": "change audit",
-          "category": "release-audit",
-          "category_label": "Release, Audit, and External Effects"
-        },
-        {
-          "skill_id": "flowstate-git-commit-audit",
-          "scenario": "Inspect and record a safe commit",
-          "output": "commit record",
-          "category": "release-audit",
-          "category_label": "Release, Audit, and External Effects"
-        },
-        {
-          "skill_id": "flowstate-secret-scan",
-          "scenario": "Scan staged changes for credentials or sensitive data",
-          "output": "secret scan",
-          "category": "release-audit",
-          "category_label": "Release, Audit, and External Effects"
-        },
-        {
-          "skill_id": "flowstate-external-push-approval",
-          "scenario": "Gate a remote push on explicit authorization",
-          "output": "push approval",
-          "category": "release-audit",
-          "category_label": "Release, Audit, and External Effects"
-        },
-        {
-          "skill_id": "flowstate-destructive-action-gate",
-          "scenario": "Gate deletion, overwrite, or migration actions",
-          "output": "destructive action decision",
-          "category": "release-audit",
-          "category_label": "Release, Audit, and External Effects"
-        },
-        {
-          "skill_id": "flowstate-release-handoff",
-          "scenario": "Prepare release notes, evidence, and rollback handoff",
-          "output": "release handoff",
-          "category": "release-audit",
-          "category_label": "Release, Audit, and External Effects"
-        },
-        {
-          "skill_id": "flowstate-change-summary",
-          "scenario": "Record a concise user-facing change summary",
-          "output": "change summary",
-          "category": "release-audit",
-          "category_label": "Release, Audit, and External Effects"
-        },
-        {
-          "skill_id": "flowstate-rollback-record",
-          "scenario": "Record rollback readiness and actual rollback results",
-          "output": "rollback record",
-          "category": "release-audit",
-          "category_label": "Release, Audit, and External Effects"
+          "skill_id": "pdgo-plan-work",
+          "display_name": "PDGO Plan Work",
+          "path": "skills/pdgo-plan-work",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "planning"
+          ],
+          "stages": [
+            "discovery",
+            "design"
+          ],
+          "scenarios": [
+            "planning and discovery for a governed multi-stage change"
+          ],
+          "positive_triggers": [
+            "The scenario is planning and discovery for a governed multi-stage change"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
+          "category": "planning",
+          "subcategory": "planning-and-discovery-for-a-governed-multi-stage-change",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         }
       ]
     },
     {
-      "id": "adapters",
-      "label": "Platform Adapters and Session Transport",
+      "id": "coordination",
+      "label": "PDGO Coordination and Routing",
       "skills": [
         {
-          "skill_id": "flowstate-file-queue-adapter",
-          "scenario": "Use an auditable local queue without a conversation API",
-          "output": "queue message",
-          "category": "adapters",
-          "category_label": "Platform Adapters and Session Transport"
+          "skill_id": "pdgo-route-work",
+          "display_name": "PDGO Route Work",
+          "path": "skills/pdgo-route-work",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "coordination",
+            "planning",
+            "execution"
+          ],
+          "stages": [
+            "discovery",
+            "design",
+            "implementation",
+            "validation"
+          ],
+          "scenarios": [
+            "startup routing and governed capability selection"
+          ],
+          "positive_triggers": [
+            "The scenario is startup routing and governed capability selection"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
+          "category": "coordination",
+          "subcategory": "startup-routing-and-governed-capability-selection",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         },
         {
-          "skill_id": "flowstate-codex-app-server-adapter",
-          "scenario": "Map dispatch messages to Codex App Server turns",
-          "output": "platform turn",
-          "category": "adapters",
-          "category_label": "Platform Adapters and Session Transport"
-        },
-        {
-          "skill_id": "flowstate-adapter-capability-check",
-          "scenario": "Check whether a platform supports a required operation",
-          "output": "capability result",
-          "category": "adapters",
-          "category_label": "Platform Adapters and Session Transport"
-        },
-        {
-          "skill_id": "flowstate-platform-session-management",
-          "scenario": "Create and reuse real controller and worker sessions",
-          "output": "session mapping",
-          "category": "adapters",
-          "category_label": "Platform Adapters and Session Transport"
-        },
-        {
-          "skill_id": "flowstate-conversation-thread-sync",
-          "scenario": "Synchronize structured results between conversations",
-          "output": "thread sync",
-          "category": "adapters",
-          "category_label": "Platform Adapters and Session Transport"
-        },
-        {
-          "skill_id": "flowstate-adapter-failure-report",
-          "scenario": "Report unavailable or failed platform operations honestly",
-          "output": "adapter failure record",
-          "category": "adapters",
-          "category_label": "Platform Adapters and Session Transport"
+          "skill_id": "pdgo-skill-authoring",
+          "display_name": "PDGO Skill Authoring",
+          "path": "skills/pdgo-skill-authoring",
+          "project_scope": [
+            "pdgo",
+            "tianyan"
+          ],
+          "departments": [
+            "planning",
+            "coordination"
+          ],
+          "stages": [
+            "design",
+            "validation"
+          ],
+          "scenarios": [
+            "authoring and validating a reusable governed Skill"
+          ],
+          "positive_triggers": [
+            "The scenario is authoring and validating a reusable governed Skill"
+          ],
+          "negative_triggers": [
+            "The scenario is outside this Skill's declared workflow",
+            "Required inputs or approval are missing"
+          ],
+          "boundaries": [
+            "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+          ],
+          "inputs": [
+            "classified project context",
+            "approved or planning-scoped artifacts",
+            "current constraints"
+          ],
+          "outputs": [
+            "governed result",
+            "evidence, risks, blockers, and next action"
+          ],
+          "risk_level": "high",
+          "priority": 10,
+          "category": "coordination",
+          "subcategory": "authoring-and-validating-a-reusable-governed-skill",
+          "tags": [
+            "pdgo",
+            "tianyan",
+            "governed-work"
+          ]
         }
       ]
     }
   ],
-  "skill_count": 94
+  "skill_count": 10
 }

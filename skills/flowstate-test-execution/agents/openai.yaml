@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Test Execution","short_description":"Review workflow for test report","default_prompt":"Use $flowstate-test-execution for Run and capture declared automated tests and produce test report."}
-policy: {"allow_implicit_invocation":true}

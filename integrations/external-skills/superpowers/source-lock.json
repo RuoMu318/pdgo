@@ -1,0 +1,207 @@
+{
+  "schema_version": "1.0",
+  "provider": "obra/superpowers",
+  "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+  "upstream_root": "integrations/external-skills/superpowers/upstream",
+  "overlay_root": "integrations/external-skills/superpowers/overlays",
+  "active_root": "skills",
+  "sources": [
+    {
+      "skill_id": "using-superpowers",
+      "path": "integrations/external-skills/superpowers/upstream/skills/using-superpowers/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "55379fe7c1c473a02c61961c822996bff30e1320d6921d9062509bc508482c05",
+      "git_blob_sha": "8a08873ba07c1437f4f3cfd0d06c333eaf2e2715",
+      "bytes": 3063
+    },
+    {
+      "skill_id": "brainstorming",
+      "path": "integrations/external-skills/superpowers/upstream/skills/brainstorming/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "4a54a4858b99807f3155ed1614b2f116e35ea5c1b788e793f565dd837fd3891f",
+      "git_blob_sha": "789c3a1990b9ab3896c4d8b0b708525ac83fe5ce",
+      "bytes": 10047
+    },
+    {
+      "skill_id": "writing-plans",
+      "path": "integrations/external-skills/superpowers/upstream/skills/writing-plans/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "72190c88b2b5a67a96b91d66aa72b9161913e10e8769da3f28a226f4cc7b99d0",
+      "git_blob_sha": "dd2702b8bab0dbe6b6824d8d00669be44fbb8be7",
+      "bytes": 6907
+    },
+    {
+      "skill_id": "executing-plans",
+      "path": "integrations/external-skills/superpowers/upstream/skills/executing-plans/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "c4c3d8b628c51114cd165fb8246fe02744cd8be180032328391252e653028d9b",
+      "git_blob_sha": "b51d97d2cc4c2ecc5eabecf27e499aa8c933efac",
+      "bytes": 2305
+    },
+    {
+      "skill_id": "subagent-driven-development",
+      "path": "integrations/external-skills/superpowers/upstream/skills/subagent-driven-development/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "349a08ad8b59b19b86c13a7d2f34a1a38719bf88257004a863eefefa8d9f9e40",
+      "git_blob_sha": "6c0b8349d27bf91aaf4ec8ad93cad2f2f38ef5b2",
+      "bytes": 28077
+    },
+    {
+      "skill_id": "dispatching-parallel-agents",
+      "path": "integrations/external-skills/superpowers/upstream/skills/dispatching-parallel-agents/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "1968923066f3b707eb01d1992cdf4c42284c3855f70253b9cd5000ff45fca13c",
+      "git_blob_sha": "3fa091b348bbe0a18eaa0e17e9092c97f7005cbe",
+      "bytes": 6078
+    },
+    {
+      "skill_id": "using-git-worktrees",
+      "path": "integrations/external-skills/superpowers/upstream/skills/using-git-worktrees/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd",
+      "git_blob_sha": "1381dacb3516b94382dd6ec736ede21ee8ede2b3",
+      "bytes": 6813
+    },
+    {
+      "skill_id": "requesting-code-review",
+      "path": "integrations/external-skills/superpowers/upstream/skills/requesting-code-review/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "d71cc01ba56d2325cf8af5f7c11837819b63ecd57de0bfdb812f7f3ff7751df8",
+      "git_blob_sha": "fa4f2f9965591d6d8a7ef4ad47e6ba4d5ac344d0",
+      "bytes": 2956
+    },
+    {
+      "skill_id": "receiving-code-review",
+      "path": "integrations/external-skills/superpowers/upstream/skills/receiving-code-review/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438",
+      "git_blob_sha": "950da7b74bf6dbed6b8726d12ddadd65a9f5fda7",
+      "bytes": 6203
+    },
+    {
+      "skill_id": "systematic-debugging",
+      "path": "integrations/external-skills/superpowers/upstream/skills/systematic-debugging/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787",
+      "git_blob_sha": "095d194ac041502905f15b01d22d294fb94db8b2",
+      "bytes": 9465
+    },
+    {
+      "skill_id": "test-driven-development",
+      "path": "integrations/external-skills/superpowers/upstream/skills/test-driven-development/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "bf1b8216e523851a411e91d429a7c1c2a173e79d88957bc78e348218d50edd54",
+      "git_blob_sha": "4320d8879a639d0536c2239bb80c9d7257ad8947",
+      "bytes": 9015
+    },
+    {
+      "skill_id": "verification-before-completion",
+      "path": "integrations/external-skills/superpowers/upstream/skills/verification-before-completion/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+      "git_blob_sha": "7d45333cc4a49c57a80df6c1fe2fa777a207afbc",
+      "bytes": 3646
+    },
+    {
+      "skill_id": "finishing-a-development-branch",
+      "path": "integrations/external-skills/superpowers/upstream/skills/finishing-a-development-branch/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "d0ac8360ed9d59121776ef95c84bcb38e9747de0d7ae7e227dca81e437593b9b",
+      "git_blob_sha": "21a439ac3fd4eb696f3af2ce149312d33b002dc1",
+      "bytes": 7022
+    },
+    {
+      "skill_id": "writing-skills",
+      "path": "integrations/external-skills/superpowers/upstream/skills/writing-skills/SKILL.md",
+      "commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "sha256": "d34db5c8aed6a4e0440132bd0613aace70a693ec7819d5637ad77481d8e10d1b",
+      "git_blob_sha": "f33f39f523c8a3ae2ec0eaf365a524571df8ff3d",
+      "bytes": 26360
+    }
+  ],
+  "generated_skills": [
+    {
+      "skill_id": "pdgo-route-work",
+      "sources": [
+        "using-superpowers"
+      ],
+      "active_path": "skills/pdgo-route-work/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-route-work.md"
+    },
+    {
+      "skill_id": "pdgo-dialogue-memory",
+      "sources": [],
+      "active_path": "skills/pdgo-dialogue-memory/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-dialogue-memory.md"
+    },
+    {
+      "skill_id": "pdgo-plan-work",
+      "sources": [
+        "brainstorming",
+        "writing-plans"
+      ],
+      "active_path": "skills/pdgo-plan-work/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-plan-work.md"
+    },
+    {
+      "skill_id": "pdgo-execute-work",
+      "sources": [
+        "executing-plans",
+        "subagent-driven-development",
+        "dispatching-parallel-agents",
+        "using-git-worktrees"
+      ],
+      "active_path": "skills/pdgo-execute-work/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-execute-work.md"
+    },
+    {
+      "skill_id": "pdgo-review-request",
+      "sources": [
+        "requesting-code-review"
+      ],
+      "active_path": "skills/pdgo-review-request/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-review-request.md"
+    },
+    {
+      "skill_id": "pdgo-review-receive",
+      "sources": [
+        "receiving-code-review"
+      ],
+      "active_path": "skills/pdgo-review-receive/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-review-receive.md"
+    },
+    {
+      "skill_id": "pdgo-debug-work",
+      "sources": [
+        "systematic-debugging"
+      ],
+      "active_path": "skills/pdgo-debug-work/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-debug-work.md"
+    },
+    {
+      "skill_id": "pdgo-tdd-work",
+      "sources": [
+        "test-driven-development"
+      ],
+      "active_path": "skills/pdgo-tdd-work/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-tdd-work.md"
+    },
+    {
+      "skill_id": "pdgo-completion-work",
+      "sources": [
+        "verification-before-completion",
+        "finishing-a-development-branch"
+      ],
+      "active_path": "skills/pdgo-completion-work/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-completion-work.md"
+    },
+    {
+      "skill_id": "pdgo-skill-authoring",
+      "sources": [
+        "writing-skills"
+      ],
+      "active_path": "skills/pdgo-skill-authoring/SKILL.md",
+      "overlay_path": "integrations/external-skills/superpowers/overlays/pdgo-skill-authoring.md"
+    }
+  ]
+}

@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Auto Next Task","short_description":"Dispatch workflow for next-task dispatch","default_prompt":"Use $flowstate-auto-next-task for Unlock and dispatch the next accepted dependent task and produce next-task dispatch."}
-policy: {"allow_implicit_invocation":true}

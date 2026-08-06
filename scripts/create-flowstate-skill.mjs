@@ -29,6 +29,6 @@ try {
   const result = await createSkill({ root, spec, force: Boolean(options.force) });
   console.log(JSON.stringify({ ok: true, ...result }, null, 2));
 } catch (error) {
-  console.error(`FlowState Skill creation failed: ${error.message}`);
+  console.error(`PDGO Skill creation failed: ${error.message}`);
   process.exit(1);
 }

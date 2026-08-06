@@ -1,0 +1,44 @@
+schema_version: "1.0"
+agent_id: "agency-agents/project-management/project-management-meeting-notes-specialist.md"
+name: "Meeting Notes Specialist"
+division: "project-management"
+provider_id: "agency-agents"
+source_path: "project-management/project-management-meeting-notes-specialist.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/project-management/project-management-meeting-notes-specialist.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "a02904f92594986147691e5aa69191b49d1e0060"
+prompt_sha256: "53a6efaa379b70cbc3276b44544ecf569789fffe892ba82eb68e8672407de91f"
+specific_description: "Extract structured decisions, action items, and open questions from meeting transcripts or rough notes into a clean 4-section summary."
+when_to_use: "Use only when the approved task explicitly matches the source description: Extract structured decisions, action items, and open questions from meeting transcripts or rough notes into a clean 4-section summary."
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "[Question as stated or paraphrased from the notes.]"
+  - "[...]"
+stage:
+  - "validation"
+department:
+  - "planning"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-review-receive"
+confidence: "high"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "Meeting Notes Specialist"
+  source_frontmatter_description: "Extract structured decisions, action items, and open questions from meeting transcripts or rough notes into a clean 4-section summary."
+  source_frontmatter_vibe: "Precise extractor — finds the signal in the noise, never invents what isn't there."
+  headings:
+    - "Meeting Notes Specialist"
+    - "Identity"
+    - "Core Mission"
+    - "Critical Rules"
+    - "Technical Deliverables"
+    - "Workflow Process"
+    - "Communication Style"
+    - "Learning and Memory"
+    - "Success Metrics"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."

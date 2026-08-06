@@ -75,12 +75,14 @@ function validateExternalDispatch(message) {
 }
 
 export class ExternalAgentCatalog {
-  constructor({ root, indexPath = "integrations/external-agents/agency-agents/index.json", fetchText = globalThis.fetch } = {}) {
+  constructor({ root, indexPath = "integrations/external-agents/agency-agents/index.json", metadataIndexPath = "integrations/external-agents/agency-agents/metadata-index.json", fetchText = globalThis.fetch } = {}) {
     if (!root) throw new Error("ExternalAgentCatalog root is required");
     this.root = path.resolve(root);
     this.indexPath = resolveWithin(this.root, indexPath, "indexPath");
+    this.metadataIndexPath = resolveWithin(this.root, metadataIndexPath, "metadataIndexPath");
     this.fetchText = fetchText;
     this.index = null;
+    this.metadataIndex = null;
   }
 
   async load() {
@@ -92,31 +94,53 @@ export class ExternalAgentCatalog {
     return this.index;
   }
 
+  async loadMetadata() {
+    if (!this.metadataIndex) {
+      const index = JSON.parse(await readFile(this.metadataIndexPath, "utf8"));
+      if (!Array.isArray(index.agents)) throw new Error("external Agent metadata index must contain an agents array");
+      this.metadataIndex = index;
+    }
+    return this.metadataIndex;
+  }
+
+  async routingMetadata(agentId) {
+    const index = await this.loadMetadata();
+    return index.agents.find((entry) => entry.agent_id === agentId) ?? null;
+  }
+
   async search({ query = "", division = null, limit = 10 } = {}) {
     const index = await this.load();
+    const metadataIndex = await this.loadMetadata();
+    const metadataById = new Map(metadataIndex.agents.map((entry) => [entry.agent_id, entry]));
     const queryTokens = tokens(query);
     return index.agents
       .filter((entry) => !division || entry.division === division)
       .map((entry) => {
         const haystack = tokens([entry.name, entry.description, entry.vibe, entry.division, ...(entry.routing_terms ?? [])].join(" "));
         const score = queryTokens.reduce((sum, token) => sum + (haystack.includes(token) ? 1 : 0), 0);
-        return { ...entry, match_score: score };
+        return { ...entry, routing_metadata: metadataById.get(entry.agent_id) ?? null, match_score: score };
       })
       .filter((entry) => !queryTokens.length || entry.match_score > 0)
       .sort((left, right) => right.match_score - left.match_score || left.agent_id.localeCompare(right.agent_id))
       .slice(0, limit);
   }
 
-  async resolve({ agentId = null, query = "", division = null } = {}) {
+  async resolve({ agentId = null, query = "", division = null, requireAutoRoute = false } = {}) {
     const index = await this.load();
+    let resolved;
     if (agentId) {
       const exact = index.agents.find((entry) => entry.agent_id === agentId);
       if (!exact) throw new Error(`external Agent not found: ${agentId}`);
-      return exact;
+      resolved = exact;
+    } else {
+      const candidates = await this.search({ query, division, limit: 1 });
+      if (!candidates.length) throw new Error(`no external Agent matches query: ${query}`);
+      resolved = candidates[0];
     }
-    const candidates = await this.search({ query, division, limit: 1 });
-    if (!candidates.length) throw new Error(`no external Agent matches query: ${query}`);
-    return candidates[0];
+    const metadata = await this.routingMetadata(resolved.agent_id);
+    if (!metadata) throw new Error(`external Agent metadata is missing: ${resolved.agent_id}`);
+    if (requireAutoRoute && metadata.auto_route !== true) throw new Error(`external Agent is not eligible for automatic routing: ${resolved.agent_id}`);
+    return { ...resolved, routing_metadata: metadata };
   }
 
   async prompt(entry) {
@@ -134,7 +158,7 @@ export class ExternalAgentCatalog {
     }
     if (typeof this.fetchText !== "function") throw new Error(`external Agent prompt is unavailable: ${entry.agent_id}`);
     const source = validateRemoteSource(entry);
-    const response = await this.fetchText(source.toString(), { headers: { "User-Agent": "FlowState-external-agent-adapter" } });
+    const response = await this.fetchText(source.toString(), { headers: { "User-Agent": "PDGO-external-agent-adapter" } });
     if (!response.ok) throw new Error(`external Agent prompt request failed (${response.status}): ${entry.source_url}`);
     const text = await response.text();
     verifyPromptIntegrity(entry, text);
@@ -154,13 +178,44 @@ export class AgencyAgentsAdapter {
 
   async ensureWorkerSession(input) { return this.baseAdapter.ensureWorkerSession(input); }
 
+  async receiveReports(input) {
+    if (typeof this.baseAdapter.receiveReports !== "function") return [];
+    return this.baseAdapter.receiveReports(input);
+  }
+
+  async receiveReviews(input) {
+    if (typeof this.baseAdapter.receiveReviews !== "function") return [];
+    return this.baseAdapter.receiveReviews(input);
+  }
+
+  async acknowledgeReport(sessionId, reportId) {
+    if (typeof this.baseAdapter.acknowledgeReport !== "function") return { acknowledged: false, reason: "adapter-does-not-support-ack" };
+    return this.baseAdapter.acknowledgeReport(sessionId, reportId);
+  }
+
+  async acknowledgeReview(sessionId, reviewId) {
+    if (typeof this.baseAdapter.acknowledgeReview !== "function") return { acknowledged: false, reason: "adapter-does-not-support-ack" };
+    return this.baseAdapter.acknowledgeReview(sessionId, reviewId);
+  }
+
+  async enqueueReport(input) {
+    if (typeof this.baseAdapter.enqueueReport !== "function") throw new Error("base adapter does not support report enqueue");
+    return this.baseAdapter.enqueueReport(input);
+  }
+
+  async enqueueReview(input) {
+    if (typeof this.baseAdapter.enqueueReview !== "function") throw new Error("base adapter does not support review enqueue");
+    return this.baseAdapter.enqueueReview(input);
+  }
+
   async searchAgents(input) { return this.catalog.search(input); }
 
   async send(message) {
     const hasSelector = Boolean(message.external_agent_id || message.external_agent_query || message.external_agent_division);
     if (!hasSelector) return this.baseAdapter.send(message);
     validateExternalDispatch(message);
-    const entry = await this.catalog.resolve({ agentId: message.external_agent_id, query: message.external_agent_query ?? message.objective ?? message.scenario ?? "", division: message.external_agent_division });
+    const automaticSelection = !message.external_agent_id;
+    const entry = await this.catalog.resolve({ agentId: message.external_agent_id, query: message.external_agent_query ?? message.objective ?? message.scenario ?? "", division: message.external_agent_division, requireAutoRoute: automaticSelection });
     const instructions = await this.catalog.prompt(entry);
     const catalog = await this.catalog.load();
     return this.baseAdapter.send({
@@ -178,6 +233,8 @@ export class AgencyAgentsAdapter {
         source_ref: entry.source_ref,
         source_sha: entry.source_sha,
         source_commit: catalog.provider?.source_commit ?? null,
+        routing_metadata: entry.routing_metadata,
+        routing_mode: automaticSelection ? "automatic" : "explicit-task-selector",
         invocation_status: "dispatched",
         instructions,
       },

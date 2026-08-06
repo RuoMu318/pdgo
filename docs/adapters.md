@@ -31,6 +31,9 @@ blockers, and events through `FlowStateStore`, then delegates conversation opera
   auditable fallback when no conversation API is available.
 - `CodexAppServerAdapter` maps `thread/start` and `turn/start` calls through an injected request function. It creates
   the two controller threads once for a series, creates task-scoped worker threads, and sends structured messages.
+  An optional `receive({ session_id, message_types })` function lets `FlowStateRuntime` poll execution reports and
+  planning review decisions from a host transport. If no receive function is injected, the adapter exposes an empty
+  receive boundary and makes no claim that a platform message was delivered.
 
 The adapter must return real session identifiers. A failed or unavailable adapter is recorded as a dispatch failure;
 the dispatcher never claims that a task or conversation ran when the platform did not confirm it.

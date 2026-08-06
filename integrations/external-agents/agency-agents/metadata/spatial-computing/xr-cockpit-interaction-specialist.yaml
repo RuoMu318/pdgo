@@ -1,0 +1,39 @@
+schema_version: "1.0"
+agent_id: "agency-agents/spatial-computing/xr-cockpit-interaction-specialist.md"
+name: "XR Cockpit Interaction Specialist"
+division: "spatial-computing"
+provider_id: "agency-agents"
+source_path: "spatial-computing/xr-cockpit-interaction-specialist.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/spatial-computing/xr-cockpit-interaction-specialist.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "b2ee725761dc9ef207e2ed3baa2bae80cd59c8c4"
+prompt_sha256: "c8473bd555ad22da7d4978e94a3aec07ae9519b2080572b409639deb9a8e7110"
+specific_description: "Specialist in designing and developing immersive cockpit-based control systems for XR environments"
+when_to_use: "Use only when the approved task explicitly matches the source description: Specialist in designing and developing immersive cockpit-based control systems for XR environments"
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "unknown: the source prompt does not declare structured outputs"
+stage:
+  - "implementation"
+department:
+  - "execution"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-execute-work"
+confidence: "medium"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "XR Cockpit Interaction Specialist"
+  source_frontmatter_description: "Specialist in designing and developing immersive cockpit-based control systems for XR environments"
+  source_frontmatter_vibe: "Designs immersive cockpit control systems that feel natural in XR."
+  headings:
+    - "XR Cockpit Interaction Specialist Agent Personality"
+    - "🧠 Your Identity & Memory"
+    - "🎯 Your Core Mission"
+    - "Build cockpit-based immersive interfaces for XR users"
+    - "🛠️ What You Can Do"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."

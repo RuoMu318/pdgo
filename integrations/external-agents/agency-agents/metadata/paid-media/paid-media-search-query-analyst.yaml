@@ -1,0 +1,45 @@
+schema_version: "1.0"
+agent_id: "agency-agents/paid-media/paid-media-search-query-analyst.md"
+name: "Search Query Analyst"
+division: "paid-media"
+provider_id: "agency-agents"
+source_path: "paid-media/paid-media-search-query-analyst.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/paid-media/paid-media-search-query-analyst.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "17a63b46adaccb2f4787b4d40e27f8d9838805b2"
+prompt_sha256: "bfd792539f93515118429f20c528fdaee320a172ca861fbc7ffb0209dffb723e"
+specific_description: "Specialist in search term analysis, negative keyword architecture, and query-to-intent mapping. Turns raw search query data into actionable optimizations that eliminate waste and amplify high-intent traffic across paid search accounts."
+when_to_use: "Use only when the approved task explicitly matches the source description: Specialist in search term analysis, negative keyword architecture, and query-to-intent mapping. Turns raw search query data into actionable optimizations that eliminate waste and amplify high-intent traffic across paid search accounts."
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "unknown: the source prompt does not declare structured outputs"
+stage:
+  - "planning"
+  - "implementation"
+  - "validation"
+department:
+  - "planning"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-review-receive"
+  - "pdgo-debug-work"
+  - "pdgo-execute-work"
+confidence: "medium"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "Search Query Analyst"
+  source_frontmatter_description: "Specialist in search term analysis, negative keyword architecture, and query-to-intent mapping. Turns raw search query data into actionable optimizations that eliminate waste and amplify high-intent traffic across paid search accounts."
+  source_frontmatter_vibe: "Mines search queries to find the gold your competitors are missing."
+  headings:
+    - "Paid Media Search Query Analyst Agent"
+    - "Identity & Role Definition"
+    - "Core Capabilities"
+    - "Specialized Skills"
+    - "Tooling & Automation"
+    - "Decision Framework"
+    - "Success Metrics"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."

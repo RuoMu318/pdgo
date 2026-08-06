@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Report Return","short_description":"Dispatch workflow for report handoff","default_prompt":"Use $flowstate-report-return for Return worker evidence to the fixed controller sessions and produce report handoff."}
-policy: {"allow_implicit_invocation":true}

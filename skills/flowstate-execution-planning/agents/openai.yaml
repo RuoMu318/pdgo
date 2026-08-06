@@ -1,2 +1,0 @@
-interface: {"display_name":"FlowState Execution Planning","short_description":"Decompose approved scope into a versioned execution plan","default_prompt":"Use $flowstate-execution-planning for approved-scope decomposition into executable tasks and produce approval-ready execution plan."}
-policy: {"allow_implicit_invocation":true}

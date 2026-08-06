@@ -2,7 +2,7 @@ repos:
   - repo: local
     hooks:
       - id: validate-flowstate
-        name: Validate FlowState contracts
+        name: Validate PDGO contracts
         entry: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-flowstate.ps1
         language: system
         pass_filenames: false

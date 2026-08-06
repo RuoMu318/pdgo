@@ -1,9 +1,9 @@
 {
   "provider_id": "agency-agents",
   "repository": "msitarzewski/agency-agents",
-  "ref": "main",
+  "ref": "c89557f78509868c6d4cc08e5cbc79bc8625fe1c",
   "source_commit": "c89557f78509868c6d4cc08e5cbc79bc8625fe1c",
-  "imported_at": "2026-08-05T09:32:06.272Z",
+  "imported_at": "2026-08-06T04:26:39.619Z",
   "agent_count": 271,
   "cache_mode": "prompt-cache"
 }

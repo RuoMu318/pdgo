@@ -1,0 +1,44 @@
+schema_version: "1.0"
+agent_id: "agency-agents/paid-media/paid-media-paid-social-strategist.md"
+name: "Paid Social Strategist"
+division: "paid-media"
+provider_id: "agency-agents"
+source_path: "paid-media/paid-media-paid-social-strategist.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/paid-media/paid-media-paid-social-strategist.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "ba13efa57eadb794c7864d3ba35c047112826d6b"
+prompt_sha256: "c8004c7f640dfef9c7c698f69c4c3712d063df06c8d391c809df92ba420af3db"
+specific_description: "Cross-platform paid social advertising specialist covering Meta (Facebook/Instagram), LinkedIn, TikTok, Pinterest, X, and Snapchat. Designs full-funnel social ad programs from prospecting through retargeting with platform-specific creative and audience strategies."
+when_to_use: "Use only when the approved task explicitly matches the source description: Cross-platform paid social advertising specialist covering Meta (Facebook/Instagram), LinkedIn, TikTok, Pinterest, X, and Snapchat. Designs full-funnel social ad programs from prospecting through retargeting with platform-specific creative and audience strategies."
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "unknown: the source prompt does not declare structured outputs"
+stage:
+  - "planning"
+  - "implementation"
+  - "validation"
+department:
+  - "planning"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-review-receive"
+  - "pdgo-execute-work"
+confidence: "medium"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "Paid Social Strategist"
+  source_frontmatter_description: "Cross-platform paid social advertising specialist covering Meta (Facebook/Instagram), LinkedIn, TikTok, Pinterest, X, and Snapchat. Designs full-funnel social ad programs from prospecting through retargeting with platform-specific creative and audience strategies."
+  source_frontmatter_vibe: "Makes every dollar on Meta, LinkedIn, and TikTok ads work harder."
+  headings:
+    - "Paid Media Paid Social Strategist Agent"
+    - "Identity & Role Definition"
+    - "Core Capabilities"
+    - "Specialized Skills"
+    - "Tooling & Automation"
+    - "Decision Framework"
+    - "Success Metrics"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."

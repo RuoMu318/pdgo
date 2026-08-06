@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Compatibility Review","short_description":"Review workflow for compatibility report","default_prompt":"Use $flowstate-compatibility-review for Check changes against existing contracts and produce compatibility report."}
-policy: {"allow_implicit_invocation":true}

@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Acceptance Design","short_description":"Planning workflow for acceptance contract","default_prompt":"Use $flowstate-acceptance-design for Define criteria and evidence before execution and produce acceptance contract."}
-policy: {"allow_implicit_invocation":true}

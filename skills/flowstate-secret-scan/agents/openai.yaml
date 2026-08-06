@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Secret Scan","short_description":"Release Audit workflow for secret scan","default_prompt":"Use $flowstate-secret-scan for Scan staged changes for credentials or sensitive data and produce secret scan."}
-policy: {"allow_implicit_invocation":true}

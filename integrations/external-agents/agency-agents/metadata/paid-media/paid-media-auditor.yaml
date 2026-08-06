@@ -1,0 +1,45 @@
+schema_version: "1.0"
+agent_id: "agency-agents/paid-media/paid-media-auditor.md"
+name: "Paid Media Auditor"
+division: "paid-media"
+provider_id: "agency-agents"
+source_path: "paid-media/paid-media-auditor.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/paid-media/paid-media-auditor.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "de532679bb1aceade5a8f6056fc2e025a73968b1"
+prompt_sha256: "ce0346ba6a1b1652e350733cd3c124ab200e869c116fd85bcd0225d9764b0c56"
+specific_description: "Comprehensive paid media auditor who systematically evaluates Google Ads, Microsoft Ads, and Meta accounts across 200+ checkpoints spanning account structure, tracking, bidding, creative, audiences, and competitive positioning. Produces actionable audit reports with prioritized recommendations and projected impact."
+when_to_use: "Use only when the approved task explicitly matches the source description: Comprehensive paid media auditor who systematically evaluates Google Ads, Microsoft Ads, and Meta accounts across 200+ checkpoints spanning account structure, tracking, bidding, creative, audiences, and competitive positioning. Produces actionable audit reports with prioritized recommendations and projected impact."
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "unknown: the source prompt does not declare structured outputs"
+stage:
+  - "planning"
+  - "implementation"
+  - "validation"
+department:
+  - "planning"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-review-receive"
+  - "pdgo-debug-work"
+  - "pdgo-execute-work"
+confidence: "medium"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "Paid Media Auditor"
+  source_frontmatter_description: "Comprehensive paid media auditor who systematically evaluates Google Ads, Microsoft Ads, and Meta accounts across 200+ checkpoints spanning account structure, tracking, bidding, creative, audiences, and competitive positioning. Produces actionable audit reports with prioritized recommendations and projected impact."
+  source_frontmatter_vibe: "Finds the waste in your ad spend before your CFO does."
+  headings:
+    - "Paid Media Auditor Agent"
+    - "Identity & Role Definition"
+    - "Core Capabilities"
+    - "Specialized Skills"
+    - "Tooling & Automation"
+    - "Decision Framework"
+    - "Success Metrics"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."

@@ -1,159 +1,85 @@
 {
   "schema_version": "1.0",
-  "description": "Complete FlowState methodology Skill inventory. Entries are routing candidates; each installed Skill must add explicit triggers, boundaries, inputs, outputs, prerequisites, and risk.",
+  "description": "The active PDGO Skill catalog. Legacy shell Skills were removed after migration; route only through these ten entries.",
   "categories": [
     {
-      "id": "coordination",
-      "label": "Coordination and Governance",
-      "skills": [
-        ["flowstate-project-method", "Any governed project task starts", "classified task and governed workflow"],
-        ["flowstate-project-intake", "Identify project, repository, and authority", "intake record"],
-        ["flowstate-mode-control", "Switch or enforce discuss, plan, or execute mode", "mode decision"],
-        ["flowstate-scenario-classification", "Classify operation, department, stage, and concrete scenario", "classification tuple"],
-        ["flowstate-skill-routing", "Choose Skills from scenario metadata", "selection record"],
-        ["flowstate-project-profile", "Load project paths, policies, roles, and tools", "project profile"],
-        ["flowstate-user-clarification", "Resolve an unanswered decision before planning or execution", "clarification record"],
-        ["flowstate-approval-gate", "Request and verify version-bound user approval", "approval record"],
-        ["flowstate-risk-register", "Identify, treat, and obtain decisions on risks", "risk register"],
-        ["flowstate-blocker-management", "Register, wait for, and resolve blockers", "blocker record"],
-        ["flowstate-plan-versioning", "Create immutable plan versions and migration links", "version lineage"],
-        ["flowstate-series-continuity", "Reuse controller conversations for a series extension", "series session mapping"],
-        ["flowstate-parallel-series-sync", "Create a parallel branch and synchronize accepted results", "fan-in record"]
-      ]
-    },
-    {
-      "id": "planning",
-      "label": "Planning and Discovery",
-      "skills": [
-        ["flowstate-brainstorming", "Explore ambiguous goals and alternatives", "discovery brief"],
-        ["flowstate-requirements-discovery", "Turn user intent into explicit requirements", "requirements record"],
-        ["flowstate-context-research", "Research repository, dependencies, and prior decisions", "research notes"],
-        ["flowstate-architecture-planning", "Design bounded architecture options", "architecture decision"],
-        ["flowstate-execution-planning", "Decompose approved scope into executable tasks", "approval-ready plan"],
-        ["flowstate-writing-plans", "Write descriptive searchable plan documents", "indexed plan document"],
-        ["flowstate-task-decomposition", "Split work into independently verifiable tasks", "task ledger"],
-        ["flowstate-dependency-analysis", "Map task and external dependencies", "dependency graph"],
-        ["flowstate-acceptance-design", "Define criteria and evidence before execution", "acceptance contract"],
-        ["flowstate-rollback-design", "Define stop, rollback, and recovery conditions", "rollback plan"],
-        ["flowstate-knowledge-mapping", "Assign plans to searchable knowledge domains", "knowledge map"]
-      ]
-    },
-    {
-      "id": "dispatch",
-      "label": "Controllers, Dispatch, and Agents",
-      "skills": [
-        ["flowstate-planning-controller", "Coordinate planning workers and user approval", "planning control record"],
-        ["flowstate-execution-controller", "Dispatch approved tasks and collect worker reports", "execution control record"],
-        ["flowstate-planning-worker", "Perform bounded research or planning work", "planning worker report"],
-        ["flowstate-execution-worker", "Perform one exact approved task", "execution report"],
-        ["flowstate-subagent-development", "Give a task worker isolated scope and evidence rules", "worker dispatch"],
-        ["flowstate-parallel-dispatch", "Fan out independent tasks with isolated workspaces", "parallel dispatch set"],
-        ["flowstate-serial-dispatch", "Run dependent tasks one at a time", "serial dispatch record"],
-        ["flowstate-dispatch-contract", "Build a complete PLAN_DISPATCH message", "dispatch contract"],
-        ["flowstate-report-return", "Return worker evidence to the fixed controller sessions", "report handoff"],
-        ["flowstate-review-handoff", "Send reports from execution to planning review", "review handoff"],
-        ["flowstate-auto-next-task", "Unlock and dispatch the next accepted dependent task", "next-task dispatch"],
-        ["flowstate-retry-escalation", "Retry bounded failures and escalate after the limit", "retry decision"]
-      ]
-    },
-    {
-      "id": "development",
-      "label": "Implementation and Workspace",
-      "skills": [
-        ["flowstate-tdd", "Drive a bounded change with a red-green-refactor loop", "test-backed change"],
-        ["flowstate-bounded-implementation", "Implement exactly the approved task scope", "changed artifacts"],
-        ["flowstate-refactoring", "Improve structure without changing the approved behavior", "refactor evidence"],
-        ["flowstate-git-worktree", "Give concurrent writers isolated Git worktrees", "worktree mapping"],
-        ["flowstate-branch-completion", "Verify a branch and prepare an audited handoff", "branch handoff"],
-        ["flowstate-configuration-change", "Apply a bounded configuration change", "configuration diff"],
-        ["flowstate-document-change", "Apply a bounded document change", "document artifact"],
-        ["flowstate-design-change", "Apply a bounded design or visual change", "design evidence"],
-        ["flowstate-data-change", "Apply a bounded data or migration change", "data change report"]
-      ]
-    },
-    {
       "id": "review",
-      "label": "Review, Testing, and Validation",
+      "label": "PDGO Review and Completion",
       "skills": [
-        ["flowstate-request-review", "Prepare an independent code review request", "review request"],
-        ["flowstate-receive-review", "Evaluate a returned code review decision", "review decision"],
-        ["flowstate-independent-plan-review", "Review a plan before user approval", "plan review"],
-        ["flowstate-precompletion-validation", "Gate completion on declared evidence", "completion gate"],
-        ["flowstate-evidence-validation", "Check evidence against exact acceptance criteria", "evidence decision"],
-        ["flowstate-test-planning", "Choose tests for a risk and acceptance contract", "test plan"],
-        ["flowstate-test-execution", "Run and capture declared automated tests", "test report"],
-        ["flowstate-visual-validation", "Validate visual claims with screenshots or measurements", "visual evidence"],
-        ["flowstate-performance-validation", "Measure performance against a target", "performance report"],
-        ["flowstate-lifecycle-validation", "Check resource ownership and cleanup lifecycle", "lifecycle report"],
-        ["flowstate-security-review", "Review permissions, secrets, and unsafe side effects", "security findings"],
-        ["flowstate-compatibility-review", "Check changes against existing contracts", "compatibility report"]
-      ]
-    },
-    {
-      "id": "debugging",
-      "label": "Debugging and Recovery",
-      "skills": [
-        ["flowstate-system-debugging", "Reproduce a concrete system failure", "diagnostic report"],
-        ["flowstate-reproduction", "Create a minimal reliable reproduction", "reproduction record"],
-        ["flowstate-hypothesis-analysis", "Compare root-cause hypotheses with evidence", "hypothesis matrix"],
-        ["flowstate-failure-recovery", "Recover from a failed task within policy", "recovery decision"],
-        ["flowstate-blocker-wait", "Pause execution and expose a blocking decision", "waiting record"],
-        ["flowstate-risk-rereview", "Return new high-impact risk to planning and the user", "reapproval request"],
-        ["flowstate-rollback-execution", "Execute an approved rollback and verify it", "rollback evidence"]
+        [
+          "pdgo-completion-work",
+          "completion verification and branch handoff",
+          "governed result"
+        ],
+        [
+          "pdgo-debug-work",
+          "systematic debugging of a reproducible failure",
+          "governed result"
+        ],
+        [
+          "pdgo-review-receive",
+          "receiving and deciding an independent review",
+          "governed result"
+        ],
+        [
+          "pdgo-review-request",
+          "requesting an independent implementation or code review",
+          "governed result"
+        ],
+        [
+          "pdgo-tdd-work",
+          "test-first implementation of an approved behavior change",
+          "governed result"
+        ]
       ]
     },
     {
       "id": "memory",
-      "label": "Memory and Knowledge",
+      "label": "PDGO Dialogue Memory",
       "skills": [
-        ["flowstate-memory-start", "Record a conversation instruction and scope", "session start record"],
-        ["flowstate-memory-checkpoint", "Record progress, decisions, and evidence", "checkpoint record"],
-        ["flowstate-memory-close", "Summarize a completed or blocked conversation", "conversation summary"],
-        ["flowstate-memory-index", "Update plan, session, and knowledge indexes", "index document"],
-        ["flowstate-memory-retrieval", "Find prior context through indexes before source turns", "retrieved context"],
-        ["flowstate-cross-session-reference", "Record why another conversation was read", "reference record"],
-        ["flowstate-knowledge-catalog", "Organize reusable decisions by knowledge domain", "knowledge catalog"],
-        ["flowstate-conversation-handoff", "Pass structured artifacts between isolated sessions", "handoff packet"]
+        [
+          "pdgo-dialogue-memory",
+          "conversation memory, checkpoint, retrieval, and handoff",
+          "governed result"
+        ]
       ]
     },
     {
-      "id": "skill-authoring",
-      "label": "Skill Authoring and Routing",
+      "id": "dispatch",
+      "label": "PDGO Execution and Dispatch",
       "skills": [
-        ["flowstate-skill-authoring", "Author or update a reusable Skill from a concrete scenario", "Skill files and metadata index"],
-        ["flowstate-writing-skills", "Define a reusable Skill from a concrete scenario", "validated Skill"],
-        ["flowstate-skill-metadata", "Write triggers, boundaries, inputs, outputs, and risk metadata", "Skill manifest"],
-        ["flowstate-skill-category-classification", "Assign the narrowest taxonomy category", "category decision"],
-        ["flowstate-skill-name-generation", "Generate a concise descriptive Skill name", "Skill ID"],
-        ["flowstate-skill-index-generation", "Update searchable JSON and Markdown Skill indexes", "Skill index"],
-        ["flowstate-skill-routing-review", "Check routing candidates against a scenario", "routing decision"],
-        ["flowstate-skill-compatibility-migration", "Extend a Skill without breaking its contract", "migration record"]
+        [
+          "pdgo-execute-work",
+          "approved implementation dispatch and continuous stage control",
+          "governed result"
+        ]
       ]
     },
     {
-      "id": "release-audit",
-      "label": "Release, Audit, and External Effects",
+      "id": "planning",
+      "label": "PDGO Planning and Discovery",
       "skills": [
-        ["flowstate-change-audit", "Link changes to plan, task, session, evidence, and commit", "change audit"],
-        ["flowstate-git-commit-audit", "Inspect and record a safe commit", "commit record"],
-        ["flowstate-secret-scan", "Scan staged changes for credentials or sensitive data", "secret scan"],
-        ["flowstate-external-push-approval", "Gate a remote push on explicit authorization", "push approval"],
-        ["flowstate-destructive-action-gate", "Gate deletion, overwrite, or migration actions", "destructive action decision"],
-        ["flowstate-release-handoff", "Prepare release notes, evidence, and rollback handoff", "release handoff"],
-        ["flowstate-change-summary", "Record a concise user-facing change summary", "change summary"],
-        ["flowstate-rollback-record", "Record rollback readiness and actual rollback results", "rollback record"]
+        [
+          "pdgo-plan-work",
+          "planning and discovery for a governed multi-stage change",
+          "governed result"
+        ]
       ]
     },
     {
-      "id": "adapters",
-      "label": "Platform Adapters and Session Transport",
+      "id": "coordination",
+      "label": "PDGO Coordination and Routing",
       "skills": [
-        ["flowstate-file-queue-adapter", "Use an auditable local queue without a conversation API", "queue message"],
-        ["flowstate-codex-app-server-adapter", "Map dispatch messages to Codex App Server turns", "platform turn"],
-        ["flowstate-adapter-capability-check", "Check whether a platform supports a required operation", "capability result"],
-        ["flowstate-platform-session-management", "Create and reuse real controller and worker sessions", "session mapping"],
-        ["flowstate-conversation-thread-sync", "Synchronize structured results between conversations", "thread sync"],
-        ["flowstate-adapter-failure-report", "Report unavailable or failed platform operations honestly", "adapter failure record"]
+        [
+          "pdgo-route-work",
+          "startup routing and governed capability selection",
+          "governed result"
+        ],
+        [
+          "pdgo-skill-authoring",
+          "authoring and validating a reusable governed Skill",
+          "governed result"
+        ]
       ]
     }
   ]

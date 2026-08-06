@@ -65,6 +65,14 @@ Produces an immutable, titled, indexed plan series version. It owns discovery, r
 registration, dependency analysis, acceptance design, and the user approval request. It does not modify product
 artifacts before approval.
 
+The planning controller also owns the execution loop: it divides long plans into ordered serial or parallel stages,
+assigns stage-level Skills and agent selectors, dispatches each ready task, independently reviews every returned
+report, and either unlocks the next work or issues a correction. A correction stays in the same approved version only
+when it is an omitted approved item, a defect repair, or an alternate implementation method with no new risk,
+blocker, permission, acceptance, architecture, rollback, or scope change. Otherwise the controller pauses the series,
+clears approval, and requests a new version and user approval. Open blockers prevent correction, completion, and
+next-plan creation. The controller does not proactively deepen detail beyond the user request or approved plan.
+
 ### Execution department
 
 Consumes one exact approved plan version and one bounded task. It selects the execution worker, performs changes in
@@ -89,6 +97,11 @@ continue in the same conversations. A parallel series gets a new controller pair
 accepted result is synchronized back to the parent planning session. Reviewers receive artifacts and evidence, not
 an assumed shared transcript. This keeps handoffs auditable without losing series continuity.
 
+When no project can be identified, the host may use an unscoped project identity and run planning, execution
+reasoning, and review in the same visible Codex window. These are still separate logical departments in the state
+record. The no-project mode is read-only with respect to unknown product paths and cannot create external dispatches
+until the user supplies a concrete scope and version-bound approval.
+
 ## 5. Skill organization
 
 Skills are organized by scenario and output contract:
@@ -107,6 +120,17 @@ Each Skill declares positive scenarios, negative scenarios, inputs, outputs, pre
 The router chooses a primary Skill and optional supporting Skills after classification. A directory or file name is
 never a sufficient routing condition.
 
+The brainstorming Skill is planning-only: it produces candidate approaches, assumptions, risks, questions, and
+trade-offs that must be resolved into an explicit plan. It cannot modify product artifacts, approve execution, clear a
+blocker, or expand detail beyond the user request. The plan's `detail_policy` remains the boundary for all follow-up
+work.
+
+Stage metadata is part of the routing contract. A stage declares `stage_id`, `order`, `kind` (`serial` or
+`parallel`), `required_skills`, `agent_selectors`, and optional acceptance criteria. Tasks repeat their
+`stage_id`, `stage_order`, and `stage_kind`. The dispatcher activates only the earliest unfinished stage; a parallel
+stage fans out independent tasks within `max_parallel`, then waits for review of every branch before activating the
+next stage.
+
 ## 6. Workflow modules
 
 The default workflow modules are composable:
@@ -114,6 +138,7 @@ The default workflow modules are composable:
 ```text
 clarify goal
 → research context
+→ brainstorm and converge on decisions (planning only)
 → write plan
 → review risks and blockers
 → request user approval
@@ -121,13 +146,14 @@ clarify goal
 → test and verify
 → request independent review
 → return report to planning
-→ accept or revise
+→ accept, issue in-scope correction, block, or fail
 → unlock dependent task
 → dispatch next task in the same series controller sessions
 ```
 
 A module can stop the workflow. For example, missing requirements stop at clarification, an open blocker stops at
-approval, a test failure returns to execution, and a new high-impact risk returns to planning and the user.
+approval and dispatch, a routine test omission returns to the same task for correction, and a new risk or material
+change returns to planning and the user. Brainstorming never modifies product artifacts or grants approval.
 
 ## 7. Memory organization
 

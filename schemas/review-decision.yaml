@@ -1,6 +1,8 @@
 schema_version: "1.0"
 message_type: REVIEW_DECISION
 review_id: review-YYYYMMDD-NNN
+message_id: review-YYYYMMDD-NNN
+idempotency_key: review-YYYYMMDD-NNN
 trace_id: trace-YYYYMMDD-NNN
 plan_series_id: PROJECT-YYYYMMDD-NNN
 plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
@@ -14,4 +16,8 @@ defects: []
 new_risks: []
 new_blockers: []
 required_changes: []
+scope_change: false
+material_change: false
+requires_reapproval: false
 next_action: unlock-next-task
+return_to: execution-session-id

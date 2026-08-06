@@ -1,2 +1,0 @@
-interface: {"display_name":"FlowState Test Driven Development","short_description":"Drive bounded changes with a red-green-refactor evidence loop","default_prompt":"Use $flowstate-tdd for a bounded code change needs test-first implementation and produce test-backed implementation evidence."}
-policy: {"allow_implicit_invocation":true}

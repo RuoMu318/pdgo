@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Series Continuity","short_description":"Coordination workflow for series session mapping","default_prompt":"Use $flowstate-series-continuity for Reuse controller conversations for a series extension and produce series session mapping."}
-policy: {"allow_implicit_invocation":true}

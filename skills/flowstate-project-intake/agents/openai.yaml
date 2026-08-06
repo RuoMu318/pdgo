@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Project Intake","short_description":"Coordination workflow for intake record","default_prompt":"Use $flowstate-project-intake for Identify project, repository, and authority and produce intake record."}
-policy: {"allow_implicit_invocation":true}

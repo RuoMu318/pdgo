@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Knowledge Catalog","short_description":"Memory workflow for knowledge catalog","default_prompt":"Use $flowstate-knowledge-catalog for Organize reusable decisions by knowledge domain and produce knowledge catalog."}
-policy: {"allow_implicit_invocation":true}

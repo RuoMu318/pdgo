@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Plan Versioning","short_description":"Coordination workflow for version lineage","default_prompt":"Use $flowstate-plan-versioning for Create immutable plan versions and migration links and produce version lineage."}
-policy: {"allow_implicit_invocation":true}

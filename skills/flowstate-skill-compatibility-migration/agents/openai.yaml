@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Skill Compatibility Migration","short_description":"Skill Authoring workflow for migration record","default_prompt":"Use $flowstate-skill-compatibility-migration for Extend a Skill without breaking its contract and produce migration record."}
-policy: {"allow_implicit_invocation":true}

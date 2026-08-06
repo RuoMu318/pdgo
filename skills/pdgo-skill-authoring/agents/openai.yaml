@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO Skill Authoring"
+  short_description: "Author searchable Skills with explicit routing contracts"
+  default_prompt: "Use $pdgo-skill-authoring for authoring and validating a reusable governed Skill and return governed evidence."
+policy:
+  allow_implicit_invocation: true

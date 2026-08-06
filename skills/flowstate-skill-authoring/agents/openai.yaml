@@ -1,6 +1,0 @@
-interface:
-  display_name: "FlowState Skill Authoring"
-  short_description: "Generate scenario-bound Skills and searchable metadata"
-  default_prompt: "Use $flowstate-skill-authoring to define, generate, and index a Skill from a concrete scenario."
-policy:
-  allow_implicit_invocation: true

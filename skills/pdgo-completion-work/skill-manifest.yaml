@@ -1,0 +1,47 @@
+schema_version: "1.0"
+skill_id: "pdgo-completion-work"
+display_name: "PDGO Complete Work"
+description: "Run evidence-before-completion checks, record residual risk, and prepare a branch handoff without silently merging or pushing."
+project_scope:
+  - "pdgo"
+  - "tianyan"
+department:
+  - "review"
+  - "execution"
+stage:
+  - "validation"
+scenarios:
+  - "completion verification and branch handoff"
+positive_triggers:
+  - "The scenario is completion verification and branch handoff"
+negative_triggers:
+  - "The scenario is outside this Skill's declared workflow"
+  - "Required inputs or approval are missing"
+boundaries:
+  - "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+required_inputs:
+  - "classified project context"
+  - "approved or planning-scoped artifacts"
+  - "current constraints"
+expected_outputs:
+  - "governed result"
+  - "evidence"
+  - "risks"
+  - "blockers"
+  - "next action"
+prerequisites:
+  - "startup routing completed"
+  - "mode permits the requested side effect"
+side_effects:
+  - "writes governed artifacts or changes only approved paths"
+upstream_skills:
+  - "verification-before-completion"
+  - "finishing-a-development-branch"
+tags:
+  - "pdgo"
+  - "tianyan"
+  - "governed-work"
+risk_level: "high"
+priority: 10
+category: "coordination"
+subcategory: "completion verification and branch handoff"

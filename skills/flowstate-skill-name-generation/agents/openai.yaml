@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Skill Name Generation","short_description":"Skill Authoring workflow for Skill ID","default_prompt":"Use $flowstate-skill-name-generation for Generate a concise descriptive Skill name and produce Skill ID."}
-policy: {"allow_implicit_invocation":true}

@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Task Decomposition","short_description":"Planning workflow for task ledger","default_prompt":"Use $flowstate-task-decomposition for Split work into independently verifiable tasks and produce task ledger."}
-policy: {"allow_implicit_invocation":true}

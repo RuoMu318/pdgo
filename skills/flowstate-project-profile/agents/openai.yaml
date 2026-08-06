@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Project Profile","short_description":"Coordination workflow for project profile","default_prompt":"Use $flowstate-project-profile for Load project paths, policies, roles, and tools and produce project profile."}
-policy: {"allow_implicit_invocation":true}

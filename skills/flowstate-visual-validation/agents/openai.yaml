@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Visual Validation","short_description":"Review workflow for visual evidence","default_prompt":"Use $flowstate-visual-validation for Validate visual claims with screenshots or measurements and produce visual evidence."}
-policy: {"allow_implicit_invocation":true}

@@ -1,0 +1,50 @@
+schema_version: "1.0"
+skill_id: "pdgo-route-work"
+display_name: "PDGO Route Work"
+description: "Select the active PDGO Skill and eligible Agency Agent from the classified scenario before any governed response or dispatch."
+project_scope:
+  - "pdgo"
+  - "tianyan"
+department:
+  - "coordination"
+  - "planning"
+  - "execution"
+stage:
+  - "discovery"
+  - "design"
+  - "implementation"
+  - "validation"
+scenarios:
+  - "startup routing and governed capability selection"
+positive_triggers:
+  - "The scenario is startup routing and governed capability selection"
+negative_triggers:
+  - "The scenario is outside this Skill's declared workflow"
+  - "Required inputs or approval are missing"
+boundaries:
+  - "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+required_inputs:
+  - "classified project context"
+  - "approved or planning-scoped artifacts"
+  - "current constraints"
+expected_outputs:
+  - "governed result"
+  - "evidence"
+  - "risks"
+  - "blockers"
+  - "next action"
+prerequisites:
+  - "startup routing completed"
+  - "mode permits the requested side effect"
+side_effects:
+  - "writes governed artifacts or changes only approved paths"
+upstream_skills:
+  - "using-superpowers"
+tags:
+  - "pdgo"
+  - "tianyan"
+  - "governed-work"
+risk_level: "high"
+priority: 10
+category: "coordination"
+subcategory: "startup routing and governed capability selection"

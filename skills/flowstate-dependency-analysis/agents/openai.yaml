@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Dependency Analysis","short_description":"Planning workflow for dependency graph","default_prompt":"Use $flowstate-dependency-analysis for Map task and external dependencies and produce dependency graph."}
-policy: {"allow_implicit_invocation":true}

@@ -34,7 +34,7 @@ function normalizeCatalog(catalog) {
 
 function markdown(catalog) {
   const lines = [
-    "# FlowState Skill Catalog",
+    "# PDGO Skill Catalog",
     "",
     "This is the complete methodology inventory. A category is a discovery aid; routing still requires the concrete scenario, boundaries, inputs, outputs, prerequisites, stage, department, and risk.",
     "",

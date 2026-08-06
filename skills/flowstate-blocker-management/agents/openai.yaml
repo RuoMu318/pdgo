@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Blocker Management","short_description":"Coordination workflow for blocker record","default_prompt":"Use $flowstate-blocker-management for Register, wait for, and resolve blockers and produce blocker record."}
-policy: {"allow_implicit_invocation":true}

@@ -1,8 +1,8 @@
-# FlowState repository rules
+# PDGO repository rules
 
 ## Scope
 
-This repository defines the FlowState universal project method and its Codex Skill. Keep the core
+This repository defines the PDGO universal project method and its Codex Skills. Keep the core
 contracts project-agnostic. Project-specific rules belong under `profiles/` or a consuming repository.
 
 ## Required workflow

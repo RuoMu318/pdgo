@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Git Commit Audit","short_description":"Release Audit workflow for commit record","default_prompt":"Use $flowstate-git-commit-audit for Inspect and record a safe commit and produce commit record."}
-policy: {"allow_implicit_invocation":true}

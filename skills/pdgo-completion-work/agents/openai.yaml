@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO Complete Work"
+  short_description: "Verify completion and prepare an audited branch handoff"
+  default_prompt: "Use $pdgo-completion-work for completion verification and branch handoff and return governed evidence."
+policy:
+  allow_implicit_invocation: true

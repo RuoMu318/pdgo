@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Conversation Thread Sync","short_description":"Adapters workflow for thread sync","default_prompt":"Use $flowstate-conversation-thread-sync for Synchronize structured results between conversations and produce thread sync."}
-policy: {"allow_implicit_invocation":true}

@@ -1,0 +1,2726 @@
+{
+  "schema_version": "1.0",
+  "provider_id": "agency-agents",
+  "source_commit": "c89557f78509868c6d4cc08e5cbc79bc8625fe1c",
+  "generated_at": "2026-08-06T04:26:44.965Z",
+  "agent_count": 271,
+  "counts": {
+    "high": 68,
+    "medium": 203,
+    "low": 0,
+    "auto_route": 8,
+    "manual_only": 263
+  },
+  "agents": [
+    {
+      "agent_id": "agency-agents/academic/academic-anthropologist.md",
+      "name": "Anthropologist",
+      "division": "academic",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/academic/academic-anthropologist.yaml",
+      "source_sha": "f9c811f2ff7802f05e9450423c4b98ae6a08be31"
+    },
+    {
+      "agent_id": "agency-agents/academic/academic-geographer.md",
+      "name": "Geographer",
+      "division": "academic",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/academic/academic-geographer.yaml",
+      "source_sha": "c02b43b609c2cceb8ee057bcda9fd104fca353af"
+    },
+    {
+      "agent_id": "agency-agents/academic/academic-historian.md",
+      "name": "Historian",
+      "division": "academic",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/academic/academic-historian.yaml",
+      "source_sha": "b67f5a5fcd6fb1b439a3044fcbc21e39fca2247a"
+    },
+    {
+      "agent_id": "agency-agents/academic/academic-narratologist.md",
+      "name": "Narratologist",
+      "division": "academic",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/academic/academic-narratologist.yaml",
+      "source_sha": "3976b6f63ac643fc8606cae701bf8e002056703b"
+    },
+    {
+      "agent_id": "agency-agents/academic/academic-psychologist.md",
+      "name": "Psychologist",
+      "division": "academic",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/academic/academic-psychologist.yaml",
+      "source_sha": "e20a812c93a94b62b5c0aec96692d3ce5c6449cc"
+    },
+    {
+      "agent_id": "agency-agents/academic/academic-statistician.md",
+      "name": "Statistician",
+      "division": "academic",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/academic/academic-statistician.yaml",
+      "source_sha": "f06e3a98781339b15daa525f43fa9e28f983e621"
+    },
+    {
+      "agent_id": "agency-agents/design/design-brand-guardian.md",
+      "name": "Brand Guardian",
+      "division": "design",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-brand-guardian.yaml",
+      "source_sha": "c6c6feda374146d84c46087e6707994d1f17ef5c"
+    },
+    {
+      "agent_id": "agency-agents/design/design-image-prompt-engineer.md",
+      "name": "Image Prompt Engineer",
+      "division": "design",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-image-prompt-engineer.yaml",
+      "source_sha": "8f4a8dd241a8f16e75d02fbaba055a14b3e34512"
+    },
+    {
+      "agent_id": "agency-agents/design/design-inclusive-visuals-specialist.md",
+      "name": "Inclusive Visuals Specialist",
+      "division": "design",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-inclusive-visuals-specialist.yaml",
+      "source_sha": "fe354f90ea4692becbe1fd7abbfe55be6778fe23"
+    },
+    {
+      "agent_id": "agency-agents/design/design-persona-walkthrough.md",
+      "name": "Persona Walkthrough Specialist",
+      "division": "design",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-persona-walkthrough.yaml",
+      "source_sha": "1cc677e6220ffb4c5179b28eccfed51c8777f80a"
+    },
+    {
+      "agent_id": "agency-agents/design/design-ui-designer.md",
+      "name": "UI Designer",
+      "division": "design",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-ui-designer.yaml",
+      "source_sha": "ca8886161000d62dd4429d1462b3fd473c031312"
+    },
+    {
+      "agent_id": "agency-agents/design/design-ui-finish-gate-reviewer.md",
+      "name": "UI Finish-Gate Reviewer",
+      "division": "design",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-ui-finish-gate-reviewer.yaml",
+      "source_sha": "cefcf1a9787c6d5735b740f348b2b73a282cc439"
+    },
+    {
+      "agent_id": "agency-agents/design/design-ux-architect.md",
+      "name": "UX Architect",
+      "division": "design",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-ux-architect.yaml",
+      "source_sha": "36e324342ca889151417439c2802445a24f471f0"
+    },
+    {
+      "agent_id": "agency-agents/design/design-ux-researcher.md",
+      "name": "UX Researcher",
+      "division": "design",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-ux-researcher.yaml",
+      "source_sha": "0e8a2480dc9bb11a47c19621a9013bdc3466865a"
+    },
+    {
+      "agent_id": "agency-agents/design/design-visual-storyteller.md",
+      "name": "Visual Storyteller",
+      "division": "design",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-visual-storyteller.yaml",
+      "source_sha": "e48fde299d7e7ecc259e05819be64212dcf2bc25"
+    },
+    {
+      "agent_id": "agency-agents/design/design-whimsy-injector.md",
+      "name": "Whimsy Injector",
+      "division": "design",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/design/design-whimsy-injector.yaml",
+      "source_sha": "834ed54657ae7c6dfbe351ef4cc65c4c53420ca1"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-ai-data-remediation-engineer.md",
+      "name": "AI Data Remediation Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-ai-data-remediation-engineer.yaml",
+      "source_sha": "aad8795adc7bf08c46776731b31c6cd3f41c3e6c"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-ai-engineer.md",
+      "name": "AI Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-ai-engineer.yaml",
+      "source_sha": "a4a8f6d548894bafaf1dfe651f44f3e7179bf569"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-api-platform-engineer.md",
+      "name": "API Platform Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-api-platform-engineer.yaml",
+      "source_sha": "127339a35491c63c35f7537aa7c318697efc0c16"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-autonomous-optimization-architect.md",
+      "name": "Autonomous Optimization Architect",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-autonomous-optimization-architect.yaml",
+      "source_sha": "28a5fc6470fe089f7c69b7040dbf5870597c6e7d"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-backend-architect.md",
+      "name": "Backend Architect",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-backend-architect.yaml",
+      "source_sha": "7c3125d61e53694ef1bb876e81040ffb84d57956"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-cms-developer.md",
+      "name": "CMS Developer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-cms-developer.yaml",
+      "source_sha": "79bd2b553626af61c4a352b1e2eab94da3fb871b"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-code-reviewer.md",
+      "name": "Code Reviewer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-code-reviewer.yaml",
+      "source_sha": "fb93291f4b94a8d5687aa1cc0d05741c3352dd22"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-codebase-onboarding-engineer.md",
+      "name": "Codebase Onboarding Engineer",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-codebase-onboarding-engineer.yaml",
+      "source_sha": "cc36ec153ebe38ebf51515d8591a44e1213e5aa1"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-data-engineer.md",
+      "name": "Data Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-data-engineer.yaml",
+      "source_sha": "cfa7c5c12ee6494c8f58e58697e4add4c1f88c77"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-data-visualization-engineer.md",
+      "name": "Data Visualization Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-data-visualization-engineer.yaml",
+      "source_sha": "2cc24e7c0a91c7b132a9ce568983ebabda8a1e3d"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-database-optimizer.md",
+      "name": "Database Optimizer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-database-optimizer.yaml",
+      "source_sha": "3af7da68e6d37c66894d123791a29ddbfa7965e2"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-database-reliability-engineer.md",
+      "name": "Database Reliability Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-database-reliability-engineer.yaml",
+      "source_sha": "970f502a96314d9d0d609b149abaaa8ef7a689f6"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-desktop-app-engineer.md",
+      "name": "Desktop App Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-desktop-app-engineer.yaml",
+      "source_sha": "b5d37ccf6fad357393268ec102284203cad74e4d"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-developer-tooling-engineer.md",
+      "name": "Developer Tooling Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-developer-tooling-engineer.yaml",
+      "source_sha": "3390a655e649eef2d5b4ac87b9d89553e529495a"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-devops-automator.md",
+      "name": "DevOps Automator",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-devops-automator.yaml",
+      "source_sha": "a9e7cac04c8e78e812d230aae9f9f676b20413ac"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-drupal-performance.md",
+      "name": "Drupal Performance Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-drupal-performance.yaml",
+      "source_sha": "889d72dca34306442aa9c4d282aea9bcab02d4e6"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-drupal-shopping-cart.md",
+      "name": "Drupal Shopping Cart Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-drupal-shopping-cart.yaml",
+      "source_sha": "60d478e038c4a689a7390e0389e0ff0886e8739f"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-email-intelligence-engineer.md",
+      "name": "Email Intelligence Engineer",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-email-intelligence-engineer.yaml",
+      "source_sha": "46b27c7f8cb0fcb28d5c7cc10b23295788c0dcc0"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-embedded-firmware-engineer.md",
+      "name": "Embedded Firmware Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-embedded-firmware-engineer.yaml",
+      "source_sha": "8bb971c5b21a4bda62550b322dc3485df8ea4b09"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-feishu-integration-developer.md",
+      "name": "Feishu Integration Developer",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-feishu-integration-developer.yaml",
+      "source_sha": "74d208680c9000cca864404b75a47ca782811e21"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-filament-optimization-specialist.md",
+      "name": "Filament Optimization Specialist",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-filament-optimization-specialist.yaml",
+      "source_sha": "9dfc49b30a121a6844a9ba15f3e9d7a69581ea1e"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-finops-engineer.md",
+      "name": "FinOps Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-finops-engineer.yaml",
+      "source_sha": "65a747c10a118fffbb4cce1fce668548707b116f"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-frontend-developer.md",
+      "name": "Frontend Developer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-frontend-developer.yaml",
+      "source_sha": "68cf7fe861d8af600b619d62c9cde1625e6e4578"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-gaussdb-expert.md",
+      "name": "GaussDB Expert Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-gaussdb-expert.yaml",
+      "source_sha": "ccab7e5c6752cfba8981bfe71aac01d2ab66e1ec"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-git-workflow-master.md",
+      "name": "Git Workflow Master",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-git-workflow-master.yaml",
+      "source_sha": "d00b608bc827ad9f60b65b15f941256c73f44c66"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-i18n-engineer.md",
+      "name": "Internationalization Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-i18n-engineer.yaml",
+      "source_sha": "e913932356bb19cfdabd910cd9be22570dfe7ffe"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-identity-access-engineer.md",
+      "name": "Identity & Access Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-identity-access-engineer.yaml",
+      "source_sha": "f1ac2a23794299627dcdd4841a0353fba3a26103"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-incident-response-commander.md",
+      "name": "Incident Response Commander",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-incident-response-commander.yaml",
+      "source_sha": "24819836fe0046eb4e38efe9f249ae28c023fc3c"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-iot-fleet-engineer.md",
+      "name": "IoT Fleet Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-iot-fleet-engineer.yaml",
+      "source_sha": "537b22dadabd4ecfd8d936a9699c147fe187354c"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-it-service-manager.md",
+      "name": "IT Service Manager",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-it-service-manager.yaml",
+      "source_sha": "78272c20ea0caf5f52b688c1dd0f13174f08b052"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-llm-post-training-engineer.md",
+      "name": "LLM Post-Training Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-llm-post-training-engineer.yaml",
+      "source_sha": "53a558ee6a3bad94df7c9645f5df298834670630"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-minimal-change-engineer.md",
+      "name": "Minimal Change Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-minimal-change-engineer.yaml",
+      "source_sha": "11d7660010fb70c5fcd4c36e2239afe357ecd335"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-mobile-app-builder.md",
+      "name": "Mobile App Builder",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-mobile-app-builder.yaml",
+      "source_sha": "71cc10024f07a0c6a19aed9f7e495284f7ce5e6a"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-mobile-release-engineer.md",
+      "name": "Mobile Release Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-mobile-release-engineer.yaml",
+      "source_sha": "fa8b29253f0c5341c08f92e7e9a853232ed4b30a"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-multi-agent-systems-architect.md",
+      "name": "Multi-Agent Systems Architect",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-multi-agent-systems-architect.yaml",
+      "source_sha": "4ca4ebef41d7ec024158d8ed2a9221c2037a72cc"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-network-engineer.md",
+      "name": "Network Engineer",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-network-engineer.yaml",
+      "source_sha": "aa9088eeb17944242d44b965b7aeab61b979062b"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-orgscript-engineer.md",
+      "name": "OrgScript Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-orgscript-engineer.yaml",
+      "source_sha": "c3ff0fd452bef0c79b5399371cb7ae9ae9780815"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-payments-billing-engineer.md",
+      "name": "Payments & Billing Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-payments-billing-engineer.yaml",
+      "source_sha": "e9d3b1c30ce12480e4f9e466f342c06a79569786"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-privacy-engineer.md",
+      "name": "Privacy Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-privacy-engineer.yaml",
+      "source_sha": "67779ba76585e31e187f6f17ae1e8ab96ac8b531"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-prompt-engineer.md",
+      "name": "Prompt Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-prompt-engineer.yaml",
+      "source_sha": "b6ca07e34d8a8e4a7aa01b1df35a37ad53f863db"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-rag-pipeline-engineer.md",
+      "name": "RAG Pipeline Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-rag-pipeline-engineer.yaml",
+      "source_sha": "ff5b854c3774bf338b975d9660352bd483fbb95c"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-rapid-prototyper.md",
+      "name": "Rapid Prototyper",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-rapid-prototyper.yaml",
+      "source_sha": "76f66c39758a3a525e16bce49d9ea9d5c9e25fc7"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-realtime-collaboration-engineer.md",
+      "name": "Realtime Collaboration Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-realtime-collaboration-engineer.yaml",
+      "source_sha": "e2ca05c4e0bcdf9d354b31c8556bd4985bc328cb"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-rust-refactoring-specialist.md",
+      "name": "Rust Refactoring Specialist",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-rust-refactoring-specialist.yaml",
+      "source_sha": "54d80c1b23628306e8a4ea476ec52875dbb3d7f8"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-search-relevance-engineer.md",
+      "name": "Search Relevance Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-search-relevance-engineer.yaml",
+      "source_sha": "2839722ce723da0ef4dfca882603fcaad4fd13e6"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-section-508-specialist.md",
+      "name": "Section 508 Accessibility Specialist",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-section-508-specialist.yaml",
+      "source_sha": "b1b1ba2c828e7a488cc282bb557c439abc23ae0a"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-senior-developer.md",
+      "name": "Senior Developer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-senior-developer.yaml",
+      "source_sha": "5e31edee0f69fb0a47c008d43997b5dc895e610b"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-software-architect.md",
+      "name": "Software Architect",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-software-architect.yaml",
+      "source_sha": "1a69148c99b2c170e36e035a0c7a341e98e634e9"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-solidity-smart-contract-engineer.md",
+      "name": "Solidity Smart Contract Engineer",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-solidity-smart-contract-engineer.yaml",
+      "source_sha": "3c83935bed50eabed723f82ab91e2d4e6f6023df"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-sre.md",
+      "name": "SRE (Site Reliability Engineer)",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-sre.yaml",
+      "source_sha": "592c7ab92f0fa5f56da735e65eba4c7c40231568"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-technical-writer.md",
+      "name": "Technical Writer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-technical-writer.yaml",
+      "source_sha": "447c306c31458634d686ec040697808cd931a772"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-uswds-developer.md",
+      "name": "USWDS Developer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-uswds-developer.yaml",
+      "source_sha": "5e886c24054bbb954050647754bc3b41ecb573f4"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-video-streaming-engineer.md",
+      "name": "Video Streaming Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-video-streaming-engineer.yaml",
+      "source_sha": "963fda4a2a6676861a6dc7e6147ae3a9f25b9932"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-voice-ai-integration-engineer.md",
+      "name": "Voice AI Integration Engineer",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "eligible-with-explicit-task-selector",
+      "auto_route": true,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-voice-ai-integration-engineer.yaml",
+      "source_sha": "07745fb3bc753e813f68650a9eae494e5c91efd9"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-webassembly-engineer.md",
+      "name": "WebAssembly Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-webassembly-engineer.yaml",
+      "source_sha": "584fe7102f0260fa6e9b85bd3e65f7b292d2c25b"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-wechat-mini-program-developer.md",
+      "name": "WeChat Mini Program Developer",
+      "division": "engineering",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-wechat-mini-program-developer.yaml",
+      "source_sha": "e4e804638c70416aa070642639ff9fddd983509d"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-wordpress-performance.md",
+      "name": "WordPress Performance Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-wordpress-performance.yaml",
+      "source_sha": "2fc8c388d5cbd4ad634a8d76f0a1043abfc1679f"
+    },
+    {
+      "agent_id": "agency-agents/engineering/engineering-wordpress-shopping-cart.md",
+      "name": "WordPress Shopping Cart Engineer",
+      "division": "engineering",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/engineering/engineering-wordpress-shopping-cart.yaml",
+      "source_sha": "40bfbea344156910ecdf1abf58f8028e0260df31"
+    },
+    {
+      "agent_id": "agency-agents/finance/finance-bookkeeper-controller.md",
+      "name": "Bookkeeper & Controller",
+      "division": "finance",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/finance/finance-bookkeeper-controller.yaml",
+      "source_sha": "ed28a7488aa98e5e70e71392368d5a010da7882a"
+    },
+    {
+      "agent_id": "agency-agents/finance/finance-financial-analyst.md",
+      "name": "Financial Analyst",
+      "division": "finance",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/finance/finance-financial-analyst.yaml",
+      "source_sha": "8ec0dbcbcc77eda73e6ed680dc88762aad02b609"
+    },
+    {
+      "agent_id": "agency-agents/finance/finance-fpa-analyst.md",
+      "name": "FP&A Analyst",
+      "division": "finance",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/finance/finance-fpa-analyst.yaml",
+      "source_sha": "a398f97d4ea11b80f1282cd041c5e0c015c75cdb"
+    },
+    {
+      "agent_id": "agency-agents/finance/finance-investment-researcher.md",
+      "name": "Investment Researcher",
+      "division": "finance",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/finance/finance-investment-researcher.yaml",
+      "source_sha": "50ff87cf7f4571d7796c7a4c31352c0887cb3420"
+    },
+    {
+      "agent_id": "agency-agents/finance/finance-tax-strategist.md",
+      "name": "Tax Strategist",
+      "division": "finance",
+      "confidence": "high",
+      "routing_mode": "eligible-with-explicit-task-selector",
+      "auto_route": true,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/finance/finance-tax-strategist.yaml",
+      "source_sha": "bcaac1dc70092e1235d933044157ea72a39d4f83"
+    },
+    {
+      "agent_id": "agency-agents/game-development/blender/blender-addon-engineer.md",
+      "name": "Blender Add-on Engineer",
+      "division": "game-development",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/blender-addon-engineer.yaml",
+      "source_sha": "3174d46e14415d67deb32ef8e41f811d8f5bb158"
+    },
+    {
+      "agent_id": "agency-agents/game-development/economy-designer.md",
+      "name": "Economy Designer",
+      "division": "game-development",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/economy-designer.yaml",
+      "source_sha": "f965052a867bd93dfb4996b779add5787d175aa2"
+    },
+    {
+      "agent_id": "agency-agents/game-development/game-audio-engineer.md",
+      "name": "Game Audio Engineer",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/game-audio-engineer.yaml",
+      "source_sha": "5dcf286a81d4f9bf80cb6ef94dc439ed17c44c4a"
+    },
+    {
+      "agent_id": "agency-agents/game-development/game-designer.md",
+      "name": "Game Designer",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/game-designer.yaml",
+      "source_sha": "64f719fac09531dfeea308c258ade32d1d74db3c"
+    },
+    {
+      "agent_id": "agency-agents/game-development/godot/godot-gameplay-scripter.md",
+      "name": "Godot Gameplay Scripter",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/godot-gameplay-scripter.yaml",
+      "source_sha": "42e8d2e96a6ba18b90ce43a5ca5481b5c3f8e8ed"
+    },
+    {
+      "agent_id": "agency-agents/game-development/godot/godot-multiplayer-engineer.md",
+      "name": "Godot Multiplayer Engineer",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/godot-multiplayer-engineer.yaml",
+      "source_sha": "45bbeddf93580a041e924514b1e3b68ec158ac6f"
+    },
+    {
+      "agent_id": "agency-agents/game-development/godot/godot-shader-developer.md",
+      "name": "Godot Shader Developer",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/godot-shader-developer.yaml",
+      "source_sha": "069a7e2c5a9ef9a19a14cb76658f0771cf618547"
+    },
+    {
+      "agent_id": "agency-agents/game-development/level-designer.md",
+      "name": "Level Designer",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/level-designer.yaml",
+      "source_sha": "4997edd6c2696e2754a44e96bc349e90f1c434a0"
+    },
+    {
+      "agent_id": "agency-agents/game-development/narrative-designer.md",
+      "name": "Narrative Designer",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/narrative-designer.yaml",
+      "source_sha": "261a5d792c14ad46af144d06e01e21fe5a41db89"
+    },
+    {
+      "agent_id": "agency-agents/game-development/roblox-studio/roblox-avatar-creator.md",
+      "name": "Roblox Avatar Creator",
+      "division": "game-development",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/roblox-avatar-creator.yaml",
+      "source_sha": "752e0ed0e30764d85eb064b90568555709608b56"
+    },
+    {
+      "agent_id": "agency-agents/game-development/roblox-studio/roblox-experience-designer.md",
+      "name": "Roblox Experience Designer",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/roblox-experience-designer.yaml",
+      "source_sha": "ab7b7d46b225dbd2e57fba363723f97ebd9945f5"
+    },
+    {
+      "agent_id": "agency-agents/game-development/roblox-studio/roblox-systems-scripter.md",
+      "name": "Roblox Systems Scripter",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/roblox-systems-scripter.yaml",
+      "source_sha": "fc7ca448adfd390cd322a599b593953da3aa882c"
+    },
+    {
+      "agent_id": "agency-agents/game-development/technical-artist.md",
+      "name": "Technical Artist",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/technical-artist.yaml",
+      "source_sha": "293e3fcb55f73d026a6463958180e722a2a3465a"
+    },
+    {
+      "agent_id": "agency-agents/game-development/unity/unity-architect.md",
+      "name": "Unity Architect",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/unity-architect.yaml",
+      "source_sha": "ccae7118f8afdad4f4e272fb6ffb9b0de97e13d4"
+    },
+    {
+      "agent_id": "agency-agents/game-development/unity/unity-editor-tool-developer.md",
+      "name": "Unity Editor Tool Developer",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/unity-editor-tool-developer.yaml",
+      "source_sha": "62feebc4d80e9d89b1ac2c40d9ebd42e153f74c5"
+    },
+    {
+      "agent_id": "agency-agents/game-development/unity/unity-multiplayer-engineer.md",
+      "name": "Unity Multiplayer Engineer",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/unity-multiplayer-engineer.yaml",
+      "source_sha": "fa9886cd01f451cb6340b4729054ade9579273c7"
+    },
+    {
+      "agent_id": "agency-agents/game-development/unity/unity-shader-graph-artist.md",
+      "name": "Unity Shader Graph Artist",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/unity-shader-graph-artist.yaml",
+      "source_sha": "1c7a0aed1ac76a5207a35c87c6a63adbca493b1c"
+    },
+    {
+      "agent_id": "agency-agents/game-development/unreal-engine/unreal-multiplayer-architect.md",
+      "name": "Unreal Multiplayer Architect",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/unreal-multiplayer-architect.yaml",
+      "source_sha": "d78ad5f5a49f1930a4794b4382471e6f53656a1d"
+    },
+    {
+      "agent_id": "agency-agents/game-development/unreal-engine/unreal-systems-engineer.md",
+      "name": "Unreal Systems Engineer",
+      "division": "game-development",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/unreal-systems-engineer.yaml",
+      "source_sha": "7cb8a8271bab11a273395c7dc74c6fe07ff3cfed"
+    },
+    {
+      "agent_id": "agency-agents/game-development/unreal-engine/unreal-technical-artist.md",
+      "name": "Unreal Technical Artist",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/unreal-technical-artist.yaml",
+      "source_sha": "772b39f0914705ff13b2ec93a6cbdec889d1ec8c"
+    },
+    {
+      "agent_id": "agency-agents/game-development/unreal-engine/unreal-world-builder.md",
+      "name": "Unreal World Builder",
+      "division": "game-development",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/game-development/unreal-world-builder.yaml",
+      "source_sha": "867d4e7dce87f8ff10dadce22515ba2afee309da"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-3d-scene-developer.md",
+      "name": "3D & Scene Developer",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-3d-scene-developer.yaml",
+      "source_sha": "7350a782b4a0e14c89eac2fa39faba9de7230e67"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-analyst.md",
+      "name": "GIS Analyst",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-analyst.yaml",
+      "source_sha": "9b767f21d39a1e74c442105e6a35655ebc85b97a"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-bim-specialist.md",
+      "name": "BIM/GIS Specialist",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-bim-specialist.yaml",
+      "source_sha": "d1093aa391923a21cea5bb8eb2bd757eccef917d"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-cartography-designer.md",
+      "name": "Cartography Designer",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-cartography-designer.yaml",
+      "source_sha": "eb26a215a1e5fb06b7143a7aa0c02790396bdb18"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-drone-reality-mapping.md",
+      "name": "Drone/Reality Mapping Specialist",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-drone-reality-mapping.yaml",
+      "source_sha": "3798608259d4ee5ac855961bea575720df077d88"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-geoai-ml-engineer.md",
+      "name": "GeoAI/ML Engineer",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-geoai-ml-engineer.yaml",
+      "source_sha": "5f1a02813434c352e3f3e565d34e5f7079bb3236"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-geoprocessing-specialist.md",
+      "name": "Geoprocessing Specialist",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-geoprocessing-specialist.yaml",
+      "source_sha": "d77c976dd9270af61094264d7cc572f2ff3a8ee8"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-qa-engineer.md",
+      "name": "GIS QA Engineer",
+      "division": "gis",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-qa-engineer.yaml",
+      "source_sha": "888139f2c4f3c9e596f2bf8086d8c4c5f93658c4"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-solution-engineer.md",
+      "name": "Solution Engineer",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-solution-engineer.yaml",
+      "source_sha": "aa220f1887075e12263744c0fb8f4074e258801b"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-spatial-data-engineer.md",
+      "name": "Spatial Data Engineer",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-spatial-data-engineer.yaml",
+      "source_sha": "4b36b8322447454c44f55b445b040a81a6ee9a92"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-spatial-data-scientist.md",
+      "name": "Spatial Data Scientist",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-spatial-data-scientist.yaml",
+      "source_sha": "aebba260541a49e74ddb32b049b474e38b4fc0e2"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-technical-consultant.md",
+      "name": "Technical Consultant",
+      "division": "gis",
+      "confidence": "high",
+      "routing_mode": "eligible-with-explicit-task-selector",
+      "auto_route": true,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-technical-consultant.yaml",
+      "source_sha": "22d15085ab56fdfaaa6da2723f2f99eebc012b45"
+    },
+    {
+      "agent_id": "agency-agents/gis/gis-web-gis-developer.md",
+      "name": "Web GIS Developer",
+      "division": "gis",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/gis/gis-web-gis-developer.yaml",
+      "source_sha": "7b05be4287d62490d7322b211eb4dfe0cfbcfa11"
+    },
+    {
+      "agent_id": "agency-agents/healthcare/healthcare-clinical-evidence-agent.md",
+      "name": "Clinical Evidence Agent",
+      "division": "healthcare",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/healthcare/healthcare-clinical-evidence-agent.yaml",
+      "source_sha": "bedd73f3b88a25899025494e4d8c54870eaf1877"
+    },
+    {
+      "agent_id": "agency-agents/healthcare/healthcare-innovation-strategist.md",
+      "name": "Healthcare Innovation Strategist",
+      "division": "healthcare",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/healthcare/healthcare-innovation-strategist.yaml",
+      "source_sha": "8674e138f04b40d22c7922385025a9ed7a91a3a5"
+    },
+    {
+      "agent_id": "agency-agents/healthcare/healthcare-sovereign-health-systems-agent.md",
+      "name": "Sovereign Health Systems Agent",
+      "division": "healthcare",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/healthcare/healthcare-sovereign-health-systems-agent.yaml",
+      "source_sha": "b0efcf89cc98acc8427ef52bffd533a8f1eaf5d8"
+    },
+    {
+      "agent_id": "agency-agents/integrations/mcp-memory/backend-architect-with-memory.md",
+      "name": "Backend Architect",
+      "division": "integrations",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/integrations/backend-architect-with-memory.yaml",
+      "source_sha": "6c08f66d39fb84294d9af4050f220acb092f3179"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-aeo-foundations.md",
+      "name": "AEO Foundations Architect",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-aeo-foundations.yaml",
+      "source_sha": "5f4fcb7df38037f57be0204825f6701a95218b6d"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-agentic-search-optimizer.md",
+      "name": "Agentic Search Optimizer",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-agentic-search-optimizer.yaml",
+      "source_sha": "949aa496a1846162a46767ddfd5b91b6ea192682"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-ai-citation-strategist.md",
+      "name": "AI Citation Strategist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-ai-citation-strategist.yaml",
+      "source_sha": "f4cc136a1c1a9b4479cd01520a8c088b887eca16"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-app-store-optimizer.md",
+      "name": "App Store Optimizer",
+      "division": "marketing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-app-store-optimizer.yaml",
+      "source_sha": "031b6898d4c4f53fe0f87ba4076bf72d160de63d"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-baidu-seo-specialist.md",
+      "name": "Baidu SEO Specialist",
+      "division": "marketing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-baidu-seo-specialist.yaml",
+      "source_sha": "98658b2165be91e71baf768d214271ee302ca776"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-bilibili-content-strategist.md",
+      "name": "Bilibili Content Strategist",
+      "division": "marketing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-bilibili-content-strategist.yaml",
+      "source_sha": "532441cc3bc3cb800797874ee14f586056690c6c"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-book-co-author.md",
+      "name": "Book Co-Author",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-book-co-author.yaml",
+      "source_sha": "a8ec749f5c27f273dfcf6f7b12958cf7f98f8deb"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-carousel-growth-engine.md",
+      "name": "Carousel Growth Engine",
+      "division": "marketing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-carousel-growth-engine.yaml",
+      "source_sha": "c2bd030c45d3b0ab16d29b1edaee8d094ec97e24"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-china-ecommerce-operator.md",
+      "name": "China E-Commerce Operator",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-china-ecommerce-operator.yaml",
+      "source_sha": "544a566313175ca5c5f23d520cf086e4adbd073e"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-china-market-localization-strategist.md",
+      "name": "China Market Localization Strategist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-china-market-localization-strategist.yaml",
+      "source_sha": "e9723ece0955f275916fac8b8c40cfcdf814f283"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-content-creator.md",
+      "name": "Content Creator",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-content-creator.yaml",
+      "source_sha": "4beedb05f5e4f8754c63125649ac8a9763609330"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-cross-border-ecommerce.md",
+      "name": "Cross-Border E-Commerce Specialist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-cross-border-ecommerce.yaml",
+      "source_sha": "7054b8f705b6287b7604e45ef75a8b52c304c611"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-douyin-strategist.md",
+      "name": "Douyin Strategist",
+      "division": "marketing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-douyin-strategist.yaml",
+      "source_sha": "e1b321f41263be00e967398f91cc2c978989d129"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-email-strategist.md",
+      "name": "Email Marketing Strategist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-email-strategist.yaml",
+      "source_sha": "89f2a81502deeed160986be6faee80b01661298a"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-global-podcast-strategist.md",
+      "name": "Global Podcast Strategist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-global-podcast-strategist.yaml",
+      "source_sha": "0745fa762d38a3c88b662e1d6b6e2be6fbe40f27"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-growth-hacker.md",
+      "name": "Growth Hacker",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-growth-hacker.yaml",
+      "source_sha": "b5c20e59d361b19f277ee1410ce4ec985edde4c7"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-instagram-curator.md",
+      "name": "Instagram Curator",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-instagram-curator.yaml",
+      "source_sha": "85b373a5743f20ba27e042c65b771da047d9ac06"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-kuaishou-strategist.md",
+      "name": "Kuaishou Strategist",
+      "division": "marketing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-kuaishou-strategist.yaml",
+      "source_sha": "983afa67d96764a46b485a46217886198b63670a"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-linkedin-content-creator.md",
+      "name": "LinkedIn Content Creator",
+      "division": "marketing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-linkedin-content-creator.yaml",
+      "source_sha": "13edc8b02f2ac651810b123767886ffbae4b4878"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-livestream-commerce-coach.md",
+      "name": "Livestream Commerce Coach",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-livestream-commerce-coach.yaml",
+      "source_sha": "66c02c60f6f8e2e692488812cbf1ef35fb170b48"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-multi-platform-publisher.md",
+      "name": "Multi-Platform Publisher",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-multi-platform-publisher.yaml",
+      "source_sha": "5e56049823679fa654f264757b4b7b4f239b63d5"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-podcast-strategist.md",
+      "name": "Podcast Strategist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-podcast-strategist.yaml",
+      "source_sha": "d8db7e2fb90b1fae4b3461991bf65e4e4ff14821"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-pr-communications-manager.md",
+      "name": "PR & Communications Manager",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-pr-communications-manager.yaml",
+      "source_sha": "e2bc725c01dfbf2d6a4214793f70bd2d88791b51"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-private-domain-operator.md",
+      "name": "Private Domain Operator",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-private-domain-operator.yaml",
+      "source_sha": "fe12f9a1f18be62065da807e05d0b53fbd2c0043"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-reddit-community-builder.md",
+      "name": "Reddit Community Builder",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-reddit-community-builder.yaml",
+      "source_sha": "10166a042723f432f1080e6656c54066d47f3d06"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-seo-specialist.md",
+      "name": "SEO Specialist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-seo-specialist.yaml",
+      "source_sha": "35cb5e3c0a7f285d2669176ad03a2ed11252e176"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-short-video-editing-coach.md",
+      "name": "Short-Video Editing Coach",
+      "division": "marketing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-short-video-editing-coach.yaml",
+      "source_sha": "8ddde08d79d5032ba224dce5261829f7bd83bdac"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-social-media-strategist.md",
+      "name": "Social Media Strategist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-social-media-strategist.yaml",
+      "source_sha": "fd39bfa5782fa36b862472e8a2b1cd3d517609e1"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-tiktok-strategist.md",
+      "name": "TikTok Strategist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-tiktok-strategist.yaml",
+      "source_sha": "d04641cadf4aab60ba5bf1144ee1036fa539c578"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-twitter-engager.md",
+      "name": "Twitter Engager",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-twitter-engager.yaml",
+      "source_sha": "6651b2f76afe4cb5e404e338ba500032d7fc0164"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-video-optimization-specialist.md",
+      "name": "Video Optimization Specialist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-video-optimization-specialist.yaml",
+      "source_sha": "3d5fbb416b05f297f8649a3ecf39279d150e2290"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-wechat-official-account.md",
+      "name": "WeChat Official Account Manager",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-wechat-official-account.yaml",
+      "source_sha": "952ee3298191456c8b88e2af06a6de20062a9a16"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-weibo-strategist.md",
+      "name": "Weibo Strategist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-weibo-strategist.yaml",
+      "source_sha": "64f24ac05c76f26dd11a146a1a4731f7eb5b65df"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-x-twitter-intelligence-analyst.md",
+      "name": "X/Twitter Intelligence Analyst",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-x-twitter-intelligence-analyst.yaml",
+      "source_sha": "3d3ca03f49e2503d719f9ba385b685de1e884828"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-xiaohongshu-specialist.md",
+      "name": "Xiaohongshu Specialist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-xiaohongshu-specialist.yaml",
+      "source_sha": "e4dde95726abc734e0c15efcc6d1b39b5dd2ca76"
+    },
+    {
+      "agent_id": "agency-agents/marketing/marketing-zhihu-strategist.md",
+      "name": "Zhihu Strategist",
+      "division": "marketing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/marketing/marketing-zhihu-strategist.yaml",
+      "source_sha": "f5be4c4ebc1b5965be39e9b57a5bf60dcce4d5b5"
+    },
+    {
+      "agent_id": "agency-agents/paid-media/paid-media-auditor.md",
+      "name": "Paid Media Auditor",
+      "division": "paid-media",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/paid-media/paid-media-auditor.yaml",
+      "source_sha": "de532679bb1aceade5a8f6056fc2e025a73968b1"
+    },
+    {
+      "agent_id": "agency-agents/paid-media/paid-media-creative-strategist.md",
+      "name": "Ad Creative Strategist",
+      "division": "paid-media",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/paid-media/paid-media-creative-strategist.yaml",
+      "source_sha": "6dd3dc860327d79c599f26cac4074f8fe40f815d"
+    },
+    {
+      "agent_id": "agency-agents/paid-media/paid-media-paid-social-strategist.md",
+      "name": "Paid Social Strategist",
+      "division": "paid-media",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/paid-media/paid-media-paid-social-strategist.yaml",
+      "source_sha": "ba13efa57eadb794c7864d3ba35c047112826d6b"
+    },
+    {
+      "agent_id": "agency-agents/paid-media/paid-media-ppc-strategist.md",
+      "name": "PPC Campaign Strategist",
+      "division": "paid-media",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/paid-media/paid-media-ppc-strategist.yaml",
+      "source_sha": "b767b0c2a8662a84c6f0420d8de6d2449063bb2c"
+    },
+    {
+      "agent_id": "agency-agents/paid-media/paid-media-programmatic-buyer.md",
+      "name": "Programmatic & Display Buyer",
+      "division": "paid-media",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/paid-media/paid-media-programmatic-buyer.yaml",
+      "source_sha": "338a3ce3929824531d9986453c4d084fbae7e9dd"
+    },
+    {
+      "agent_id": "agency-agents/paid-media/paid-media-search-query-analyst.md",
+      "name": "Search Query Analyst",
+      "division": "paid-media",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/paid-media/paid-media-search-query-analyst.yaml",
+      "source_sha": "17a63b46adaccb2f4787b4d40e27f8d9838805b2"
+    },
+    {
+      "agent_id": "agency-agents/paid-media/paid-media-tracking-specialist.md",
+      "name": "Tracking & Measurement Specialist",
+      "division": "paid-media",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/paid-media/paid-media-tracking-specialist.yaml",
+      "source_sha": "edbe1ffed0a4f400c6604c1cca3d4f1f7a8cf708"
+    },
+    {
+      "agent_id": "agency-agents/product/product-behavioral-nudge-engine.md",
+      "name": "Behavioral Nudge Engine",
+      "division": "product",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/product/product-behavioral-nudge-engine.yaml",
+      "source_sha": "d120d5300996c8bd5f1aa07d74f3f11b9b617b31"
+    },
+    {
+      "agent_id": "agency-agents/product/product-feedback-synthesizer.md",
+      "name": "Feedback Synthesizer",
+      "division": "product",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/product/product-feedback-synthesizer.yaml",
+      "source_sha": "c36d9a913dea536b9ab922ae3d0da427528b153c"
+    },
+    {
+      "agent_id": "agency-agents/product/product-manager.md",
+      "name": "Product Manager",
+      "division": "product",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/product/product-manager.yaml",
+      "source_sha": "6a617be2dbf1a1321b23b0b40e693041a1178cbe"
+    },
+    {
+      "agent_id": "agency-agents/product/product-sprint-prioritizer.md",
+      "name": "Sprint Prioritizer",
+      "division": "product",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/product/product-sprint-prioritizer.yaml",
+      "source_sha": "126aec497fb452ddaa211a993d1a9d9fd9b0c959"
+    },
+    {
+      "agent_id": "agency-agents/product/product-trend-researcher.md",
+      "name": "Trend Researcher",
+      "division": "product",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/product/product-trend-researcher.yaml",
+      "source_sha": "3f33f9406a60fd38e10d1075ba0bb82d36822e80"
+    },
+    {
+      "agent_id": "agency-agents/project-management/project-management-experiment-tracker.md",
+      "name": "Experiment Tracker",
+      "division": "project-management",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/project-management/project-management-experiment-tracker.yaml",
+      "source_sha": "e3e4792246a43d6bbf30c4a567e09ed81e3bbd3c"
+    },
+    {
+      "agent_id": "agency-agents/project-management/project-management-jira-workflow-steward.md",
+      "name": "Jira Workflow Steward",
+      "division": "project-management",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/project-management/project-management-jira-workflow-steward.yaml",
+      "source_sha": "5185f9e128cc9a6387fc98c693a39967e0107c6d"
+    },
+    {
+      "agent_id": "agency-agents/project-management/project-management-meeting-notes-specialist.md",
+      "name": "Meeting Notes Specialist",
+      "division": "project-management",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/project-management/project-management-meeting-notes-specialist.yaml",
+      "source_sha": "a02904f92594986147691e5aa69191b49d1e0060"
+    },
+    {
+      "agent_id": "agency-agents/project-management/project-management-project-shepherd.md",
+      "name": "Project Shepherd",
+      "division": "project-management",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/project-management/project-management-project-shepherd.yaml",
+      "source_sha": "e2b625a8905b90bd1c4a05aa23014a08621d1370"
+    },
+    {
+      "agent_id": "agency-agents/project-management/project-management-studio-operations.md",
+      "name": "Studio Operations",
+      "division": "project-management",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/project-management/project-management-studio-operations.yaml",
+      "source_sha": "d3f8335e348de080d5a782476756f738aca011f1"
+    },
+    {
+      "agent_id": "agency-agents/project-management/project-management-studio-producer.md",
+      "name": "Studio Producer",
+      "division": "project-management",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/project-management/project-management-studio-producer.yaml",
+      "source_sha": "78c481019a0ab3ccf269d7518759b11f1677218c"
+    },
+    {
+      "agent_id": "agency-agents/project-management/project-manager-senior.md",
+      "name": "Senior Project Manager",
+      "division": "project-management",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/project-management/project-manager-senior.yaml",
+      "source_sha": "52bb3a7012fb249e30a2d2f6ae3ed3287e6024d1"
+    },
+    {
+      "agent_id": "agency-agents/sales/sales-account-strategist.md",
+      "name": "Account Strategist",
+      "division": "sales",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/sales/sales-account-strategist.yaml",
+      "source_sha": "9ccea292f982d70c105edd0b99e646d4676110fe"
+    },
+    {
+      "agent_id": "agency-agents/sales/sales-coach.md",
+      "name": "Sales Coach",
+      "division": "sales",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/sales/sales-coach.yaml",
+      "source_sha": "d9e5fd19114108a55e4551769e61f4262dc1fa4f"
+    },
+    {
+      "agent_id": "agency-agents/sales/sales-deal-strategist.md",
+      "name": "Deal Strategist",
+      "division": "sales",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/sales/sales-deal-strategist.yaml",
+      "source_sha": "01b220ce103cbb1f816140b1039ced1838ee4e89"
+    },
+    {
+      "agent_id": "agency-agents/sales/sales-discovery-coach.md",
+      "name": "Discovery Coach",
+      "division": "sales",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/sales/sales-discovery-coach.yaml",
+      "source_sha": "76b82c89c7a3f90d784d8ae2e893d914b1d6dc7b"
+    },
+    {
+      "agent_id": "agency-agents/sales/sales-engineer.md",
+      "name": "Sales Engineer",
+      "division": "sales",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/sales/sales-engineer.yaml",
+      "source_sha": "3093e53a6eccca46d18fbd1f5d225b4b87454eb7"
+    },
+    {
+      "agent_id": "agency-agents/sales/sales-offer-lead-gen-strategist.md",
+      "name": "Offer & Lead Gen Strategist",
+      "division": "sales",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/sales/sales-offer-lead-gen-strategist.yaml",
+      "source_sha": "deb1e7e18cb65de2903011dc31c366b82129c298"
+    },
+    {
+      "agent_id": "agency-agents/sales/sales-outbound-strategist.md",
+      "name": "Outbound Strategist",
+      "division": "sales",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/sales/sales-outbound-strategist.yaml",
+      "source_sha": "f2bf4f77133386b481073f5c209f31d4b7cedb62"
+    },
+    {
+      "agent_id": "agency-agents/sales/sales-pipeline-analyst.md",
+      "name": "Pipeline Analyst",
+      "division": "sales",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/sales/sales-pipeline-analyst.yaml",
+      "source_sha": "75182c76e1a17498b10295733ff75befd7d908e4"
+    },
+    {
+      "agent_id": "agency-agents/sales/sales-proposal-strategist.md",
+      "name": "Proposal Strategist",
+      "division": "sales",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/sales/sales-proposal-strategist.yaml",
+      "source_sha": "cca0a66ddb053f487e243c8a12fc030f6b8f7f27"
+    },
+    {
+      "agent_id": "agency-agents/security/security-ai-generated-code-auditor.md",
+      "name": "AI-Generated Code Security Auditor",
+      "division": "security",
+      "confidence": "high",
+      "routing_mode": "eligible-with-explicit-task-selector",
+      "auto_route": true,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-ai-generated-code-auditor.yaml",
+      "source_sha": "a09c474ef6a722cd75d0c064aca187155edbe206"
+    },
+    {
+      "agent_id": "agency-agents/security/security-appsec-engineer.md",
+      "name": "Application Security Engineer",
+      "division": "security",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-appsec-engineer.yaml",
+      "source_sha": "e5f82dc0ad7c164d03e156cf4696f5570273453e"
+    },
+    {
+      "agent_id": "agency-agents/security/security-architect.md",
+      "name": "Security Architect",
+      "division": "security",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-architect.yaml",
+      "source_sha": "0dbc227249d53ff75e282a32d982e8de5e666f0c"
+    },
+    {
+      "agent_id": "agency-agents/security/security-blockchain-security-auditor.md",
+      "name": "Blockchain Security Auditor",
+      "division": "security",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-blockchain-security-auditor.yaml",
+      "source_sha": "e4e4430d25a16b3453516a56086ab41ba0b622db"
+    },
+    {
+      "agent_id": "agency-agents/security/security-cloud-security-architect.md",
+      "name": "Cloud Security Architect",
+      "division": "security",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-cloud-security-architect.yaml",
+      "source_sha": "91d01ca4ccd55472b5df1b196011f1edce95651c"
+    },
+    {
+      "agent_id": "agency-agents/security/security-compliance-auditor.md",
+      "name": "Compliance Auditor",
+      "division": "security",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-compliance-auditor.yaml",
+      "source_sha": "d6c07687324fda4e15270dc4184fd228a48b0b12"
+    },
+    {
+      "agent_id": "agency-agents/security/security-incident-responder.md",
+      "name": "Incident Responder",
+      "division": "security",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-incident-responder.yaml",
+      "source_sha": "7198b4fb727c6193eb74bd4fdc44b1f71aa9acd5"
+    },
+    {
+      "agent_id": "agency-agents/security/security-penetration-tester.md",
+      "name": "Penetration Tester",
+      "division": "security",
+      "confidence": "high",
+      "routing_mode": "eligible-with-explicit-task-selector",
+      "auto_route": true,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-penetration-tester.yaml",
+      "source_sha": "8b415cc9573fe490d6b2b623dd08ea61f87a2807"
+    },
+    {
+      "agent_id": "agency-agents/security/security-secrets-credential-engineer.md",
+      "name": "Secrets & Credential Hygiene Engineer",
+      "division": "security",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-secrets-credential-engineer.yaml",
+      "source_sha": "63a0a6fe7b551e501f09a3283b8b87680b01a9b0"
+    },
+    {
+      "agent_id": "agency-agents/security/security-senior-secops.md",
+      "name": "Senior SecOps Engineer",
+      "division": "security",
+      "confidence": "high",
+      "routing_mode": "eligible-with-explicit-task-selector",
+      "auto_route": true,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-senior-secops.yaml",
+      "source_sha": "cd66610e133d71795f8832f0d379f505471a1f0a"
+    },
+    {
+      "agent_id": "agency-agents/security/security-threat-detection-engineer.md",
+      "name": "Threat Detection Engineer",
+      "division": "security",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-threat-detection-engineer.yaml",
+      "source_sha": "b162a71d47354397609ab486c8531179d8d79e5a"
+    },
+    {
+      "agent_id": "agency-agents/security/security-threat-intelligence-analyst.md",
+      "name": "Threat Intelligence Analyst",
+      "division": "security",
+      "confidence": "high",
+      "routing_mode": "eligible-with-explicit-task-selector",
+      "auto_route": true,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/security/security-threat-intelligence-analyst.yaml",
+      "source_sha": "7dc0479c518e7c076adcb0627fbc497b63db3198"
+    },
+    {
+      "agent_id": "agency-agents/spatial-computing/macos-spatial-metal-engineer.md",
+      "name": "macOS Spatial/Metal Engineer",
+      "division": "spatial-computing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/spatial-computing/macos-spatial-metal-engineer.yaml",
+      "source_sha": "98ddc701740ea7472713f0f3a99f952733cb2c53"
+    },
+    {
+      "agent_id": "agency-agents/spatial-computing/terminal-integration-specialist.md",
+      "name": "Terminal Integration Specialist",
+      "division": "spatial-computing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/spatial-computing/terminal-integration-specialist.yaml",
+      "source_sha": "e3e998110cf0fae08b2270b6221c6d359e71dd6b"
+    },
+    {
+      "agent_id": "agency-agents/spatial-computing/visionos-spatial-engineer.md",
+      "name": "visionOS Spatial Engineer",
+      "division": "spatial-computing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/spatial-computing/visionos-spatial-engineer.yaml",
+      "source_sha": "800140ca5d90405e5911fb77017f6125c15b6cdd"
+    },
+    {
+      "agent_id": "agency-agents/spatial-computing/xr-cockpit-interaction-specialist.md",
+      "name": "XR Cockpit Interaction Specialist",
+      "division": "spatial-computing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/spatial-computing/xr-cockpit-interaction-specialist.yaml",
+      "source_sha": "b2ee725761dc9ef207e2ed3baa2bae80cd59c8c4"
+    },
+    {
+      "agent_id": "agency-agents/spatial-computing/xr-immersive-developer.md",
+      "name": "XR Immersive Developer",
+      "division": "spatial-computing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/spatial-computing/xr-immersive-developer.yaml",
+      "source_sha": "5452a8f530d8c55c8c3994d8c9be2ba20f619d80"
+    },
+    {
+      "agent_id": "agency-agents/spatial-computing/xr-interface-architect.md",
+      "name": "XR Interface Architect",
+      "division": "spatial-computing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/spatial-computing/xr-interface-architect.yaml",
+      "source_sha": "3c9d16e6750cd13c4889dff5447d668fc021e0e5"
+    },
+    {
+      "agent_id": "agency-agents/specialized/accounts-payable-agent.md",
+      "name": "Accounts Payable Agent",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/accounts-payable-agent.yaml",
+      "source_sha": "2e3431890778224ec00a5c00104598ac6ecfe445"
+    },
+    {
+      "agent_id": "agency-agents/specialized/agentic-identity-trust.md",
+      "name": "Agentic Identity & Trust Architect",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/agentic-identity-trust.yaml",
+      "source_sha": "a63defa69df4f5e82fe59c7c36856903a18994f0"
+    },
+    {
+      "agent_id": "agency-agents/specialized/agents-orchestrator.md",
+      "name": "Agents Orchestrator",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/agents-orchestrator.yaml",
+      "source_sha": "9d62d814d3c5153ef7b403bb4ecba2e9dc21f8ae"
+    },
+    {
+      "agent_id": "agency-agents/specialized/automation-governance-architect.md",
+      "name": "Automation Governance Architect",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/automation-governance-architect.yaml",
+      "source_sha": "e0fa2004b1ef2132aa2ce257020d3e1295bdb1e2"
+    },
+    {
+      "agent_id": "agency-agents/specialized/business-strategist.md",
+      "name": "Business Strategist",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/business-strategist.yaml",
+      "source_sha": "21b0f276c29f19ecdf0d803f5141019a2d681381"
+    },
+    {
+      "agent_id": "agency-agents/specialized/change-management-consultant.md",
+      "name": "Change Management Consultant",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/change-management-consultant.yaml",
+      "source_sha": "b38f981bcad3733fee93399a94356c198567b66a"
+    },
+    {
+      "agent_id": "agency-agents/specialized/chief-financial-officer.md",
+      "name": "Chief Financial Officer",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/chief-financial-officer.yaml",
+      "source_sha": "7b13199e6d7f69cfc3eae2180b38368b9232445f"
+    },
+    {
+      "agent_id": "agency-agents/specialized/corporate-training-designer.md",
+      "name": "Corporate Training Designer",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/corporate-training-designer.yaml",
+      "source_sha": "d8191adbdaab0e671fc14c884879092147261e5a"
+    },
+    {
+      "agent_id": "agency-agents/specialized/customer-service.md",
+      "name": "Customer Service",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/customer-service.yaml",
+      "source_sha": "f6d8b1bdd778f89879b39921d95f3042b319aee6"
+    },
+    {
+      "agent_id": "agency-agents/specialized/customer-success-manager.md",
+      "name": "Customer Success Manager",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/customer-success-manager.yaml",
+      "source_sha": "a7e7fa4e44c26bd169e2c6f7fc1aef8b895049a8"
+    },
+    {
+      "agent_id": "agency-agents/specialized/data-consolidation-agent.md",
+      "name": "Data Consolidation Agent",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/data-consolidation-agent.yaml",
+      "source_sha": "ac60571965067bf6d65d3c5e9a7cc16c935ad182"
+    },
+    {
+      "agent_id": "agency-agents/specialized/data-privacy-officer.md",
+      "name": "Data Privacy Officer",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/data-privacy-officer.yaml",
+      "source_sha": "955deeb093eeecb3dd2899d2cb070f334eb507bb"
+    },
+    {
+      "agent_id": "agency-agents/specialized/esg-sustainability-officer.md",
+      "name": "ESG & Sustainability Officer",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/esg-sustainability-officer.yaml",
+      "source_sha": "555c6873574d84ca49e54327b45f62388dfb7fcf"
+    },
+    {
+      "agent_id": "agency-agents/specialized/government-digital-presales-consultant.md",
+      "name": "Government Digital Presales Consultant",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/government-digital-presales-consultant.yaml",
+      "source_sha": "c2c0ebacca2cb6f417e06a7de0689d166ae5df33"
+    },
+    {
+      "agent_id": "agency-agents/specialized/grant-writer.md",
+      "name": "Grant Writer",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/grant-writer.yaml",
+      "source_sha": "69a7ae54ccf2c05346b3542710c141a759fb7f6e"
+    },
+    {
+      "agent_id": "agency-agents/specialized/healthcare-aging-parent-care-companion.md",
+      "name": "Aging Parent Care Companion",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/healthcare-aging-parent-care-companion.yaml",
+      "source_sha": "926892f25a051cd642fdf9717e1c4ff1491fa826"
+    },
+    {
+      "agent_id": "agency-agents/specialized/healthcare-customer-service.md",
+      "name": "Healthcare Customer Service",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/healthcare-customer-service.yaml",
+      "source_sha": "388054fb7b47f82a1fea4921535c3adc369b2d16"
+    },
+    {
+      "agent_id": "agency-agents/specialized/healthcare-marketing-compliance.md",
+      "name": "Healthcare Marketing Compliance Specialist",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/healthcare-marketing-compliance.yaml",
+      "source_sha": "8e958ecce049771a1ea800736cf76c1159c520a6"
+    },
+    {
+      "agent_id": "agency-agents/specialized/hospitality-guest-services.md",
+      "name": "Hospitality Guest Services",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/hospitality-guest-services.yaml",
+      "source_sha": "3b5bb06f8153057526fbf46b51d27200ecb118a8"
+    },
+    {
+      "agent_id": "agency-agents/specialized/hr-onboarding.md",
+      "name": "HR Onboarding",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/hr-onboarding.yaml",
+      "source_sha": "15aa1ac614f31c1dd1c11256ce92f3191e04abfe"
+    },
+    {
+      "agent_id": "agency-agents/specialized/identity-graph-operator.md",
+      "name": "Identity Graph Operator",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/identity-graph-operator.yaml",
+      "source_sha": "50a126ab19244e6ea77d3cf65d3ac0078d680b38"
+    },
+    {
+      "agent_id": "agency-agents/specialized/language-translator.md",
+      "name": "Language Translator",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/language-translator.yaml",
+      "source_sha": "a2bea23c4495bf17740e1e1613bc673cea550dd6"
+    },
+    {
+      "agent_id": "agency-agents/specialized/legal-billing-time-tracking.md",
+      "name": "Legal Billing & Time Tracking",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/legal-billing-time-tracking.yaml",
+      "source_sha": "2a88efad414c564a63f37ab85faa9bab1324f33f"
+    },
+    {
+      "agent_id": "agency-agents/specialized/legal-client-intake.md",
+      "name": "Legal Client Intake",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/legal-client-intake.yaml",
+      "source_sha": "5da0a03e680614a9dfbab49a50afac9d9a04e026"
+    },
+    {
+      "agent_id": "agency-agents/specialized/legal-document-review.md",
+      "name": "Legal Document Review",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/legal-document-review.yaml",
+      "source_sha": "7d3a1ffd8d88553d760ddaae27fadc4abd49af5a"
+    },
+    {
+      "agent_id": "agency-agents/specialized/loan-officer-assistant.md",
+      "name": "Loan Officer Assistant",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/loan-officer-assistant.yaml",
+      "source_sha": "fc45f86ff5d916964617efcc673b846f16ff07a7"
+    },
+    {
+      "agent_id": "agency-agents/specialized/lsp-index-engineer.md",
+      "name": "LSP/Index Engineer",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/lsp-index-engineer.yaml",
+      "source_sha": "29c2a88fad8ab6e340c7ee6b97d71ee1736920e0"
+    },
+    {
+      "agent_id": "agency-agents/specialized/ma-integration-manager.md",
+      "name": "M&A Integration Manager",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/ma-integration-manager.yaml",
+      "source_sha": "08c258fcec7a7e0907b2e930366b3e89eb5bc00a"
+    },
+    {
+      "agent_id": "agency-agents/specialized/medical-billing-coding-specialist.md",
+      "name": "Medical Billing & Coding Specialist",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/medical-billing-coding-specialist.yaml",
+      "source_sha": "e4bd4450185472439f3a04f40194aa90eb0fe7b8"
+    },
+    {
+      "agent_id": "agency-agents/specialized/operations-manager.md",
+      "name": "Operations Manager",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/operations-manager.yaml",
+      "source_sha": "c4ff42a209ca1e5ef4717bc1183a7e6fd3128fb7"
+    },
+    {
+      "agent_id": "agency-agents/specialized/organizational-psychologist.md",
+      "name": "Organizational Psychologist",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/organizational-psychologist.yaml",
+      "source_sha": "859b960780299b2fdda8917bce7b5c4bae1eca01"
+    },
+    {
+      "agent_id": "agency-agents/specialized/personal-growth-mentor.md",
+      "name": "Personal Growth Mentor",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/personal-growth-mentor.yaml",
+      "source_sha": "6bc5d5cfc5623ce5f6b2e6ad1975f7fec488806a"
+    },
+    {
+      "agent_id": "agency-agents/specialized/real-estate-buyer-seller.md",
+      "name": "Real Estate Buyer & Seller",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/real-estate-buyer-seller.yaml",
+      "source_sha": "57aaf3ab55610aa250b956ec7f984a5dda94b672"
+    },
+    {
+      "agent_id": "agency-agents/specialized/recruitment-specialist.md",
+      "name": "Recruitment Specialist",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/recruitment-specialist.yaml",
+      "source_sha": "0601765db432e9dafb5bb21b95ac858da4c2529e"
+    },
+    {
+      "agent_id": "agency-agents/specialized/report-distribution-agent.md",
+      "name": "Report Distribution Agent",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/report-distribution-agent.yaml",
+      "source_sha": "c94540ba988a7a64df6724d301b6a6ddebd483bd"
+    },
+    {
+      "agent_id": "agency-agents/specialized/resume-tailor.md",
+      "name": "Resume Tailor",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/resume-tailor.yaml",
+      "source_sha": "5428a52180dda748b40ea787ac11cfb03fa3912b"
+    },
+    {
+      "agent_id": "agency-agents/specialized/retail-customer-returns.md",
+      "name": "Retail Customer Returns",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/retail-customer-returns.yaml",
+      "source_sha": "998a9d8c16b7f2931db34a5b8dff14e819b3c46e"
+    },
+    {
+      "agent_id": "agency-agents/specialized/sales-data-extraction-agent.md",
+      "name": "Sales Data Extraction Agent",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/sales-data-extraction-agent.yaml",
+      "source_sha": "2d1d6124ce6ea974d8972eb5660e90c2b39fa2fa"
+    },
+    {
+      "agent_id": "agency-agents/specialized/sales-outreach.md",
+      "name": "Sales Outreach",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/sales-outreach.yaml",
+      "source_sha": "842dbc2665cc8d7ed7ff096b0559f3710ac31169"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-chief-of-staff.md",
+      "name": "Chief of Staff",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-chief-of-staff.yaml",
+      "source_sha": "0ea4026aa8a187abd6f177c37591bef58286c35f"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-civil-engineer.md",
+      "name": "Civil Engineer",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-civil-engineer.yaml",
+      "source_sha": "9f6048ebfa99dd25ebbb419362284e29ca55d404"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-codebase-archaeologist.md",
+      "name": "Codebase Archaeologist",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-codebase-archaeologist.yaml",
+      "source_sha": "2e60756a4c905d1bd8233733b0ba67cd4bc7c8c8"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-cultural-intelligence-strategist.md",
+      "name": "Cultural Intelligence Strategist",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-cultural-intelligence-strategist.yaml",
+      "source_sha": "c534589093a3bfe57f3a88af35d6bdc0bcaa53a2"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-developer-advocate.md",
+      "name": "Developer Advocate",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-developer-advocate.yaml",
+      "source_sha": "e38d30a9d4fbed9ead3db6c73693f876fca7f25f"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-document-generator.md",
+      "name": "Document Generator",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-document-generator.yaml",
+      "source_sha": "1817b2a881152af9c482f6d30cdb2567e531cb35"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-fedramp-rmf-compliance.md",
+      "name": "FedRAMP & RMF Compliance Engineer",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-fedramp-rmf-compliance.yaml",
+      "source_sha": "2d70c8ba4e1b12b26babaa1eddc4fb29e3820268"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-french-consulting-market.md",
+      "name": "French Consulting Market Navigator",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-french-consulting-market.yaml",
+      "source_sha": "688d265f805d803cb1c65346a5f1f20e71c3de64"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-korean-business-navigator.md",
+      "name": "Korean Business Navigator",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-korean-business-navigator.yaml",
+      "source_sha": "6d4145728fea1a5d077b03ef46c836a2298b1cd9"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-mcp-builder.md",
+      "name": "MCP Builder",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-mcp-builder.yaml",
+      "source_sha": "e12b89c5e04e2ef483120a672845a9d024318314"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-model-qa.md",
+      "name": "Model QA Specialist",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-model-qa.yaml",
+      "source_sha": "0b362aa545dc92242fd898c0775423801acec01c"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-pricing-analyst.md",
+      "name": "Pricing Analyst",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-pricing-analyst.yaml",
+      "source_sha": "f16471e3ff010105d10066bb48c0fb90ba460df1"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-salesforce-architect.md",
+      "name": "Salesforce Architect",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-salesforce-architect.yaml",
+      "source_sha": "6ffd539c17948ab8db0bbe11dcefb2a0d3779cab"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-strategy-duel-agent.md",
+      "name": "Strategy Duel Agent",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-strategy-duel-agent.yaml",
+      "source_sha": "17e2ac99b0e59c79a5d59148874214dfc79c0003"
+    },
+    {
+      "agent_id": "agency-agents/specialized/specialized-workflow-architect.md",
+      "name": "Workflow Architect",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/specialized-workflow-architect.yaml",
+      "source_sha": "a478aef1f5d2eb4ee8493683e0dc3f022f375937"
+    },
+    {
+      "agent_id": "agency-agents/specialized/study-abroad-advisor.md",
+      "name": "Study Abroad Advisor",
+      "division": "specialized",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/study-abroad-advisor.yaml",
+      "source_sha": "3dac06871207503d6e3c04bf15ddaf89f7d429db"
+    },
+    {
+      "agent_id": "agency-agents/specialized/supply-chain-strategist.md",
+      "name": "Supply Chain Strategist",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/supply-chain-strategist.yaml",
+      "source_sha": "f3b520861fe3edefd45adaf64fcb6303f9bf945d"
+    },
+    {
+      "agent_id": "agency-agents/specialized/zk-steward.md",
+      "name": "ZK Steward",
+      "division": "specialized",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/specialized/zk-steward.yaml",
+      "source_sha": "c3bc8972dbbc60b6c1e036dd9248606a560f34eb"
+    },
+    {
+      "agent_id": "agency-agents/support/support-analytics-reporter.md",
+      "name": "Analytics Reporter",
+      "division": "support",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/support/support-analytics-reporter.yaml",
+      "source_sha": "9cd2441f0415778bf1af3f8d51256017464e701b"
+    },
+    {
+      "agent_id": "agency-agents/support/support-executive-summary-generator.md",
+      "name": "Executive Summary Generator",
+      "division": "support",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/support/support-executive-summary-generator.yaml",
+      "source_sha": "c8338a5eac9d8351d98687518d4471c25fa67f19"
+    },
+    {
+      "agent_id": "agency-agents/support/support-finance-tracker.md",
+      "name": "Finance Tracker",
+      "division": "support",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/support/support-finance-tracker.yaml",
+      "source_sha": "5fc4476cfe179e194a59b5b1d0a2b4d521a8cbf0"
+    },
+    {
+      "agent_id": "agency-agents/support/support-infrastructure-maintainer.md",
+      "name": "Infrastructure Maintainer",
+      "division": "support",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/support/support-infrastructure-maintainer.yaml",
+      "source_sha": "5e38a198351f22a977cd01bc2605ed431e8f2f8b"
+    },
+    {
+      "agent_id": "agency-agents/support/support-legal-compliance-checker.md",
+      "name": "Legal Compliance Checker",
+      "division": "support",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/support/support-legal-compliance-checker.yaml",
+      "source_sha": "9afc088ff2a7c788781097d14ce3c3af89dd67cd"
+    },
+    {
+      "agent_id": "agency-agents/support/support-support-responder.md",
+      "name": "Support Responder",
+      "division": "support",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/support/support-support-responder.yaml",
+      "source_sha": "3ea84672ac4906b7a50ee64573e1becd1aeb1ace"
+    },
+    {
+      "agent_id": "agency-agents/testing/testing-accessibility-auditor.md",
+      "name": "Accessibility Auditor",
+      "division": "testing",
+      "confidence": "high",
+      "routing_mode": "eligible-with-explicit-task-selector",
+      "auto_route": true,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/testing/testing-accessibility-auditor.yaml",
+      "source_sha": "c474b3a6c2ce84d9ecfc0221879e90347c4380a1"
+    },
+    {
+      "agent_id": "agency-agents/testing/testing-api-tester.md",
+      "name": "API Tester",
+      "division": "testing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/testing/testing-api-tester.yaml",
+      "source_sha": "1ea5e50cba0bc36a9a8ec8bfd9ca997d9e450a5c"
+    },
+    {
+      "agent_id": "agency-agents/testing/testing-evidence-collector.md",
+      "name": "Evidence Collector",
+      "division": "testing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/testing/testing-evidence-collector.yaml",
+      "source_sha": "187a2d010abb3439d91ea59aa75de8c5ee860560"
+    },
+    {
+      "agent_id": "agency-agents/testing/testing-performance-benchmarker.md",
+      "name": "Performance Benchmarker",
+      "division": "testing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/testing/testing-performance-benchmarker.yaml",
+      "source_sha": "1845fb5f30af4063440dbae22a67cd8554c4c9bf"
+    },
+    {
+      "agent_id": "agency-agents/testing/testing-reality-checker.md",
+      "name": "Reality Checker",
+      "division": "testing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/testing/testing-reality-checker.yaml",
+      "source_sha": "e534cfbd20d3115d5265387f19db7d3b25649421"
+    },
+    {
+      "agent_id": "agency-agents/testing/testing-test-automation-engineer.md",
+      "name": "Test Automation Engineer",
+      "division": "testing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/testing/testing-test-automation-engineer.yaml",
+      "source_sha": "571f8e3ab9d678e56edcfb6d9d95f31c65ef98ca"
+    },
+    {
+      "agent_id": "agency-agents/testing/testing-test-results-analyzer.md",
+      "name": "Test Results Analyzer",
+      "division": "testing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/testing/testing-test-results-analyzer.yaml",
+      "source_sha": "a478a21673fa4fe79db4b0941610915afe54f8e9"
+    },
+    {
+      "agent_id": "agency-agents/testing/testing-tool-evaluator.md",
+      "name": "Tool Evaluator",
+      "division": "testing",
+      "confidence": "high",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/testing/testing-tool-evaluator.yaml",
+      "source_sha": "3f8a9ff68fab761aa5a8f85528de01d7762c1cd4"
+    },
+    {
+      "agent_id": "agency-agents/testing/testing-workflow-optimizer.md",
+      "name": "Workflow Optimizer",
+      "division": "testing",
+      "confidence": "medium",
+      "routing_mode": "manual-only",
+      "auto_route": false,
+      "metadata_path": "integrations/external-agents/agency-agents/metadata/testing/testing-workflow-optimizer.yaml",
+      "source_sha": "eecb0a47c0f295648f454687f9666bb6affe7a34"
+    }
+  ]
+}

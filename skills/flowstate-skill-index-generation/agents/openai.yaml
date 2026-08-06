@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Skill Index Generation","short_description":"Skill Authoring workflow for Skill index","default_prompt":"Use $flowstate-skill-index-generation for Update searchable JSON and Markdown Skill indexes and produce Skill index."}
-policy: {"allow_implicit_invocation":true}

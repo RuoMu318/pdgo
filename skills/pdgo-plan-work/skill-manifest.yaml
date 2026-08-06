@@ -1,0 +1,47 @@
+schema_version: "1.0"
+skill_id: "pdgo-plan-work"
+display_name: "PDGO Plan Work"
+description: "Explore intent, write a versioned plan, split long work into serial or parallel stages, and prepare an approval-bound task ledger."
+project_scope:
+  - "pdgo"
+  - "tianyan"
+department:
+  - "planning"
+stage:
+  - "discovery"
+  - "design"
+scenarios:
+  - "planning and discovery for a governed multi-stage change"
+positive_triggers:
+  - "The scenario is planning and discovery for a governed multi-stage change"
+negative_triggers:
+  - "The scenario is outside this Skill's declared workflow"
+  - "Required inputs or approval are missing"
+boundaries:
+  - "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+required_inputs:
+  - "classified project context"
+  - "approved or planning-scoped artifacts"
+  - "current constraints"
+expected_outputs:
+  - "governed result"
+  - "evidence"
+  - "risks"
+  - "blockers"
+  - "next action"
+prerequisites:
+  - "startup routing completed"
+  - "mode permits the requested side effect"
+side_effects:
+  - "writes governed artifacts or changes only approved paths"
+upstream_skills:
+  - "brainstorming"
+  - "writing-plans"
+tags:
+  - "pdgo"
+  - "tianyan"
+  - "governed-work"
+risk_level: "high"
+priority: 10
+category: "planning"
+subcategory: "planning and discovery for a governed multi-stage change"

@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Document Change","short_description":"Development workflow for document artifact","default_prompt":"Use $flowstate-document-change for Apply a bounded document change and produce document artifact."}
-policy: {"allow_implicit_invocation":true}

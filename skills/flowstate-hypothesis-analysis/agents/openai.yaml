@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Hypothesis Analysis","short_description":"Debugging workflow for hypothesis matrix","default_prompt":"Use $flowstate-hypothesis-analysis for Compare root-cause hypotheses with evidence and produce hypothesis matrix."}
-policy: {"allow_implicit_invocation":true}

@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { CodexAppServerAdapter, FileQueueAdapter, FlowStateDispatcher, FlowStateStore } from "../scripts/lib/flowstate-dispatcher.mjs";
+import { CodexAppServerAdapter, FileQueueAdapter, FlowStateDispatcher, FlowStateRuntime, FlowStateStore } from "../scripts/lib/flowstate-dispatcher.mjs";
 
 class MockAdapter {
   constructor() {
@@ -15,18 +15,35 @@ class MockAdapter {
 
   async ensureSeriesSessions({ seriesId }) {
     this.seriesCalls.push(seriesId);
-    return { planning_session_id: `plan-session-${seriesId}`, execution_session_id: `exec-session-${seriesId}`, adapter: "mock" };
+    return { planning_session_id: `plan-session-${seriesId}`, execution_session_id: `exec-session-${seriesId}`, delivery_status: "connected", adapter: "mock" };
   }
 
   async ensureWorkerSession({ seriesId, taskId }) {
     this.workerCalls.push({ seriesId, taskId });
-    return { worker_session_id: `worker-session-${seriesId}-${taskId}` };
+    return { worker_session_id: `worker-session-${seriesId}-${taskId}`, platform_session_id: `worker-session-${seriesId}-${taskId}`, delivery_status: "connected" };
   }
 
   async send(message) {
     this.messages.push(message);
     this.sequence += 1;
     return { message_id: `message-${this.sequence}` };
+  }
+}
+
+class ConnectedQueueAdapter extends FileQueueAdapter {
+  async ensureSeriesSessions({ seriesId }) {
+    return {
+      planning_session_id: `connected-planning-${seriesId}`,
+      execution_session_id: `connected-execution-${seriesId}`,
+      platform_session_ids: { planning: `connected-planning-${seriesId}`, execution: `connected-execution-${seriesId}` },
+      delivery_status: "connected",
+      adapter: "connected-queue-test-double",
+    };
+  }
+
+  async ensureWorkerSession({ seriesId, taskId }) {
+    const workerSessionId = `connected-worker-${seriesId}-${taskId}`;
+    return { worker_session_id: workerSessionId, platform_session_id: workerSessionId, delivery_status: "connected" };
   }
 }
 
@@ -128,6 +145,317 @@ test("file queue leaves dispatch and report messages on disk", async () => {
   }
 });
 
+test("file queue dispatches are idempotent and processed messages are archived", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-queue-idempotency-"));
+  try {
+    const adapter = new FileQueueAdapter({ root: path.join(root, "queue"), id: (prefix) => `${prefix}-fixed` });
+    const first = await adapter.send({ message_type: "PLAN_DISPATCH", dispatch_id: "dispatch-1", target_session_id: "worker-1" });
+    const second = await adapter.send({ message_type: "PLAN_DISPATCH", dispatch_id: "dispatch-1", target_session_id: "worker-1" });
+    assert.equal(first.path, second.path);
+    assert.equal((await readdir(path.join(root, "queue", "outbox", "worker-1"))).length, 1);
+
+    await adapter.enqueueReport({ report_id: "report-1", return_to: "planning-1", status: "returned-to-planning" });
+    assert.equal((await adapter.receiveReports("planning-1")).length, 1);
+    const archived = await adapter.acknowledgeReport("planning-1", "report-1");
+    assert.equal(archived.acknowledged, true);
+    assert.equal((await adapter.receiveReports("planning-1")).length, 0);
+    assert.match(await readFile(archived.path, "utf8"), /report-1/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("automatic dispatch pauses instead of treating a file queue as a live Agent transport", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-automatic-transport-"));
+  try {
+    const adapter = new FileQueueAdapter({ root: path.join(root, "queue") });
+    const dispatcher = new FlowStateDispatcher({
+      store: new FlowStateStore({ root: path.join(root, "state") }),
+      adapter,
+      projectId: "demo",
+    });
+    const runtime = new FlowStateRuntime({ dispatcher });
+    await dispatcher.createPlan({ planSeriesId: "series-transport", planVersion: "v1", plan: makePlan({ plan_id: "series-transport-plan-v1" }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-transport", planVersion: "v1", approval: { approver: "user", plan_id: "series-transport-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: ["R01"] } });
+    const cycle = await runtime.runOnce();
+    assert.equal(cycle.errors.length, 0);
+    const state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-transport"].status, "waiting-on-planning");
+    assert.equal(state.series["series-transport"].plans.v1.blockers.find((blocker) => blocker.blocker_id === "transport-T01").status, "blocked");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("runtime resumes queued reports and reviews and dispatches the next task once", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-runtime-"));
+  let sequence = 0;
+  try {
+    const adapter = new ConnectedQueueAdapter({ root: path.join(root, "queue"), id: (prefix) => `${prefix}-${++sequence}` });
+    const dispatcher = new FlowStateDispatcher({
+      store: new FlowStateStore({ root: path.join(root, "state") }),
+      adapter,
+      projectId: "demo",
+      id: (prefix) => `${prefix}-${++sequence}`,
+    });
+    const runtime = new FlowStateRuntime({ dispatcher, pollIntervalMs: 10 });
+    await dispatcher.createPlan({ planSeriesId: "series-runtime", planVersion: "v1", plan: makePlan({ plan_id: "series-runtime-plan-v1" }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-runtime", planVersion: "v1", approval: { approver: "user", plan_id: "series-runtime-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: ["R01"] } });
+    const first = await dispatcher.dispatchReady({ planSeriesId: "series-runtime", planVersion: "v1" });
+    const firstDispatch = first.dispatches[0];
+
+    await adapter.enqueueReport({
+      report_id: "runtime-report-1",
+      return_to: "connected-planning-series-runtime",
+      planning_session_id: "connected-planning-series-runtime",
+      execution_session_id: "connected-execution-series-runtime",
+      project_id: "demo",
+      plan_series_id: "series-runtime",
+      plan_id: "series-runtime-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: firstDispatch.dispatch_id,
+      status: "returned-to-planning",
+      evidence: ["diff"],
+    });
+    const reportCycle = await runtime.runOnce();
+    assert.equal(reportCycle.reports.length, 1);
+    assert.equal(reportCycle.errors.length, 0);
+
+    await adapter.enqueueReview({
+      review_id: "runtime-review-1",
+      return_to: "connected-execution-series-runtime",
+      reviewer_session_id: "connected-planning-series-runtime",
+      report_id: "runtime-report-1",
+      plan_series_id: "series-runtime",
+      plan_id: "series-runtime-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "accepted",
+    });
+    const reviewCycle = await runtime.runOnce();
+    assert.equal(reviewCycle.reviews.length, 1);
+    assert.equal(reviewCycle.reviews[0].next_dispatches.length, 1);
+    assert.equal(reviewCycle.errors.length, 0);
+
+    const state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-runtime"].plans.v1.tasks.find((task) => task.task_id === "T02").status, "dispatched");
+    const workerQueue = path.join(root, "queue", "outbox", "connected-worker-series-runtime-T02");
+    assert.equal((await readdir(workerQueue)).length, 1);
+
+    const repeat = await runtime.runOnce();
+    assert.equal(repeat.reports.length, 0);
+    assert.equal(repeat.reviews.length, 0);
+    assert.equal(repeat.dispatches.length, 0);
+    assert.equal((await readdir(workerQueue)).length, 1);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("runtime keeps the series paused when a queued review is blocked", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-runtime-blocked-"));
+  let sequence = 0;
+  try {
+    const adapter = new FileQueueAdapter({ root: path.join(root, "queue"), id: (prefix) => `${prefix}-${++sequence}` });
+    const dispatcher = new FlowStateDispatcher({
+      store: new FlowStateStore({ root: path.join(root, "state") }),
+      adapter,
+      projectId: "demo",
+      id: (prefix) => `${prefix}-${++sequence}`,
+    });
+    const runtime = new FlowStateRuntime({ dispatcher });
+    await dispatcher.createPlan({ planSeriesId: "series-blocked", planVersion: "v1", plan: makePlan({ plan_id: "series-blocked-plan-v1" }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-blocked", planVersion: "v1", approval: { approver: "user", plan_id: "series-blocked-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: ["R01"] } });
+    const first = await dispatcher.dispatchReady({ planSeriesId: "series-blocked", planVersion: "v1" });
+    await adapter.enqueueReport({
+      report_id: "blocked-report-1",
+      return_to: "local-planning-series-blocked",
+      project_id: "demo",
+      plan_series_id: "series-blocked",
+      plan_id: "series-blocked-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: first.dispatches[0].dispatch_id,
+      status: "blocked",
+      new_blockers: [{ blocker_id: "B01", dependency: "user decision", impact: "cannot continue" }],
+    });
+    await runtime.runOnce();
+    await adapter.enqueueReview({
+      review_id: "blocked-review-1",
+      return_to: "local-execution-series-blocked",
+      plan_series_id: "series-blocked",
+      plan_id: "series-blocked-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "blocked",
+    });
+    const cycle = await runtime.runOnce();
+    assert.equal(cycle.dispatches.length, 0);
+    const state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-blocked"].status, "waiting-on-planning");
+    assert.equal(state.series["series-blocked"].plans.v1.status, "paused-needs-review");
+    assert.equal(state.series["series-blocked"].plans.v1.tasks.find((task) => task.task_id === "T02").status, "pending");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("runtime supports an unscoped same-window cycle without product paths", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-runtime-unscoped-"));
+  try {
+    const adapter = new FileQueueAdapter({ root: path.join(root, "queue") });
+    const dispatcher = new FlowStateDispatcher({
+      store: new FlowStateStore({ root: path.join(root, "state") }),
+      adapter,
+      projectId: "unscoped",
+    });
+    const runtime = new FlowStateRuntime({ dispatcher, pollIntervalMs: 10 });
+    await dispatcher.createPlan({ planSeriesId: "series-unscoped", planVersion: "v1", plan: makePlan({ project_id: "unscoped", plan_id: "series-unscoped-plan-v1", risks: [], tasks: [] }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-unscoped", planVersion: "v1", approval: { approver: "user", plan_id: "series-unscoped-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const result = await runtime.watch({ intervalMs: 10, maxCycles: 2 });
+    assert.equal(result.project_id, "unscoped");
+    assert.equal(result.cycles, 2);
+    assert.equal(result.stopped, false);
+    assert.equal((await dispatcher.store.load("unscoped")).series["series-unscoped"].status, "approved");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("accepted serial stages activate the next parallel stage with stage Skills", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-stages",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-stages-plan-v1",
+        risks: [],
+        max_parallel: 2,
+        stages: [
+          { stage_id: "stage-1", title: "Foundation", order: 1, kind: "serial" },
+          { stage_id: "stage-2", title: "Parallel validation", order: 2, kind: "parallel", required_skills: ["pdgo-tdd-work"] },
+        ],
+        tasks: [
+          { task_id: "T01", title: "Foundation", objective: "Prepare the foundation.", stage_id: "stage-1", stage_order: 1, acceptance_criteria: ["foundation exists"] },
+          { task_id: "T02", title: "Validation A", objective: "Validate path A.", stage_id: "stage-2", stage_order: 2, acceptance_criteria: ["A passes"] },
+          { task_id: "T03", title: "Validation B", objective: "Validate path B.", stage_id: "stage-2", stage_order: 2, acceptance_criteria: ["B passes"] },
+        ],
+      }),
+    });
+    await dispatcher.approvePlan({ planSeriesId: "series-stages", planVersion: "v1", approval: { approver: "user", plan_id: "series-stages-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const first = await dispatcher.dispatchReady({ planSeriesId: "series-stages", planVersion: "v1" });
+    assert.deepEqual(first.dispatches.map((dispatch) => dispatch.task_id), ["T01"]);
+    await dispatcher.ingestExecutionReport({ report_id: "stage-report-1", project_id: "demo", plan_series_id: "series-stages", plan_id: "series-stages-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: first.dispatches[0].dispatch_id, status: "returned-to-planning" });
+    const review = await dispatcher.ingestPlanningReview({ review_id: "stage-review-1", report_id: "stage-report-1", plan_series_id: "series-stages", plan_id: "series-stages-plan-v1", plan_version: "v1", task_id: "T01", decision: "accepted" });
+    assert.deepEqual(review.next_dispatches.map((dispatch) => dispatch.task_id).sort(), ["T02", "T03"]);
+    assert.deepEqual(review.next_dispatches[0].required_skills, ["pdgo-tdd-work"]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("revision-required creates an in-scope correction dispatch until acceptance", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-revision", planVersion: "v1", plan: makePlan({ plan_id: "series-revision-plan-v1", risks: [] }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-revision", planVersion: "v1", approval: { approver: "user", plan_id: "series-revision-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    let dispatch = await dispatcher.dispatchReady({ planSeriesId: "series-revision", planVersion: "v1" });
+    await dispatcher.ingestExecutionReport({ report_id: "revision-report-1", project_id: "demo", plan_series_id: "series-revision", plan_id: "series-revision-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: dispatch.dispatches[0].dispatch_id, status: "returned-to-planning" });
+    const correction = await dispatcher.ingestPlanningReview({ review_id: "revision-review-1", report_id: "revision-report-1", plan_series_id: "series-revision", plan_id: "series-revision-plan-v1", plan_version: "v1", task_id: "T01", decision: "revision-required", required_changes: ["Add the missing validation."], criteria_results: [{ criterion: "change exists", result: "fail" }] });
+    assert.equal(correction.revision_dispatches.length, 1);
+    assert.equal(correction.revision_attempt, 1);
+    assert.deepEqual(correction.revision_dispatches[0].revision.feedback, ["Add the missing validation.", { criterion: "change exists", result: "fail" }]);
+
+    dispatch = await dispatcher.dispatchReady({ planSeriesId: "series-revision", planVersion: "v1" });
+    assert.equal(dispatch.dispatches.length, 0);
+    const stateAfterCorrection = await dispatcher.store.load("demo");
+    const taskAfterCorrection = stateAfterCorrection.series["series-revision"].plans.v1.tasks.find((task) => task.task_id === "T01");
+    assert.equal(taskAfterCorrection.status, "dispatched");
+    assert.equal(taskAfterCorrection.revision_attempts, 1);
+
+    await dispatcher.ingestExecutionReport({ report_id: "revision-report-2", project_id: "demo", plan_series_id: "series-revision", plan_id: "series-revision-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: taskAfterCorrection.dispatch_id, status: "returned-to-planning" });
+    const accepted = await dispatcher.ingestPlanningReview({ review_id: "revision-review-2", report_id: "revision-report-2", plan_series_id: "series-revision", plan_id: "series-revision-plan-v1", plan_version: "v1", task_id: "T01", decision: "accepted" });
+    assert.equal(accepted.next_dispatches.length, 1);
+    assert.equal(accepted.next_dispatches[0].task_id, "T02");
+    const finalState = await dispatcher.store.load("demo");
+    assert.equal(finalState.series["series-revision"].plans.v1.tasks.find((task) => task.task_id === "T01").revision_history.at(-1).status, "accepted");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("accepted review with a new risk pauses the plan and requires reapproval", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-risk-review",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-risk-review-plan-v1",
+        risks: [],
+        next_plan: { title: "Follow-up", summary: "Continue after approval.", objective: "Continue.", risks: [], tasks: [{ task_id: "T03", title: "Follow-up task", objective: "Continue the work." }] },
+      }),
+    });
+    await dispatcher.approvePlan({ planSeriesId: "series-risk-review", planVersion: "v1", approval: { approver: "user", plan_id: "series-risk-review-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const first = await dispatcher.dispatchReady({ planSeriesId: "series-risk-review", planVersion: "v1" });
+    await dispatcher.ingestExecutionReport({ report_id: "risk-review-report-1", project_id: "demo", plan_series_id: "series-risk-review", plan_id: "series-risk-review-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: first.dispatches[0].dispatch_id, status: "returned-to-planning", new_risks: [{ risk_id: "R99", severity: "low", impact: "requires a planning decision" }] });
+    const review = await dispatcher.ingestPlanningReview({
+      review_id: "risk-review-1",
+      report_id: "risk-review-report-1",
+      plan_series_id: "series-risk-review",
+      plan_id: "series-risk-review-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "accepted",
+      scope_change: true,
+    });
+    assert.equal(review.plan_completed, false);
+    assert.equal(review.auto_dispatch_ready, false);
+    assert.equal(review.next_dispatches, undefined);
+    assert.equal(review.next_plan, undefined);
+    const state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-risk-review"].status, "waiting-on-planning");
+    assert.equal(state.series["series-risk-review"].plans.v1.status, "awaiting-user-approval");
+    assert.equal(state.series["series-risk-review"].plans.v1.approval, null);
+    assert.equal(state.series["series-risk-review"].plans.v1.risks.find((risk) => risk.risk_id === "R99").status, "open");
+    assert.equal(state.series["series-risk-review"].plans.v1.tasks.find((task) => task.task_id === "T02").status, "pending");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("completed plans proactively create the next version but keep its approval gate", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-next-plan",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-next-plan-v1",
+        risks: [],
+        tasks: [{ task_id: "T01", title: "First stage", objective: "Complete the first stage." }],
+        next_plan: { title: "Second stage", summary: "Continue after the first stage.", objective: "Complete the second stage.", risks: [], tasks: [{ task_id: "T02", title: "Second stage task", objective: "Complete the second stage task." }] },
+      }),
+    });
+    await dispatcher.approvePlan({ planSeriesId: "series-next-plan", planVersion: "v1", approval: { approver: "user", plan_id: "series-next-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const first = await dispatcher.dispatchReady({ planSeriesId: "series-next-plan", planVersion: "v1" });
+    await dispatcher.ingestExecutionReport({ report_id: "next-plan-report-1", project_id: "demo", plan_series_id: "series-next-plan", plan_id: "series-next-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: first.dispatches[0].dispatch_id, status: "returned-to-planning" });
+    const completed = await dispatcher.ingestPlanningReview({ review_id: "next-plan-review-1", report_id: "next-plan-report-1", plan_series_id: "series-next-plan", plan_id: "series-next-plan-v1", plan_version: "v1", task_id: "T01", decision: "accepted" });
+    assert.equal(completed.plan_completed, true);
+    assert.equal(completed.next_plan.created, true);
+    const state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-next-plan"].current_plan_version, "v2");
+    assert.equal(state.series["series-next-plan"].plans.v2.status, "awaiting-user-approval");
+    await dispatcher.approvePlan({ planSeriesId: "series-next-plan", planVersion: "v2", approval: { approver: "user", plan_id: state.series["series-next-plan"].plans.v2.plan_id, plan_version: "v2", decision: "approved", acknowledged_risks: [] } });
+    const second = await dispatcher.dispatchReady({ planSeriesId: "series-next-plan", planVersion: "v2" });
+    assert.equal(second.dispatches[0].task_id, "T02");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("Codex App Server adapter creates controller threads once and task threads separately", async () => {
   const calls = [];
   let counter = 0;
@@ -151,6 +479,25 @@ test("Codex App Server adapter creates controller threads once and task threads 
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("Codex App Server adapter can receive governed reports and reviews when transport provides polling", async () => {
+  const received = [];
+  const adapter = new CodexAppServerAdapter({
+    request: async (method) => method === "thread/start" ? { thread: { id: "thread-1" } } : { turn: { id: "turn-1" } },
+    receive: async (request) => {
+      received.push(request);
+      return request.message_types[0] === "EXECUTION_REPORT"
+        ? [{ message_type: "EXECUTION_REPORT", report_id: "report-1" }]
+        : [{ message_type: "REVIEW_DECISION", review_id: "review-1" }];
+    },
+  });
+  assert.equal((await adapter.receiveReports("planning-1"))[0].report_id, "report-1");
+  assert.equal((await adapter.receiveReviews("execution-1"))[0].review_id, "review-1");
+  assert.deepEqual(received, [
+    { session_id: "planning-1", message_types: ["EXECUTION_REPORT"] },
+    { session_id: "execution-1", message_types: ["REVIEW_DECISION"] },
+  ]);
 });
 
 test("plan index is written and accepted tasks carry into a series extension", async () => {

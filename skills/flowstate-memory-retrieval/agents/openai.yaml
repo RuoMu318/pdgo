@@ -1,2 +1,0 @@
-interface: {"display_name":"FlowState Memory Retrieval","short_description":"Retrieve cross-session context through indexed summaries","default_prompt":"Use $flowstate-memory-retrieval for a task needs information from another conversation and produce traceable cross-session context."}
-policy: {"allow_implicit_invocation":true}

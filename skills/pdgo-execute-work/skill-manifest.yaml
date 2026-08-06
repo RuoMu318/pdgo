@@ -1,0 +1,50 @@
+schema_version: "1.0"
+skill_id: "pdgo-execute-work"
+display_name: "PDGO Execute Work"
+description: "Execute an approved plan with serial or parallel task dispatch, isolated worktrees, bounded corrections, and audited worker reports."
+project_scope:
+  - "pdgo"
+  - "tianyan"
+department:
+  - "execution"
+  - "coordination"
+stage:
+  - "implementation"
+  - "validation"
+scenarios:
+  - "approved implementation dispatch and continuous stage control"
+positive_triggers:
+  - "The scenario is approved implementation dispatch and continuous stage control"
+negative_triggers:
+  - "The scenario is outside this Skill's declared workflow"
+  - "Required inputs or approval are missing"
+boundaries:
+  - "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+required_inputs:
+  - "classified project context"
+  - "approved or planning-scoped artifacts"
+  - "current constraints"
+expected_outputs:
+  - "governed result"
+  - "evidence"
+  - "risks"
+  - "blockers"
+  - "next action"
+prerequisites:
+  - "startup routing completed"
+  - "mode permits the requested side effect"
+side_effects:
+  - "writes governed artifacts or changes only approved paths"
+upstream_skills:
+  - "executing-plans"
+  - "subagent-driven-development"
+  - "dispatching-parallel-agents"
+  - "using-git-worktrees"
+tags:
+  - "pdgo"
+  - "tianyan"
+  - "governed-work"
+risk_level: "high"
+priority: 10
+category: "dispatch"
+subcategory: "approved implementation dispatch and continuous stage control"

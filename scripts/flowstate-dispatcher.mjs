@@ -2,7 +2,7 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { FileQueueAdapter, FlowStateDispatcher, FlowStateStore } from "./lib/flowstate-dispatcher.mjs";
+import { FileQueueAdapter, FlowStateDispatcher, FlowStateRuntime, FlowStateStore } from "./lib/flowstate-dispatcher.mjs";
 import { AgencyAgentsAdapter, ExternalAgentCatalog } from "./lib/external-agent-adapter.mjs";
 
 function argsToObject(argv) {
@@ -23,9 +23,14 @@ async function readJson(filePath) {
 }
 
 const options = argsToObject(process.argv.slice(2));
-const action = options.action ?? process.argv.find((value) => !value.startsWith("-"));
+const usage = "Usage: node scripts/flowstate-dispatcher.mjs --action <create-plan|approve|dispatch|report|review|resume|watch|resolve-blocker|sync> --input <json> [--root <state-dir>] [--project <id>] [--interval-ms <ms>] [--max-cycles <n>]";
+if (options.help || process.argv.slice(2).includes("-h")) {
+  console.log(usage);
+  process.exit(0);
+}
+const action = options.action ?? process.argv.slice(2).find((value) => !value.startsWith("-"));
 if (!action) {
-  console.error("Usage: node scripts/flowstate-dispatcher.mjs --action <create-plan|approve|dispatch|report|review|resolve-blocker|sync> --input <json> [--root <state-dir>] [--project <id>]");
+  console.error(usage);
   process.exit(2);
 }
 
@@ -44,7 +49,18 @@ try {
       adapter = queueAdapter;
     }
   }
-  const dispatcher = new FlowStateDispatcher({ store, adapter, projectId });
+  const dispatcher = new FlowStateDispatcher({
+    store,
+    adapter,
+    projectId,
+    autoDispatch: String(options.autoDispatch ?? "true").toLowerCase() !== "false",
+    autoRevision: String(options.autoRevision ?? "true").toLowerCase() !== "false",
+    autoAdvance: String(options.autoAdvance ?? "true").toLowerCase() !== "false",
+  });
+  const runtime = new FlowStateRuntime({
+    dispatcher,
+    pollIntervalMs: Number(options.intervalMs ?? options.interval ?? 1000),
+  });
   const input = options.input ? await readJson(options.input) : {};
   let result;
   if (action === "search-agents") result = await adapter.searchAgents({ query: options.query ?? input.query ?? "", division: options.division ?? input.division ?? null, limit: Number(options.limit ?? 10) });
@@ -53,11 +69,21 @@ try {
   else if (action === "dispatch") result = await dispatcher.dispatchReady(input);
   else if (action === "report") result = await dispatcher.ingestExecutionReport(input);
   else if (action === "review") result = await dispatcher.ingestPlanningReview(input);
+  else if (action === "resume" || action === "run-once") result = await runtime.runOnce({ resume: true });
+  else if (action === "watch") {
+    const controller = new AbortController();
+    process.once("SIGINT", () => controller.abort());
+    result = await runtime.watch({
+      intervalMs: Number(options.intervalMs ?? options.interval ?? 1000),
+      maxCycles: options.maxCycles === undefined || options.maxCycles === true ? null : Number(options.maxCycles),
+      signal: controller.signal,
+    });
+  }
   else if (action === "resolve-blocker") result = await dispatcher.resolveBlocker(input);
   else if (action === "sync") result = await dispatcher.syncParallelResult(input);
   else throw new Error(`Unknown action: ${action}`);
   console.log(JSON.stringify({ ok: true, action, ...result }, null, 2));
 } catch (error) {
-  console.error(`FlowState dispatch failed: ${error.message}`);
+  console.error(`PDGO dispatch failed: ${error.message}`);
   process.exit(1);
 }

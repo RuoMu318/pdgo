@@ -7,14 +7,41 @@ series_relation: new
 parallel_of: null
 title: "Human-readable plan title"
 summary: "One sentence that explains the plan."
+goal: "The project goal."
+target_outcome: "The observable result after completion."
+modification_scope: []
+excluded_scope: []
+detail_policy: do-not-deepen-without-request
+brainstorming:
+  enabled: false
+  options: []
+  decisions: []
+planning_policy:
+  auto_split_long_plan: true
+  auto_revision_in_scope: true
+  correction_scope:
+    - omitted-approved-work
+    - defect-repair
+    - alternate-implementation-method
+  correction_requires_reapproval:
+    - new-risk
+    - new-blocker
+    - permission-change
+    - acceptance-change
+    - architecture-change
+    - rollback-change
+    - material-scope-change
+    - explicit-reapproval-request
+  max_revision_cycles: 2
 search_terms: []
 knowledge_domains: []
-status: awaiting-user-approval
+status: awaiting-user-approval | approved | executing | paused-needs-review | completed
 mode: plan-only
 objective: ""
 non_goals: []
 assumptions: []
 dependencies: []
+stages: []
 tasks: []
 acceptance_criteria: []
 expected_evidence: []
@@ -26,4 +53,5 @@ risks: []
 questions_decisions: []
 residual_risks: []
 related_sessions: []
+next_plan: null
 approval_id: null

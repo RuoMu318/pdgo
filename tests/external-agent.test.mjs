@@ -30,6 +30,7 @@ async function catalogFixture(entryOverrides = {}) {
     provider: { provider_id: "agency-agents", source_commit: "tree-commit" },
     agents: [entry],
   }));
+  await writeFile(path.join(root, "metadata.json"), JSON.stringify({ schema_version: "1.0", agents: [{ agent_id: entry.agent_id, confidence: "high", routing_mode: "eligible-with-explicit-task-selector", auto_route: true }] }));
   return { root, entry };
 }
 
@@ -136,4 +137,18 @@ test("external Agent selection is only sent as a complete governed dispatch", as
   assert.equal(messages[0].external_agent.invocation_status, "dispatched");
   assert.equal(messages[0].external_agent.source_commit, "tree-commit");
   assert.equal(messages[0].external_agent.instructions, "role prompt");
+});
+
+test("external catalog gates automatic selection on evidence metadata", async () => {
+  const { root, entry } = await catalogFixture();
+  try {
+    const catalog = new ExternalAgentCatalog({ root, indexPath: "index.json", metadataIndexPath: "metadata.json" });
+    const resolved = await catalog.resolve({ agentId: entry.agent_id, requireAutoRoute: true });
+    assert.equal(resolved.routing_metadata.auto_route, true);
+    await writeFile(path.join(root, "metadata.json"), JSON.stringify({ schema_version: "1.0", agents: [{ agent_id: entry.agent_id, confidence: "medium", routing_mode: "manual-only", auto_route: false }] }));
+    const uncached = new ExternalAgentCatalog({ root, indexPath: "index.json", metadataIndexPath: "metadata.json" });
+    await assert.rejects(() => uncached.resolve({ agentId: entry.agent_id, requireAutoRoute: true }), /not eligible for automatic routing/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

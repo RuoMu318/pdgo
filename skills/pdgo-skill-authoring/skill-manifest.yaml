@@ -1,0 +1,47 @@
+schema_version: "1.0"
+skill_id: "pdgo-skill-authoring"
+display_name: "PDGO Skill Authoring"
+description: "Create or update a PDGO Skill with concrete triggers, boundaries, inputs, outputs, prerequisites, evidence, and risk metadata."
+project_scope:
+  - "pdgo"
+  - "tianyan"
+department:
+  - "planning"
+  - "coordination"
+stage:
+  - "design"
+  - "validation"
+scenarios:
+  - "authoring and validating a reusable governed Skill"
+positive_triggers:
+  - "The scenario is authoring and validating a reusable governed Skill"
+negative_triggers:
+  - "The scenario is outside this Skill's declared workflow"
+  - "Required inputs or approval are missing"
+boundaries:
+  - "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+required_inputs:
+  - "classified project context"
+  - "approved or planning-scoped artifacts"
+  - "current constraints"
+expected_outputs:
+  - "governed result"
+  - "evidence"
+  - "risks"
+  - "blockers"
+  - "next action"
+prerequisites:
+  - "startup routing completed"
+  - "mode permits the requested side effect"
+side_effects:
+  - "writes governed artifacts or changes only approved paths"
+upstream_skills:
+  - "writing-skills"
+tags:
+  - "pdgo"
+  - "tianyan"
+  - "governed-work"
+risk_level: "high"
+priority: 10
+category: "coordination"
+subcategory: "authoring and validating a reusable governed Skill"

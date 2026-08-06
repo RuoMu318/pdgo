@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Risk Rereview","short_description":"Debugging workflow for reapproval request","default_prompt":"Use $flowstate-risk-rereview for Return new high-impact risk to planning and the user and produce reapproval request."}
-policy: {"allow_implicit_invocation":true}

@@ -9,8 +9,8 @@ if (-not $?) {
 }
 
 $readme = Get-Content -Raw -Encoding utf8 -LiteralPath (Join-Path $root 'README.md')
-if ($readme -notmatch 'FlowState') {
-    throw 'README does not identify FlowState'
+if ($readme -notmatch 'PDGO') {
+    throw 'README does not identify PDGO'
 }
 
 $spec = Get-Content -Raw -Encoding utf8 -LiteralPath (Join-Path $root 'docs/flowstate-spec.md')
@@ -20,4 +20,4 @@ foreach ($requiredTerm in @('user approval', 'Skill', 'risk', 'blocker', 'execut
     }
 }
 
-Write-Output 'FlowState smoke test passed'
+Write-Output 'PDGO smoke test passed'

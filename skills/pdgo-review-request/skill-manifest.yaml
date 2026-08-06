@@ -1,0 +1,46 @@
+schema_version: "1.0"
+skill_id: "pdgo-review-request"
+display_name: "PDGO Request Review"
+description: "Request an independent review against the immutable plan, acceptance criteria, diff, tests, risks, and questions."
+project_scope:
+  - "pdgo"
+  - "tianyan"
+department:
+  - "review"
+  - "planning"
+stage:
+  - "validation"
+scenarios:
+  - "requesting an independent implementation or code review"
+positive_triggers:
+  - "The scenario is requesting an independent implementation or code review"
+negative_triggers:
+  - "The scenario is outside this Skill's declared workflow"
+  - "Required inputs or approval are missing"
+boundaries:
+  - "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+required_inputs:
+  - "classified project context"
+  - "approved or planning-scoped artifacts"
+  - "current constraints"
+expected_outputs:
+  - "governed result"
+  - "evidence"
+  - "risks"
+  - "blockers"
+  - "next action"
+prerequisites:
+  - "startup routing completed"
+  - "mode permits the requested side effect"
+side_effects:
+  - "writes governed artifacts or changes only approved paths"
+upstream_skills:
+  - "requesting-code-review"
+tags:
+  - "pdgo"
+  - "tianyan"
+  - "governed-work"
+risk_level: "high"
+priority: 10
+category: "coordination"
+subcategory: "requesting an independent implementation or code review"

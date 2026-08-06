@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Approval Gate","short_description":"Coordination workflow for approval record","default_prompt":"Use $flowstate-approval-gate for Request and verify version-bound user approval and produce approval record."}
-policy: {"allow_implicit_invocation":true}

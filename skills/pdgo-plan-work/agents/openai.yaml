@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO Plan Work"
+  short_description: "Co-design a bounded staged plan with acceptance gates"
+  default_prompt: "Use $pdgo-plan-work for planning and discovery for a governed multi-stage change and return governed evidence."
+policy:
+  allow_implicit_invocation: true

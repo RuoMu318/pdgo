@@ -1,0 +1,47 @@
+schema_version: "1.0"
+skill_id: "pdgo-tdd-work"
+display_name: "PDGO TDD Work"
+description: "Implement approved behavior changes with a failing test, minimal implementation, passing verification, and controlled refactoring."
+project_scope:
+  - "pdgo"
+  - "tianyan"
+department:
+  - "execution"
+  - "review"
+stage:
+  - "implementation"
+  - "validation"
+scenarios:
+  - "test-first implementation of an approved behavior change"
+positive_triggers:
+  - "The scenario is test-first implementation of an approved behavior change"
+negative_triggers:
+  - "The scenario is outside this Skill's declared workflow"
+  - "Required inputs or approval are missing"
+boundaries:
+  - "Do not bypass PDGO approval, evidence, blocker, transport, or rollback gates"
+required_inputs:
+  - "classified project context"
+  - "approved or planning-scoped artifacts"
+  - "current constraints"
+expected_outputs:
+  - "governed result"
+  - "evidence"
+  - "risks"
+  - "blockers"
+  - "next action"
+prerequisites:
+  - "startup routing completed"
+  - "mode permits the requested side effect"
+side_effects:
+  - "writes governed artifacts or changes only approved paths"
+upstream_skills:
+  - "test-driven-development"
+tags:
+  - "pdgo"
+  - "tianyan"
+  - "governed-work"
+risk_level: "high"
+priority: 10
+category: "coordination"
+subcategory: "test-first implementation of an approved behavior change"

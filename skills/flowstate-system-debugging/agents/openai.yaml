@@ -1,2 +1,0 @@
-interface: {"display_name":"FlowState System Debugging","short_description":"Reproduce system failures and return evidence-backed diagnosis","default_prompt":"Use $flowstate-system-debugging for a reproducible system failure needs diagnosis and produce evidence-backed diagnostic report."}
-policy: {"allow_implicit_invocation":true}

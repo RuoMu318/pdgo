@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO Execute Work"
+  short_description: "Dispatch isolated approved work and collect evidence"
+  default_prompt: "Use $pdgo-execute-work for approved implementation dispatch and continuous stage control and return governed evidence."
+policy:
+  allow_implicit_invocation: true

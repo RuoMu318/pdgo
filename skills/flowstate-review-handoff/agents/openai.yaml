@@ -1,2 +1,0 @@
-interface: {"display_name":"Flowstate Review Handoff","short_description":"Dispatch workflow for review handoff","default_prompt":"Use $flowstate-review-handoff for Send reports from execution to planning review and produce review handoff."}
-policy: {"allow_implicit_invocation":true}

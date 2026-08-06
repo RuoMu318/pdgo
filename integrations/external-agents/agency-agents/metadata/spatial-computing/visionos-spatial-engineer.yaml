@@ -1,0 +1,43 @@
+schema_version: "1.0"
+agent_id: "agency-agents/spatial-computing/visionos-spatial-engineer.md"
+name: "visionOS Spatial Engineer"
+division: "spatial-computing"
+provider_id: "agency-agents"
+source_path: "spatial-computing/visionos-spatial-engineer.md"
+source_url: "https://raw.githubusercontent.com/msitarzewski/agency-agents/c89557f78509868c6d4cc08e5cbc79bc8625fe1c/spatial-computing/visionos-spatial-engineer.md"
+source_ref: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_commit: "c89557f78509868c6d4cc08e5cbc79bc8625fe1c"
+source_sha: "800140ca5d90405e5911fb77017f6125c15b6cdd"
+prompt_sha256: "8d154bb42d6952056b0eb3fd0d030e6e22a638f11c16c04b59326973ee08b20d"
+specific_description: "Native visionOS spatial computing, SwiftUI volumetric interfaces, and Liquid Glass design implementation"
+when_to_use: "Use only when the approved task explicitly matches the source description: Native visionOS spatial computing, SwiftUI volumetric interfaces, and Liquid Glass design implementation"
+when_not_to_use: "Do not use outside the source description, declared division, approved scope, or evidence contract."
+inputs:
+  - "unknown: the source prompt does not declare structured inputs"
+outputs:
+  - "unknown: the source prompt does not declare structured outputs"
+stage:
+  - "implementation"
+department:
+  - "execution"
+required_skills:
+  - "pdgo-route-work"
+  - "pdgo-execute-work"
+confidence: "medium"
+routing_mode: "manual-only"
+auto_route: false
+evidence:
+  source_frontmatter_name: "visionOS Spatial Engineer"
+  source_frontmatter_description: "Native visionOS spatial computing, SwiftUI volumetric interfaces, and Liquid Glass design implementation"
+  source_frontmatter_vibe: "Builds native volumetric interfaces and Liquid Glass experiences for visionOS."
+  headings:
+    - "visionOS Spatial Engineer"
+    - "Identity & Core Expertise"
+    - "visionOS 26 Platform Features"
+    - "Technical Capabilities"
+    - "SwiftUI Spatial Specializations"
+    - "Key Technologies"
+    - "Documentation References"
+    - "Approach"
+    - "Limitations"
+  extraction: "Description is copied from frontmatter; inputs and outputs require matching source headings; stage and Skill candidates use explicit lexical markers plus the upstream division. Unknown is used when evidence is absent; auto_route requires high confidence and structured inputs and outputs."
