@@ -2,7 +2,7 @@
   "name": "pdgo",
   "version": "0.1.0",
   "private": true,
-  "description": "PDGO project development governance and orchestration method.",
+  "description": "Project Development Governance Orchestrator (PDGO): governed project routing, planning, execution, review, memory, and audit.",
   "license": "MIT",
   "scripts": {
     "validate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-flowstate.ps1",

@@ -1,6 +1,6 @@
 {
   "name": "pdgo",
   "version": "0.1.0",
-  "description": "PDGO project routing, planning, execution, review, memory, and audit workflow.",
+  "description": "Project Development Governance Orchestrator (PDGO): governed project routing, planning, execution, review, memory, and audit.",
   "skills": "../skills/"
 }

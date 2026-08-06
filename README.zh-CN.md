@@ -1,4 +1,4 @@
-# PDGO / FlowState
+# PDGO - Project Development Governance Orchestrator（项目开发治理编排器）
 
 **语言：** [English（默认）](README.md) | 简体中文
 

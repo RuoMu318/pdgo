@@ -1,15 +1,15 @@
 {
   "name": "pdgo",
   "version": "0.1.0",
-  "description": "PDGO project routing, planning, execution, review, memory, and audit workflow.",
+  "description": "Project Development Governance Orchestrator (PDGO): governed project routing, planning, execution, review, memory, and audit.",
   "author": {
     "name": "RuoMu318"
   },
   "skills": "./skills/",
   "interface": {
-    "displayName": "PDGO",
-    "shortDescription": "Governed project routing and delivery",
-    "longDescription": "A human-approved PDGO method with scenario routing, staged planning, isolated execution, evidence-based review, memory, and audited Agent dispatch.",
+    "displayName": "PDGO: Project Development Governance Orchestrator",
+    "shortDescription": "Project Development Governance Orchestrator",
+    "longDescription": "Project Development Governance Orchestrator (PDGO) provides human-approved scenario routing, staged planning, isolated execution, evidence-based review, memory, and audited Agent dispatch.",
     "developerName": "RuoMu318",
     "category": "Productivity",
     "capabilities": [
