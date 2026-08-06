@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { normalizePdgoActiveSkillText } from "./lib/pdgo-active-skill-text.mjs";
 
 function argsToObject(argv) {
   const result = {};
@@ -73,7 +74,7 @@ const COMMON_OVERLAY = `## PDGO operating contract
 
 This Skill is the active PDGO route for the declared scenario. Apply the workflow below only after startup routing has classified the project, operation, department, stage, inputs, outputs, constraints, risk, mode, and approval state. A Skill name or keyword is never sufficient evidence for selection.
 
-The Planning Department owns the contract with the user: objective, observable outcome, modification scope, excluded scope, assumptions, dependencies, acceptance criteria, expected evidence, risks, blockers, rollback, stop conditions, and the explicit rule not to deepen implementation detail without a request. Long work is split into named serial and parallel stages. Each stage declares its required Skills, candidate Agency Agents, dependencies, isolation policy, and acceptance gate.
+The Planning Department owns the contract with the user: objective, observable outcome, modification scope, excluded scope, assumptions, dependencies, acceptance criteria, expected evidence, risks, blockers, rollback, stop conditions, and the explicit rule not to deepen implementation detail without a request. Long work is split into named serial and parallel stages. Each stage declares its required Skills, candidate specialist Agents, dependencies, isolation policy, and acceptance gate.
 
 The Planning Department also controls the loop: dispatch one stage or an isolated parallel set, collect worker reports, obtain an independent review, accept only evidence that matches the exact plan version, and issue an in-scope correction when a review returns \`revision-required\`. A failed or blocked item is not silently skipped. Dependents unlock only after acceptance and all blockers are \`resolved\` with evidence.
 
@@ -81,7 +82,7 @@ The Execution Department receives one immutable \`PLAN_DISPATCH\` at a time. It 
 
 Every session records the instruction, checkpoints, dispatches, reports, decisions, summaries, unresolved items, and cross-session references. Search indexes first and read summaries before source turns. Link artifacts to project, plan, version, task, dispatch, session, tests, and commit where applicable.
 
-Agency Agents are advisory task workers selected from the locked catalog and its evidence metadata. Search by the concrete scenario and division, inspect the source prompt SHA, and include the exact \`external_agent_id\` in the approved dispatch. A low-confidence or \`manual-only\` entry cannot be auto-routed. An Agency Agent cannot approve a plan, close a blocker, change scope, or replace an independent review.
+Specialist Agents are advisory task workers selected from the locked catalog and its evidence metadata. Search by the concrete scenario and division, inspect the source prompt SHA, and include the exact \`external_agent_id\` in the approved dispatch. A low-confidence or \`manual-only\` entry cannot be auto-routed. A specialist Agent cannot approve a plan, close a blocker, change scope, or replace an independent review.
 
 Continuous dispatch is permitted only when the exact user approval matches \`plan_id\` and \`plan_version\`, every acknowledged risk and blocker disposition is present, dependencies are accepted, the active stage is ready, the selected Agent metadata is eligible, the transport returned real session IDs, and the scope has not changed. File queues are explicit, auditable handoff adapters; they do not prove a live Agent session. Missing transport, invalid SHA, missing evidence, a new material risk, a new blocker, or a scope change pauses the series and returns it to planning and the user.
 
@@ -91,8 +92,8 @@ const DEFINITIONS = [
   {
     id: "pdgo-route-work",
     displayName: "PDGO Route Work",
-    shortDescription: "Route governed work to the right PDGO Skill and Agent",
-    description: "Select the active PDGO Skill and eligible Agency Agent from the classified scenario before any governed response or dispatch.",
+    shortDescription: "Route governed work to the right PDGO Skill and specialist Agent",
+    description: "Select the active PDGO Skill and eligible specialist Agent from the classified scenario before any governed response or dispatch.",
     scenario: "startup routing and governed capability selection",
     department: ["coordination", "planning", "execution"],
     stage: ["discovery", "design", "implementation", "validation"],
@@ -200,6 +201,27 @@ const DEFINITIONS = [
   },
 ];
 
+const COMPONENT_BY_SOURCE = Object.freeze({
+  "using-superpowers": "pdgo-route-work",
+  brainstorming: "pdgo-plan-work",
+  "writing-plans": "pdgo-plan-work",
+  "executing-plans": "pdgo-execute-work",
+  "subagent-driven-development": "pdgo-execute-work",
+  "dispatching-parallel-agents": "pdgo-execute-work",
+  "using-git-worktrees": "pdgo-execute-work",
+  "requesting-code-review": "pdgo-review-request",
+  "receiving-code-review": "pdgo-review-receive",
+  "systematic-debugging": "pdgo-debug-work",
+  "test-driven-development": "pdgo-tdd-work",
+  "verification-before-completion": "pdgo-completion-work",
+  "finishing-a-development-branch": "pdgo-completion-work",
+  "writing-skills": "pdgo-skill-authoring",
+});
+
+function integratedComponents(definition) {
+  return [...new Set(definition.sources.map((source) => COMPONENT_BY_SOURCE[source]).filter(Boolean))];
+}
+
 const COMMON_INSTRUCTIONS = `${COMMON_OVERLAY}\n\n${"## Evidence and stop conditions"}\n\nReturn actual commands and outputs, changed paths, and unresolved uncertainty. Stop immediately when the approved scope, plan version, transport capability, Agent source SHA, or acceptance contract no longer matches.`;
 
 function manifestFor(definition) {
@@ -224,7 +246,7 @@ function manifestFor(definition) {
     category: definition.id === "pdgo-dialogue-memory" ? "memory" : definition.id === "pdgo-plan-work" ? "planning" : definition.id === "pdgo-execute-work" ? "dispatch" : "coordination",
     subcategory: definition.scenario,
     tags: ["pdgo", "tianyan", "governed-work"],
-    upstream_skills: definition.sources,
+    integrated_components: integratedComponents(definition),
   };
 }
 
@@ -233,7 +255,7 @@ function skillFrontmatter(definition) {
 }
 
 function skillMarkdown(definition, bodies) {
-  const inherited = bodies.map(({ parsed }) => parsed.body.trim()).join("\n\n");
+  const inherited = bodies.map(({ parsed }) => normalizePdgoActiveSkillText(parsed.body.trim())).join("\n\n");
   return `${skillFrontmatter(definition)}\n\n# ${definition.displayName}\n\n${definition.description}\n\n## Routing and department contract\n\n${definition.overlay}\n\n${COMMON_INSTRUCTIONS}\n\n## Integrated workflow\n\n${inherited}\n`;
 }
 
@@ -243,7 +265,7 @@ function openAiManifest(definition) {
 
 function skillManifestYaml(manifest) {
   const lines = ["schema_version: \"1.0\"", `skill_id: ${yamlScalar(manifest.skill_id)}`, `display_name: ${yamlScalar(manifest.display_name)}`, `description: ${yamlScalar(manifest.description)}`];
-  for (const key of ["project_scope", "department", "stage", "scenarios", "positive_triggers", "negative_triggers", "boundaries", "required_inputs", "expected_outputs", "prerequisites", "side_effects", "upstream_skills", "tags"]) {
+  for (const key of ["project_scope", "department", "stage", "scenarios", "positive_triggers", "negative_triggers", "boundaries", "required_inputs", "expected_outputs", "prerequisites", "side_effects", "integrated_components", "tags"]) {
     lines.push(`${key}:`, yamlList(manifest[key]));
   }
   lines.push(`risk_level: ${yamlScalar(manifest.risk_level)}`, `priority: ${manifest.priority}`, `category: ${yamlScalar(manifest.category)}`, `subcategory: ${yamlScalar(manifest.subcategory)}`);
@@ -279,7 +301,7 @@ async function main() {
     const manifest = manifestFor(definition);
     await writeFile(path.join(activeRoot, "skill-manifest.yaml"), skillManifestYaml(manifest), "utf8");
     await writeFile(path.join(activeRoot, "agents", "openai.yaml"), openAiManifest(definition), "utf8");
-    await writeFile(path.join(activeRoot, "references", "integration.md"), `# ${definition.displayName}\n\nThis active Skill combines the declared governed workflow with the complete integrated workflow body. Source coverage is audited in \`integrations/external-skills/superpowers/integration-map.json\`.\n`, "utf8");
+    await writeFile(path.join(activeRoot, "references", "integration.md"), `# ${definition.displayName}\n\nThis active Skill combines the declared governed workflow with the complete integrated workflow body. Source coverage is audited by the repository integration lock and coverage map.\n`, "utf8");
     await writeFile(path.join(overlaysRoot, `${definition.id}.md`), `# ${definition.displayName} overlay\n\n${definition.overlay}\n\n${COMMON_INSTRUCTIONS}\n`, "utf8");
   }
 

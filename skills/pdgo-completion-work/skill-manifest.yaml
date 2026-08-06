@@ -34,9 +34,8 @@ prerequisites:
   - "mode permits the requested side effect"
 side_effects:
   - "writes governed artifacts or changes only approved paths"
-upstream_skills:
-  - "verification-before-completion"
-  - "finishing-a-development-branch"
+integrated_components:
+  - "pdgo-completion-work"
 tags:
   - "pdgo"
   - "tianyan"

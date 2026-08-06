@@ -8,9 +8,9 @@ formats. Scripts must not store credentials or silently modify product repositor
 an explicitly scoped Skill plus searchable metadata. It refuses
 to guess missing boundaries, inputs, or outputs.
 
-`build-pdgo-skill-integration.mjs` is the source-locked builder for the ten active PDGO Skills, the Superpowers
-coverage map, and the searchable indexes. `evaluate-agency-agents.mjs` generates the 271 source-backed Agent
-metadata companions and routing summary. These builders must be rerun after an approved upstream update.
+`build-pdgo-skill-integration.mjs` is the source-locked builder for the ten active PDGO Skills, the workflow
+coverage map, and the searchable indexes. The Agent evaluator generates the 271 source-backed metadata companions
+and routing summary. These builders must be rerun after an approved baseline update.
 
 The `profiles/flowstate-skill-catalog.json` and `profiles/flowstate-skill-inventory.json` filenames remain as
 compatibility paths, but they contain only the ten active `pdgo-*` entries. They are not a license to recreate the

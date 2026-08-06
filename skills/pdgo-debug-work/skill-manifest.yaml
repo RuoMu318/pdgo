@@ -35,8 +35,8 @@ prerequisites:
   - "mode permits the requested side effect"
 side_effects:
   - "writes governed artifacts or changes only approved paths"
-upstream_skills:
-  - "systematic-debugging"
+integrated_components:
+  - "pdgo-debug-work"
 tags:
   - "pdgo"
   - "tianyan"

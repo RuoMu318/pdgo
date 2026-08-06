@@ -35,11 +35,8 @@ prerequisites:
   - "mode permits the requested side effect"
 side_effects:
   - "writes governed artifacts or changes only approved paths"
-upstream_skills:
-  - "executing-plans"
-  - "subagent-driven-development"
-  - "dispatching-parallel-agents"
-  - "using-git-worktrees"
+integrated_components:
+  - "pdgo-execute-work"
 tags:
   - "pdgo"
   - "tianyan"

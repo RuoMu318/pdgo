@@ -27,9 +27,8 @@ pdgo-completion-work | pdgo-skill-authoring
 ```
 
 Use the full metadata in `skills/skill-index.json` and `skills/category-index.json`; a name, category, or keyword
-alone never invokes a Skill. The integration map under
-`integrations/external-skills/superpowers/integration-map.json` records how upstream workflow blocks enter the
-active Skills.
+alone never invokes a Skill. The repository integration lock records how each workflow block enters the active
+Skills without exposing source branding in the route.
 
 ## Routing order
 

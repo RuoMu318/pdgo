@@ -73,7 +73,7 @@ state machine. The provider is configured in `profiles/external-agent-sources.js
 cache are under `integrations/external-agents/<provider>/`. Refresh the catalog with:
 
 ```powershell
-node scripts/import-external-agents.mjs --root . --provider agency-agents --repo msitarzewski/agency-agents --ref main --download
+node scripts/import-external-agents.mjs --root . --provider <provider-id> --repo <owner/repository> --ref <ref> --download
 ```
 
 Use the catalog by scenario, not by a display name alone. Search by query and optional division; results include the

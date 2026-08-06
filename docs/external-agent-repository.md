@@ -1,14 +1,14 @@
-# External Agent repository integration
+# Specialist Agent catalog integration
 
 PDGO treats an external Agent repository as a governed Agent provider. The provider contributes specialized
 role prompts and division metadata; PDGO remains responsible for scenario classification, Skill routing,
 approval, task scope, session continuity, evidence, review, risk, blockers, and audit.
 
-The current provider configuration is in `profiles/external-agent-sources.json`. Its imported catalog and cached
-prompts live under `integrations/external-agents/agency-agents/` and are refreshed with:
+The provider configuration is held in the project profile. Its imported catalog and cached prompts live under the
+locked integration directory and are refreshed through the deterministic import command:
 
 ```powershell
-node scripts/import-external-agents.mjs --root . --provider agency-agents --repo msitarzewski/agency-agents --ref main --download
+node scripts/import-external-agents.mjs --root . --provider <provider-id> --repo <owner/repository> --ref <ref> --download
 ```
 
 The importer records the source tree commit, file SHA, raw URL, division, and prompt path for every indexed Agent. The

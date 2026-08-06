@@ -181,9 +181,9 @@ inputs, outputs, constraints, risk, mode, approval state
 
 仓库包含协调、策划、实现、验证、调试、发布、记忆和适配器 Skill。可检索目录由 Skill 场景元数据生成。
 
-## 活动 PDGO Skill 与 Agency Agent
+## 活动 PDGO Skill 与专业 Agent
 
-当前活动路由固定为 10 个 Skill。Superpowers 的 14 个上游 `SKILL.md` 原文完整保存在锁定目录中，通过生成的活动 Skill 吸收治理叠加规则，不删除或伪造上游基线。
+当前活动路由固定为 10 个 Skill。14 份完整工作流基线保存在只读集成档案中，生成活动 Skill 时与 PDGO 治理规则合并。
 
 | Skill | 融合能力 |
 | --- | --- |
@@ -198,9 +198,9 @@ inputs, outputs, constraints, risk, mode, approval state
 | `pdgo-completion-work` | 完成前验证与分支交接 |
 | `pdgo-skill-authoring` | Skill 编写与验证 |
 
-Superpowers 锁定提交为 `44c9b2d6e889982ac18c27d05a19fefe335194e1`，位置为 `integrations/external-skills/superpowers/upstream/`；`source-lock.json` 记录 SHA-256 与 Git blob 哈希，`integration-map.json` 记录每个上游逻辑段落的融合去向。
+机器审计记录工作流基线的 SHA-256、Git blob 哈希和逻辑段落融合去向，活动路由不显示外部来源名称。
 
-仓库按上游 18 个分类保存 `msitarzewski/agency-agents` 的全部 271 个 Agent，来源提交为 `c89557f78509868c6d4cc08e5cbc79bc8625fe1c`。每个 Agent 在 `integrations/external-agents/agency-agents/metadata/<division>/` 中都有基于原始提示证据生成的 YAML 说明。只有高置信度且具备结构化输入、输出证据的条目允许自动选择，其余均为 `manual-only`，需要在获批任务中显式填写 `external_agent_id`。Agent 不能批准方案、关闭卡点、改变范围或替代独立验收；部门候选分类和 Skill 要求见 `profiles/pdgo-agent-routing.json`。
+锁定目录按 18 个分类保存 271 个专业 Agent，每个 Agent 都有基于原始提示证据生成的 YAML 说明。只有高置信度且具备结构化输入、输出证据的条目允许自动选择，其余均为 `manual-only`，需要在获批任务中显式填写 `external_agent_id`。Agent 不能批准方案、关闭卡点、改变范围或替代独立验收；部门候选分类和 Skill 要求见 `profiles/pdgo-agent-routing.json`。
 
 ## 运行时和适配器
 

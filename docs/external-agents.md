@@ -1,9 +1,5 @@
-# External Agent Repository
+# Specialist Agent Catalog
 
-Provider: **agency-agents**
-Source: [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents)
-Imported ref: `c89557f78509868c6d4cc08e5cbc79bc8625fe1c`
-Source commit: `c89557f78509868c6d4cc08e5cbc79bc8625fe1c`
 Agents imported: **271**
 
 This catalog is an external Agent prompt source, not a replacement for PDGO governance. Every invocation still needs a classified scenario, approved dispatch, scope, evidence, report, and planning review.
@@ -33,7 +29,7 @@ This catalog is an external Agent prompt source, not a replacement for PDGO gove
 
 ## Invocation
 
-1. Search `integrations/external-agents/agency-agents/index.json` by division, name, description, and routing terms.
+1. Search the locked Agent catalog by division, name, description, and routing terms.
 2. Select an Agent by scenario fit, not by name alone.
 3. Include `external_agent_id` in the approved task dispatch.
 4. The external adapter injects the cached prompt plus the PDGO dispatch contract into the worker session.

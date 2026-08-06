@@ -278,11 +278,11 @@
     "category": "coordination",
     "subcategory": "startup-routing-and-governed-capability-selection",
     "scenario": "startup routing and governed capability selection",
-    "action": "Select the active PDGO Skill and eligible Agency Agent from the classified scenario before any governed response or dispatch.",
+    "action": "Select the active PDGO Skill and eligible specialist Agent from the classified scenario before any governed response or dispatch.",
     "outcome": "governed result with evidence, risks, blockers, and next action",
     "displayName": "PDGO Route Work",
-    "shortDescription": "Route governed work to the right PDGO Skill and Agent",
-    "description": "Select the active PDGO Skill and eligible Agency Agent from the classified scenario before any governed response or dispatch.",
+    "shortDescription": "Route governed work to the right PDGO Skill and specialist Agent",
+    "description": "Select the active PDGO Skill and eligible specialist Agent from the classified scenario before any governed response or dispatch.",
     "positiveTriggers": [
       "The scenario is startup routing and governed capability selection"
     ],

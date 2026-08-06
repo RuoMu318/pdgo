@@ -187,7 +187,7 @@ The repository includes coordination, planning, implementation, validation, debu
 
 ## Active PDGO Skills
 
-The active route has exactly ten Skills. Superpowers workflows are preserved in full upstream form and absorbed through the generated active files; they are not silently deleted from the source archive.
+The active route has exactly ten Skills. Their complete workflow baselines are combined with PDGO governance rules when the active files are generated.
 
 | Skill | Integrated capability |
 | --- | --- |
@@ -202,11 +202,11 @@ The active route has exactly ten Skills. Superpowers workflows are preserved in 
 | `pdgo-completion-work` | verification and branch completion |
 | `pdgo-skill-authoring` | Skill authoring and validation |
 
-The exact 14 upstream Superpowers `SKILL.md` files are locked at commit `44c9b2d6e889982ac18c27d05a19fefe335194e1` under `integrations/external-skills/superpowers/upstream/`. `source-lock.json` records SHA-256 and Git blob hashes; `integration-map.json` records how every upstream logical block is preserved or merged into an active PDGO Skill.
+Fourteen workflow baselines are held in a read-only integration archive. The machine audit records SHA-256 and Git blob hashes and maps every logical block into an active PDGO Skill without exposing source branding in the active route.
 
-## Agency Agent catalog
+## Specialist Agent catalog
 
-All 271 `msitarzewski/agency-agents` prompts are cached at source commit `c89557f78509868c6d4cc08e5cbc79bc8625fe1c`, preserving 18 upstream divisions. Each prompt has an evidence-backed metadata file under `integrations/external-agents/agency-agents/metadata/<division>/`.
+The locked catalog contains 271 specialist Agent prompts across 18 divisions. Each prompt has evidence-backed metadata for routing, integrity verification, and audit.
 
 Search by the concrete scenario and division, then use the exact `external_agent_id` in the approved dispatch. Only high-confidence entries with structured inputs and outputs can be selected automatically; the remaining entries are `manual-only`. An external Agent cannot approve a plan, close a blocker, change scope, or replace independent review. Department candidate divisions and required Skills are defined in `profiles/pdgo-agent-routing.json`.
 

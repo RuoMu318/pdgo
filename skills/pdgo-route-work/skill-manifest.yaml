@@ -1,7 +1,7 @@
 schema_version: "1.0"
 skill_id: "pdgo-route-work"
 display_name: "PDGO Route Work"
-description: "Select the active PDGO Skill and eligible Agency Agent from the classified scenario before any governed response or dispatch."
+description: "Select the active PDGO Skill and eligible specialist Agent from the classified scenario before any governed response or dispatch."
 project_scope:
   - "pdgo"
   - "tianyan"
@@ -38,8 +38,8 @@ prerequisites:
   - "mode permits the requested side effect"
 side_effects:
   - "writes governed artifacts or changes only approved paths"
-upstream_skills:
-  - "using-superpowers"
+integrated_components:
+  - "pdgo-route-work"
 tags:
   - "pdgo"
   - "tianyan"

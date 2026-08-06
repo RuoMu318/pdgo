@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { normalizePdgoActiveSkillText } from "../scripts/lib/pdgo-active-skill-text.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
@@ -19,7 +20,7 @@ function bodyWithoutFrontmatter(text) {
   return (end < 0 ? text : lines.slice(end + 1).join("\n")).trim();
 }
 
-test("the Superpowers baseline is locked and every upstream body is merged into an active PDGO Skill", async () => {
+test("the locked workflow baseline is intact and every normalized body is merged into an active PDGO Skill", async () => {
   const integrationRoot = path.join(root, "integrations", "external-skills", "superpowers");
   const lock = JSON.parse(await readFile(path.join(integrationRoot, "source-lock.json"), "utf8"));
   const map = JSON.parse(await readFile(path.join(integrationRoot, "integration-map.json"), "utf8"));
@@ -35,7 +36,9 @@ test("the Superpowers baseline is locked and every upstream body is merged into 
     const generated = lock.generated_skills.find((item) => item.sources.includes(source.skill_id));
     assert.ok(generated, `missing active mapping for ${source.skill_id}`);
     const active = await readFile(path.join(root, generated.active_path), "utf8");
-    assert.ok(active.includes(bodyWithoutFrontmatter(raw)), `missing integrated workflow body for ${source.skill_id}`);
+    const normalizedBody = normalizePdgoActiveSkillText(bodyWithoutFrontmatter(raw));
+    assert.ok(active.includes(normalizedBody), `missing integrated workflow body for ${source.skill_id}`);
+    assert.doesNotMatch(active, /superpowers/i, `external project label leaked into ${generated.active_path}`);
     assert.ok(map.blocks.some((block) => block.source_skill === source.skill_id), `missing block map for ${source.skill_id}`);
   }
 });
@@ -53,7 +56,27 @@ test("there are exactly ten active PDGO Skills and no legacy FlowState shell dir
   }
 });
 
-test("all 271 Agency Agent prompts have source-backed metadata", async () => {
+test("public PDGO documentation and active Skill text contain no external source branding", async () => {
+  const publicPaths = ["README.md", "README.zh-CN.md", "scripts/README.md"];
+  const docsRoot = path.join(root, "docs");
+  for (const entry of await readdir(docsRoot, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith(".md")) publicPaths.push(path.join("docs", entry.name));
+  }
+  const skillsRoot = path.join(root, "skills");
+  for (const entry of await readdir(skillsRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory() || !entry.name.startsWith("pdgo-")) continue;
+    publicPaths.push(path.join("skills", entry.name, "SKILL.md"));
+    publicPaths.push(path.join("skills", entry.name, "references", "integration.md"));
+    publicPaths.push(path.join("skills", entry.name, "skill-manifest.yaml"));
+    publicPaths.push(path.join("skills", entry.name, "agents", "openai.yaml"));
+  }
+  for (const publicPath of publicPaths) {
+    const content = await readFile(path.join(root, publicPath), "utf8");
+    assert.doesNotMatch(content, /superpowers|agency-agents|msitarzewski|obra\/superpowers/i, publicPath);
+  }
+});
+
+test("all 271 specialist Agent prompts have source-backed metadata", async () => {
   const agentRoot = path.join(root, "integrations", "external-agents", "agency-agents");
   const catalog = JSON.parse(await readFile(path.join(agentRoot, "index.json"), "utf8"));
   const metadata = JSON.parse(await readFile(path.join(agentRoot, "metadata-index.json"), "utf8"));

@@ -35,8 +35,8 @@ prerequisites:
   - "mode permits the requested side effect"
 side_effects:
   - "writes governed artifacts or changes only approved paths"
-upstream_skills:
-  - "writing-skills"
+integrated_components:
+  - "pdgo-skill-authoring"
 tags:
   - "pdgo"
   - "tianyan"
