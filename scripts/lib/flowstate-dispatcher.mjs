@@ -122,6 +122,33 @@ function stageKind(value) {
   return String(value ?? "serial").toLowerCase() === "parallel" ? "parallel" : "serial";
 }
 
+function normalizeAgentSelector(selector) {
+  if (typeof selector === "string" && selector.trim()) {
+    return { external_agent_id: selector.trim(), external_agent_query: null, external_agent_division: null };
+  }
+  if (!selector || typeof selector !== "object") return null;
+  const externalAgentId = selector.external_agent_id ?? selector.externalAgentId ?? selector.agent_id ?? selector.agentId ?? null;
+  const externalAgentQuery = selector.external_agent_query ?? selector.externalAgentQuery ?? selector.query ?? null;
+  const externalAgentDivision = selector.external_agent_division ?? selector.externalAgentDivision ?? selector.division ?? null;
+  if (!externalAgentId && !externalAgentQuery && !externalAgentDivision) return null;
+  return {
+    external_agent_id: externalAgentId ? String(externalAgentId) : null,
+    external_agent_query: externalAgentQuery ? String(externalAgentQuery) : null,
+    external_agent_division: externalAgentDivision ? String(externalAgentDivision) : null,
+  };
+}
+
+function agentSelectorFor(task, stage) {
+  if (task.external_agent_id || task.external_agent_query || task.external_agent_division) {
+    return {
+      external_agent_id: task.external_agent_id,
+      external_agent_query: task.external_agent_query,
+      external_agent_division: task.external_agent_division,
+    };
+  }
+  return asArray(stage?.agent_selectors).map(normalizeAgentSelector).find(Boolean) ?? null;
+}
+
 function normalizeStage(stage, index) {
   const order = Math.max(1, Number(stage.order ?? stage.stage_order ?? stage.stageOrder ?? index + 1) || index + 1);
   return {
@@ -130,7 +157,7 @@ function normalizeStage(stage, index) {
     order,
     kind: stageKind(stage.kind ?? stage.stage_kind ?? stage.stageKind),
     required_skills: asArray(stage.required_skills ?? stage.requiredSkills).map(String),
-    agent_selectors: asArray(stage.agent_selectors ?? stage.agentSelectors ?? stage.agents),
+    agent_selectors: asArray(stage.agent_selectors ?? stage.agentSelectors ?? stage.agents).map(normalizeAgentSelector).filter(Boolean),
     acceptance_criteria: asArray(stage.acceptance_criteria ?? stage.acceptanceCriteria),
     status: String(stage.status ?? "pending"),
   };
@@ -754,7 +781,8 @@ export class FlowStateDispatcher {
 
       const workers = [];
       for (const task of candidates) {
-        const worker = await this.adapter.ensureWorkerSession({ seriesId: planSeriesId, taskId: task.task_id, projectId: this.projectId, parentSessionId: series.execution_session_id });
+        const stage = stageForOrder(plan, task.stage_order);
+        const worker = await this.adapter.ensureWorkerSession({ seriesId: planSeriesId, taskId: task.task_id, projectId: this.projectId, parentSessionId: series.execution_session_id, task: clone(task), stage: clone(stage) });
         if (!worker?.worker_session_id) throw new Error(`adapter did not return worker session for ${task.task_id}`);
         if (automatic && worker.delivery_status !== "connected") {
           const blockerIdValue = `transport-${task.task_id}`;
@@ -811,9 +839,9 @@ export class FlowStateDispatcher {
           input_artifacts: [],
           required_skills: requiredSkills,
           stage_agent_selectors: taskStage?.agent_selectors ?? [],
-          external_agent_id: task.external_agent_id,
-          external_agent_query: task.external_agent_query,
-          external_agent_division: task.external_agent_division,
+          external_agent_id: task.external_agent_id ?? worker.external_agent_id ?? agentSelectorFor(task, taskStage)?.external_agent_id ?? null,
+          external_agent_query: task.external_agent_query ?? worker.external_agent_query ?? agentSelectorFor(task, taskStage)?.external_agent_query ?? null,
+          external_agent_division: task.external_agent_division ?? worker.external_agent_division ?? agentSelectorFor(task, taskStage)?.external_agent_division ?? null,
           allowed_paths: task.allowed_paths,
           forbidden_actions: task.forbidden_actions,
           dependencies: task.dependencies,

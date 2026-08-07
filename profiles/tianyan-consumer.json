@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "consumer_id": "tianyan",
+  "pdgo_root": "${PDGO_ROOT}",
+  "skill_root": "skills",
+  "agent_catalog": "integrations/external-agents/agency-agents/index.json",
+  "agent_metadata": "integrations/external-agents/agency-agents/metadata-index.json",
+  "agent_source": "integrations/external-agents/agency-agents/provider.json",
+  "routing_skill": "pdgo-route-work",
+  "memory_skill": "pdgo-dialogue-memory",
+  "planning_skill": "pdgo-plan-work",
+  "execution_skill": "pdgo-execute-work",
+  "host_transport": {
+    "type": "codex-host",
+    "required_operations": ["startWorker", "send", "receiveReports"],
+    "missing_transport_action": "blocker"
+  },
+  "selection": {
+    "plan_pins_external_agent_id": true,
+    "manual_only_requires_exact_id": true,
+    "prompt_sha_required": true,
+    "role_prompt_is_advisory": true
+  }
+}

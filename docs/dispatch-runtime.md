@@ -82,6 +82,32 @@ in `inbox/<session-id>/`. It is useful for manual handoff, CI, and audit review.
 needs a session, and calls `turn/start` with a structured JSON message. The adapter must return the server's actual
 thread ID. A transport error becomes a recorded dispatch failure and never a fabricated completion.
 
+### Host transport contract
+
+`AgencyAgentsAdapter` can be connected to the host Agent runtime through an injected `hostTransport`. The bridge is
+deliberately small so a consumer can adapt the local `spawn_agent`/thread API without changing the PDGO state machine:
+
+```js
+const hostTransport = {
+  async startWorker({ projectId, seriesId, taskId, task, stage, agent, instructions }) {
+    // Start one task-scoped host worker and return its real runtime identifier.
+    return { worker_session_id: "host-worker-id", platform_session_id: "host-worker-id" };
+  },
+  async send({ message, agent, instructions, audit }) {
+    // Deliver the PLAN_DISPATCH to the worker created above.
+    return { message_id: "host-message-id", runtime_agent_id: "host-worker-id" };
+  },
+  async receiveReports(sessionId) { return []; },
+  async receiveReviews(sessionId) { return []; },
+};
+```
+
+`startWorker` receives the resolved catalog entry and its integrity-checked role prompt. `send` receives the enriched
+`PLAN_DISPATCH` plus the same prompt and audit record. Both methods must return a real host/runtime ID; an omitted ID
+is a transport blocker and the dispatch is not considered started. `receiveReports` and `receiveReviews` are optional
+polling methods; when absent, the wrapped adapter's queue or App Server polling methods are used. The role prompt is
+advisory and the PDGO dispatch contract remains authoritative.
+
 ### External Agent adapter
 
 `AgencyAgentsAdapter` wraps either runtime adapter and adds the external Agent catalog without changing the PDGO

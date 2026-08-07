@@ -167,23 +167,54 @@ export class ExternalAgentCatalog {
 }
 
 export class AgencyAgentsAdapter {
-  constructor({ catalog, baseAdapter } = {}) {
+  constructor({ catalog, baseAdapter, hostTransport = null } = {}) {
     if (!catalog) throw new Error("AgencyAgentsAdapter catalog is required");
     if (!baseAdapter) throw new Error("AgencyAgentsAdapter baseAdapter is required");
     this.catalog = catalog;
     this.baseAdapter = baseAdapter;
+    this.hostTransport = hostTransport;
   }
 
   async ensureSeriesSessions(input) { return this.baseAdapter.ensureSeriesSessions(input); }
 
-  async ensureWorkerSession(input) { return this.baseAdapter.ensureWorkerSession(input); }
+  async ensureWorkerSession(input) {
+    const baseWorker = await this.baseAdapter.ensureWorkerSession(input);
+    const task = input?.task ?? {};
+    const rawStageSelector = Array.isArray(input?.stage?.agent_selectors)
+      ? input.stage.agent_selectors.find((candidate) => typeof candidate === "string" ? candidate.trim() : candidate && typeof candidate === "object")
+      : null;
+    const stageSelector = typeof rawStageSelector === "string" ? { external_agent_id: rawStageSelector.trim() } : (rawStageSelector ?? {});
+    const selector = {
+      external_agent_id: task.external_agent_id ?? task.externalAgentId ?? stageSelector.external_agent_id ?? stageSelector.externalAgentId ?? input?.external_agent_id ?? null,
+      external_agent_query: task.external_agent_query ?? task.externalAgentQuery ?? stageSelector.external_agent_query ?? stageSelector.externalAgentQuery ?? stageSelector.query ?? input?.external_agent_query ?? null,
+      external_agent_division: task.external_agent_division ?? task.externalAgentDivision ?? stageSelector.external_agent_division ?? stageSelector.externalAgentDivision ?? stageSelector.division ?? input?.external_agent_division ?? null,
+    };
+    if (!this.hostTransport?.startWorker || !(selector.external_agent_id || selector.external_agent_query || selector.external_agent_division)) return baseWorker;
+    const prepared = await this.prepareAgent(selector, task.objective ?? task.title ?? "", false);
+    const started = await this.hostTransport.startWorker({ ...input, task, stage: input?.stage ?? null, agent: prepared.entry, instructions: prepared.instructions });
+    const workerSessionId = started?.worker_session_id ?? started?.session_id ?? started?.thread_id ?? started?.threadId;
+    if (!workerSessionId) throw new Error(`host Agent transport did not return a worker session for ${prepared.entry.agent_id}`);
+    return {
+      ...baseWorker,
+      ...started,
+      worker_session_id: workerSessionId,
+      platform_session_id: started?.platform_session_id ?? workerSessionId,
+      delivery_status: "connected",
+      external_agent_id: prepared.entry.agent_id,
+      external_agent_query: selector.external_agent_query,
+      external_agent_division: selector.external_agent_division,
+      external_agent: this.externalAudit(prepared, { invocation_status: "started", runtime_agent_id: workerSessionId }),
+    };
+  }
 
   async receiveReports(input) {
+    if (typeof this.hostTransport?.receiveReports === "function") return this.hostTransport.receiveReports(input);
     if (typeof this.baseAdapter.receiveReports !== "function") return [];
     return this.baseAdapter.receiveReports(input);
   }
 
   async receiveReviews(input) {
+    if (typeof this.hostTransport?.receiveReviews === "function") return this.hostTransport.receiveReviews(input);
     if (typeof this.baseAdapter.receiveReviews !== "function") return [];
     return this.baseAdapter.receiveReviews(input);
   }
@@ -210,35 +241,66 @@ export class AgencyAgentsAdapter {
 
   async searchAgents(input) { return this.catalog.search(input); }
 
+  async prepareAgent(selector, objective, requireAutoRoute) {
+    const automaticSelection = !selector.external_agent_id;
+    const entry = await this.catalog.resolve({
+      agentId: selector.external_agent_id,
+      query: selector.external_agent_query ?? objective ?? "",
+      division: selector.external_agent_division,
+      requireAutoRoute: requireAutoRoute || automaticSelection,
+    });
+    const instructions = await this.catalog.prompt(entry);
+    return { entry, instructions, catalog: await this.catalog.load() };
+  }
+
+  externalAudit(prepared, extra = {}) {
+    const { entry, instructions, catalog } = prepared;
+    return {
+      provider_id: entry.provider_id,
+      agent_id: entry.agent_id,
+      name: entry.name,
+      division: entry.division,
+      description: entry.description,
+      source_path: entry.source_path,
+      source_url: entry.source_url,
+      source_ref: entry.source_ref,
+      source_sha: entry.source_sha,
+      source_commit: catalog.provider?.source_commit ?? null,
+      routing_metadata: entry.routing_metadata,
+      instructions,
+      ...extra,
+    };
+  }
+
   async send(message) {
     const hasSelector = Boolean(message.external_agent_id || message.external_agent_query || message.external_agent_division);
     if (!hasSelector) return this.baseAdapter.send(message);
     validateExternalDispatch(message);
-    const automaticSelection = !message.external_agent_id;
-    const entry = await this.catalog.resolve({ agentId: message.external_agent_id, query: message.external_agent_query ?? message.objective ?? message.scenario ?? "", division: message.external_agent_division, requireAutoRoute: automaticSelection });
-    const instructions = await this.catalog.prompt(entry);
-    const catalog = await this.catalog.load();
-    return this.baseAdapter.send({
+    const prepared = await this.prepareAgent({
+      external_agent_id: message.external_agent_id,
+      external_agent_query: message.external_agent_query,
+      external_agent_division: message.external_agent_division,
+    }, message.objective ?? message.scenario ?? "", false);
+    const { entry, instructions } = prepared;
+    const enriched = {
       ...message,
       external_agent_id: entry.agent_id,
-      external_agent_source_commit: catalog.provider?.source_commit ?? null,
-      external_agent: {
-        provider_id: entry.provider_id,
-        agent_id: entry.agent_id,
-        name: entry.name,
-        division: entry.division,
-        description: entry.description,
-        source_path: entry.source_path,
-        source_url: entry.source_url,
-        source_ref: entry.source_ref,
-        source_sha: entry.source_sha,
-        source_commit: catalog.provider?.source_commit ?? null,
-        routing_metadata: entry.routing_metadata,
-        routing_mode: automaticSelection ? "automatic" : "explicit-task-selector",
-        invocation_status: "dispatched",
-        instructions,
-      },
-    });
+      external_agent_source_commit: prepared.catalog.provider?.source_commit ?? null,
+      external_agent: this.externalAudit(prepared, { routing_mode: message.external_agent_id ? "explicit-task-selector" : "automatic", invocation_status: this.hostTransport?.send ? "prepared" : "dispatched" }),
+    };
+    const audited = await this.baseAdapter.send(enriched);
+    if (!this.hostTransport?.send) return audited;
+    const sent = await this.hostTransport.send({ message: enriched, agent: entry, instructions, audit: audited });
+    const runtimeAgentId = sent?.runtime_agent_id ?? sent?.session_id ?? sent?.thread_id ?? sent?.threadId;
+    if (!runtimeAgentId) throw new Error(`host Agent transport did not return a runtime Agent id for ${entry.agent_id}`);
+    return {
+      ...audited,
+      ...sent,
+      message_id: sent?.message_id ?? audited?.message_id ?? null,
+      external_agent_id: entry.agent_id,
+      external_agent_source_commit: prepared.catalog.provider?.source_commit ?? null,
+      external_agent: this.externalAudit(prepared, { routing_mode: message.external_agent_id ? "explicit-task-selector" : "automatic", invocation_status: "started", runtime_agent_id: runtimeAgentId }),
+    };
   }
 }
 

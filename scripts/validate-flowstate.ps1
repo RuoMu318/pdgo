@@ -46,6 +46,7 @@ function Require-JsonManifest([string]$relativePath, [string]$expectedName) {
     'skills/category-index.md',
     'profiles/external-agent-sources.json',
     'profiles/pdgo-agent-routing.json',
+    'profiles/tianyan-consumer.json',
     'integrations/external-agents/agency-agents/index.json',
     'integrations/external-agents/agency-agents/metadata-index.json',
     'integrations/external-agents/agency-agents/provider.json',

@@ -152,3 +152,94 @@ test("external catalog gates automatic selection on evidence metadata", async ()
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("external Agent adapter inherits a stage selector and uses the connected host transport", async () => {
+  const calls = [];
+  const entry = {
+    agent_id: "agency-agents/engineering/backend.md",
+    provider_id: "agency-agents",
+    name: "Backend Architect",
+    division: "engineering",
+    description: "backend architecture",
+    source_path: "engineering/backend.md",
+    source_url: "https://raw.githubusercontent.com/example/repo/main/engineering/backend.md",
+    source_ref: "main",
+    source_sha: "a".repeat(40),
+    routing_metadata: { auto_route: false, routing_mode: "manual-only" },
+  };
+  const catalog = {
+    async resolve({ agentId }) { assert.equal(agentId, entry.agent_id); return entry; },
+    async prompt() { return "role prompt"; },
+    async load() { return { provider: { source_commit: "tree-commit" } }; },
+  };
+  const adapter = new AgencyAgentsAdapter({
+    catalog,
+    baseAdapter: {
+      async ensureWorkerSession() { return { worker_session_id: "audit-worker", delivery_status: "adapter-unavailable" }; },
+      async send() { return { message_id: "audit-message" }; },
+    },
+    hostTransport: {
+      async startWorker(input) { calls.push({ type: "start", input }); return { worker_session_id: "host-worker-1", platform_session_id: "host-worker-1" }; },
+      async send(input) { calls.push({ type: "send", input }); return { message_id: "host-message-1", runtime_agent_id: "host-worker-1" }; },
+    },
+  });
+
+  const worker = await adapter.ensureWorkerSession({
+    seriesId: "series-1",
+    taskId: "T01",
+    projectId: "demo",
+    task: { objective: "Implement backend" },
+    stage: { agent_selectors: [{ external_agent_id: entry.agent_id, division: "engineering" }] },
+  });
+  assert.equal(worker.worker_session_id, "host-worker-1");
+  assert.equal(worker.delivery_status, "connected");
+  const dispatch = {
+    message_type: "PLAN_DISPATCH",
+    trace_id: "trace-1",
+    dispatch_id: "dispatch-1",
+    project_id: "demo",
+    plan_series_id: "series-1",
+    plan_id: "plan-1",
+    plan_version: "v1",
+    task_id: "T01",
+    target_session_id: worker.worker_session_id,
+    planning_session_id: "planning-1",
+    execution_session_id: "execution-1",
+    return_to: "planning-1",
+    acceptance_criteria: ["done"],
+    expected_evidence: ["report"],
+    external_agent_id: entry.agent_id,
+  };
+  const result = await adapter.send(dispatch);
+  assert.equal(result.message_id, "host-message-1");
+  assert.equal(result.external_agent.runtime_agent_id, "host-worker-1");
+  assert.equal(result.external_agent.invocation_status, "started");
+  assert.deepEqual(calls.map((call) => call.type), ["start", "send"]);
+  assert.equal(calls[0].input.instructions, "role prompt");
+  assert.equal(calls[0].input.agent.agent_id, entry.agent_id);
+  assert.equal(calls[1].input.message.external_agent.instructions, "role prompt");
+
+  adapter.hostTransport.send = async () => ({ message_id: "missing-runtime-id" });
+  await assert.rejects(
+    () => adapter.send({ ...dispatch, dispatch_id: "dispatch-2", message_id: "dispatch-2" }),
+    /did not return a runtime Agent id/,
+  );
+});
+
+test("external Agent adapter rejects a host worker without a real session id", async () => {
+  const entry = { agent_id: "agency-agents/testing/tester.md", provider_id: "agency-agents", name: "Tester", division: "testing", source_sha: "a".repeat(40) };
+  const adapter = new AgencyAgentsAdapter({
+    catalog: {
+      async resolve() { return entry; },
+      async prompt() { return "role prompt"; },
+      async load() { return { provider: { source_commit: "tree-commit" } }; },
+    },
+    baseAdapter: { async ensureWorkerSession() { return { worker_session_id: "audit-worker", delivery_status: "adapter-unavailable" }; } },
+    hostTransport: { async startWorker() { return {}; } },
+  });
+
+  await assert.rejects(
+    () => adapter.ensureWorkerSession({ task: { external_agent_id: entry.agent_id } }),
+    /did not return a worker session/,
+  );
+});

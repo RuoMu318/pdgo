@@ -9,7 +9,7 @@ Select the active PDGO Skill and eligible specialist Agent from the classified s
 
 ## Routing and department contract
 
-Route first, then invoke the selected Skill. Record rejected candidates and stop with `skill-unresolved` when hard filters cannot be satisfied. A request for clarification is itself routed and governed.
+Route first, then invoke the selected Skill. Search the configured Agency Agent catalog by the concrete scenario, division, and evidence-backed description; record rejected candidates and the exact selected `external_agent_id`. Stop with `skill-unresolved` when hard filters cannot be satisfied. A request for clarification is itself routed and governed.
 
 ## PDGO operating contract
 

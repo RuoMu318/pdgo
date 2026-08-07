@@ -575,7 +575,7 @@ test("accepted serial stages activate the next parallel stage with stage Skills"
         max_parallel: 2,
         stages: [
           { stage_id: "stage-1", title: "Foundation", order: 1, kind: "serial" },
-          { stage_id: "stage-2", title: "Parallel validation", order: 2, kind: "parallel", required_skills: ["pdgo-tdd-work"] },
+          { stage_id: "stage-2", title: "Parallel validation", order: 2, kind: "parallel", required_skills: ["pdgo-tdd-work"], agent_selectors: [{ external_agent_id: "agency-agents/testing/testing-api-tester.md", division: "testing" }] },
         ],
         tasks: [
           { task_id: "T01", title: "Foundation", objective: "Prepare the foundation.", stage_id: "stage-1", stage_order: 1, acceptance_criteria: ["foundation exists"] },
@@ -591,6 +591,8 @@ test("accepted serial stages activate the next parallel stage with stage Skills"
     const review = await dispatcher.ingestPlanningReview({ review_id: "stage-review-1", report_id: "stage-report-1", plan_series_id: "series-stages", plan_id: "series-stages-plan-v1", plan_version: "v1", task_id: "T01", decision: "accepted" });
     assert.deepEqual(review.next_dispatches.map((dispatch) => dispatch.task_id).sort(), ["T02", "T03"]);
     assert.deepEqual(review.next_dispatches[0].required_skills, ["pdgo-tdd-work"]);
+    assert.equal(review.next_dispatches[0].external_agent_id, "agency-agents/testing/testing-api-tester.md");
+    assert.equal(review.next_dispatches[0].external_agent_division, "testing");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

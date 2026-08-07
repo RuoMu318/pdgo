@@ -100,7 +100,7 @@ const DEFINITIONS = [
     department: ["coordination", "planning", "execution"],
     stage: ["discovery", "design", "implementation", "validation"],
     sources: ["using-superpowers"],
-    overlay: "Route first, then invoke the selected Skill. Record rejected candidates and stop with `skill-unresolved` when hard filters cannot be satisfied. A request for clarification is itself routed and governed.",
+    overlay: "Route first, then invoke the selected Skill. Search the configured Agency Agent catalog by the concrete scenario, division, and evidence-backed description; record rejected candidates and the exact selected `external_agent_id`. Stop with `skill-unresolved` when hard filters cannot be satisfied. A request for clarification is itself routed and governed.",
   },
   {
     id: "pdgo-dialogue-memory",
@@ -122,7 +122,7 @@ const DEFINITIONS = [
     department: ["planning"],
     stage: ["discovery", "design"],
     sources: ["brainstorming", "writing-plans"],
-    overlay: "Use dialogue with the user to converge on the goal and observable result before drafting tasks. Do not start product changes while brainstorming or writing the plan. Every stage and task names its Skills, candidate Agents, evidence, dependencies, blockers, risks, rollback, and stop conditions. Approval is requested only after the plan is complete and internally reviewed. On `BLOCKER_REPORT`, planning must issue a recorded `PLANNING_BLOCKER_OPINION`; resolve and re-dispatch only inside the approved contract, otherwise send `USER_ACTION_REQUIRED` and wait.",
+    overlay: "Use dialogue with the user to converge on the goal and observable result before drafting tasks. Do not start product changes while brainstorming or writing the plan. Search the configured Agent catalog for every implementation and review stage, then pin the exact `external_agent_id`, source SHA, division, and expected role evidence on the task or stage selector. A `manual-only` Agent is usable when its exact ID is included in the approved plan; it is never guessed from a display name. Every stage and task names its Skills, candidate Agents, evidence, dependencies, blockers, risks, rollback, and stop conditions. Approval is requested only after the plan is complete and internally reviewed. On `BLOCKER_REPORT`, planning must issue a recorded `PLANNING_BLOCKER_OPINION`; resolve and re-dispatch only inside the approved contract, otherwise send `USER_ACTION_REQUIRED` and wait.",
   },
   {
     id: "pdgo-execute-work",
@@ -133,7 +133,7 @@ const DEFINITIONS = [
     department: ["execution", "coordination"],
     stage: ["implementation", "validation"],
     sources: ["executing-plans", "subagent-driven-development", "dispatching-parallel-agents", "using-git-worktrees"],
-    overlay: "Dispatch only the exact approved task. Use a separate worktree for every concurrent writer and keep parallel tasks independent. After each report, the Planning Department requests independent review; accepted evidence unlocks the next task, while an in-scope revision creates a bounded correction dispatch. If execution stops abnormally, immediately send `BLOCKER_REPORT` with reason, impact, recommended solution, and whether the user is required; normal completion is excluded. Resume only after the Planning Department returns `PLANNING_BLOCKER_OPINION`. A live transport is required for continuous Agent execution; FileQueue is a manual handoff and must be reported as such.",
+    overlay: "Dispatch only the exact approved task. Resolve the task or stage selector against the configured Agent catalog, verify the cached prompt source SHA, and include the exact `external_agent_id` and role prompt in the host Agent dispatch. When the host exposes `spawn_agent`, create the task-scoped worker with the role prompt subordinate to the PDGO dispatch contract, capture the real runtime Agent/session ID, and return it in the execution evidence. A missing runtime ID is a transport blocker; never report a queued file as a started Agent. Use a separate worktree for every concurrent writer and keep parallel tasks independent. After each report, the Planning Department requests independent review; accepted evidence unlocks the next task, while an in-scope revision creates a bounded correction dispatch. If execution stops abnormally, immediately send `BLOCKER_REPORT` with reason, impact, recommended solution, and whether the user is required; normal completion is excluded. Resume only after the Planning Department returns `PLANNING_BLOCKER_OPINION`. A live transport is required for continuous Agent execution; FileQueue is a manual handoff and must be reported as such.",
   },
   {
     id: "pdgo-review-request",

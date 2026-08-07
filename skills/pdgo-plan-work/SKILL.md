@@ -9,7 +9,7 @@ Explore intent, write a versioned plan, split long work into serial or parallel 
 
 ## Routing and department contract
 
-Use dialogue with the user to converge on the goal and observable result before drafting tasks. Do not start product changes while brainstorming or writing the plan. Every stage and task names its Skills, candidate Agents, evidence, dependencies, blockers, risks, rollback, and stop conditions. Approval is requested only after the plan is complete and internally reviewed. On `BLOCKER_REPORT`, planning must issue a recorded `PLANNING_BLOCKER_OPINION`; resolve and re-dispatch only inside the approved contract, otherwise send `USER_ACTION_REQUIRED` and wait.
+Use dialogue with the user to converge on the goal and observable result before drafting tasks. Do not start product changes while brainstorming or writing the plan. Search the configured Agent catalog for every implementation and review stage, then pin the exact `external_agent_id`, source SHA, division, and expected role evidence on the task or stage selector. A `manual-only` Agent is usable when its exact ID is included in the approved plan; it is never guessed from a display name. Every stage and task names its Skills, candidate Agents, evidence, dependencies, blockers, risks, rollback, and stop conditions. Approval is requested only after the plan is complete and internally reviewed. On `BLOCKER_REPORT`, planning must issue a recorded `PLANNING_BLOCKER_OPINION`; resolve and re-dispatch only inside the approved contract, otherwise send `USER_ACTION_REQUIRED` and wait.
 
 ## PDGO operating contract
 
