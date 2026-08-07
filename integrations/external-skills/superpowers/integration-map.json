@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-08-06T07:12:31.098Z",
+  "generated_at": "2026-08-07T02:41:48.991Z",
   "upstream_commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
   "policy": "Every upstream logical block is preserved in an active Skill or classified explicitly; no silent deletion.",
   "blocks": [

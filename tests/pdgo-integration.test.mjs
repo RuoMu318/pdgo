@@ -56,6 +56,17 @@ test("there are exactly ten active PDGO Skills and no legacy FlowState shell dir
   }
 });
 
+test("planning and execution Skills enforce the abnormal-stop escalation loop", async () => {
+  const execution = await readFile(path.join(root, "skills", "pdgo-execute-work", "SKILL.md"), "utf8");
+  const planning = await readFile(path.join(root, "skills", "pdgo-plan-work", "SKILL.md"), "utf8");
+  for (const content of [execution, planning]) {
+    assert.match(content, /BLOCKER_REPORT/);
+    assert.match(content, /PLANNING_BLOCKER_OPINION/);
+    assert.match(content, /USER_ACTION_REQUIRED/);
+    assert.match(content, /normal completion/i);
+  }
+});
+
 test("public PDGO documentation and active Skill text contain no external source branding", async () => {
   const publicPaths = ["README.md", "README.zh-CN.md", "scripts/README.md"];
   const docsRoot = path.join(root, "docs");

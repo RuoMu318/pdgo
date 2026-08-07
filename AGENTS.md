@@ -14,6 +14,13 @@ contracts project-agnostic. Project-specific rules belong under `profiles/` or a
 5. Do not treat a plan as executable until the user approval contract is satisfied.
 6. Validate schema examples and the Skill before declaring completion.
 
+## Abnormal execution stop escalation
+
+- Normal completion is not an abnormal stop and must not enter the blocker escalation path.
+- If execution stops abnormally, the Execution Department must immediately send a formal `BLOCKER_REPORT` to the fixed Planning Department conversation. Every blocker must state its reason, impact, recommended solution, and whether user action is required.
+- Planning must record the report and send `PLANNING_BLOCKER_OPINION` to execution. If planning can resolve every blocker without changing the approved contract, it records the resolutions and re-dispatches the stopped task.
+- If planning cannot resolve a blocker, it must send `USER_ACTION_REQUIRED` in the planning conversation and keep execution paused until the user resolves it. Silent state changes and silent retries are forbidden.
+
 ## Compatibility
 
 - Preserve existing file names and fields when adding fields to a contract.

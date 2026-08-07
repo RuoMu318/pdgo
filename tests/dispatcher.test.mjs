@@ -11,6 +11,7 @@ class MockAdapter {
     this.seriesCalls = [];
     this.workerCalls = [];
     this.sequence = 0;
+    this.failTypes = new Set();
   }
 
   async ensureSeriesSessions({ seriesId }) {
@@ -24,6 +25,7 @@ class MockAdapter {
   }
 
   async send(message) {
+    if (this.failTypes.has(message.message_type)) throw new Error(`send failed for ${message.message_type}`);
     this.messages.push(message);
     this.sequence += 1;
     return { message_id: `message-${this.sequence}` };
@@ -116,7 +118,7 @@ test("new blocker pauses the plan and resolution returns it to approved", async 
     await dispatcher.createPlan({ planSeriesId: "series-a", planVersion: "v1", plan: makePlan({ plan_id: "series-a-plan-v1", risks: [] }) });
     await dispatcher.approvePlan({ planSeriesId: "series-a", planVersion: "v1", approval: { approver: "user", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
     const dispatch = await dispatcher.dispatchReady({ planSeriesId: "series-a", planVersion: "v1" });
-    await dispatcher.ingestExecutionReport({ report_id: "report-blocked", project_id: "demo", plan_series_id: "series-a", plan_id: "series-a-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: dispatch.dispatches[0].dispatch_id, status: "blocked", new_blockers: [{ blocker_id: "B99", dependency: "missing decision", impact: "cannot continue" }] });
+    await dispatcher.ingestExecutionReport({ report_id: "report-blocked", project_id: "demo", plan_series_id: "series-a", plan_id: "series-a-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: dispatch.dispatches[0].dispatch_id, status: "blocked", new_blockers: [{ blocker_id: "B99", dependency: "missing decision", reason: "The required implementation choice is absent from the approved plan.", impact: "cannot continue", recommended_solution: "Planning should select an in-scope option.", requires_user: false }] });
     let state = await dispatcher.store.load("demo");
     assert.equal(state.series["series-a"].status, "waiting-on-planning");
     assert.equal(state.series["series-a"].plans.v1.status, "paused-needs-review");
@@ -124,6 +126,239 @@ test("new blocker pauses the plan and resolution returns it to approved", async 
     state = await dispatcher.store.load("demo");
     assert.equal(state.series["series-a"].status, "approved");
     assert.equal(state.series["series-a"].plans.v1.tasks.find((task) => task.task_id === "T01").status, "ready");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("formal blocker reports require reason impact advice and user disposition", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-blocker-contract", planVersion: "v1", plan: makePlan({ plan_id: "series-blocker-contract-plan-v1", risks: [] }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-blocker-contract", planVersion: "v1", approval: { approver: "user", plan_id: "series-blocker-contract-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const dispatch = await dispatcher.dispatchReady({ planSeriesId: "series-blocker-contract", planVersion: "v1" });
+
+    await assert.rejects(() => dispatcher.ingestExecutionReport({
+      report_id: "report-invalid-blocker",
+      project_id: "demo",
+      plan_series_id: "series-blocker-contract",
+      plan_id: "series-blocker-contract-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: dispatch.dispatches[0].dispatch_id,
+      status: "blocked",
+      new_blockers: [{ blocker_id: "B01", impact: "Execution cannot continue." }],
+    }), /new_blockers\[0\]\.reason is required/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("abnormal execution stop immediately sends a formal blocker report to planning while normal return does not", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-abnormal-stop", planVersion: "v1", plan: makePlan({ plan_id: "series-abnormal-stop-plan-v1", risks: [] }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-abnormal-stop", planVersion: "v1", approval: { approver: "user", plan_id: "series-abnormal-stop-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const dispatch = await dispatcher.dispatchReady({ planSeriesId: "series-abnormal-stop", planVersion: "v1" });
+
+    const result = await dispatcher.ingestExecutionReport({
+      message_type: "EXECUTION_STOPPED",
+      report_id: "report-abnormal-stop",
+      project_id: "demo",
+      plan_series_id: "series-abnormal-stop",
+      plan_id: "series-abnormal-stop-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: dispatch.dispatches[0].dispatch_id,
+      status: "abnormal-stopped",
+      summary: "Worker process exited unexpectedly.",
+      new_blockers: [{
+        blocker_id: "B-STOP",
+        dependency: "healthy execution worker",
+        reason: "The worker process terminated before returning task evidence.",
+        impact: "The approved task is incomplete and cannot be reviewed.",
+        recommended_solution: "Restart the worker and re-dispatch the same approved task.",
+        requires_user: false,
+        status: "resolved",
+      }],
+    });
+
+    const blockerMessage = adapter.messages.at(-1);
+    assert.equal(result.abnormal_stop, true);
+    assert.equal(result.blocker_report_sent, true);
+    assert.equal(blockerMessage.message_type, "BLOCKER_REPORT");
+    assert.equal(blockerMessage.target_session_id, "plan-session-series-abnormal-stop");
+    assert.equal(blockerMessage.return_to, "exec-session-series-abnormal-stop");
+    assert.equal(blockerMessage.blockers[0].reason, "The worker process terminated before returning task evidence.");
+    assert.equal(blockerMessage.blockers[0].recommended_solution, "Restart the worker and re-dispatch the same approved task.");
+    assert.equal(blockerMessage.blockers[0].requires_user, false);
+    assert.equal(blockerMessage.blockers[0].status, "open");
+
+    const normal = await fixture();
+    try {
+      await normal.dispatcher.createPlan({ planSeriesId: "series-normal-return", planVersion: "v1", plan: makePlan({ plan_id: "series-normal-return-plan-v1", risks: [] }) });
+      await normal.dispatcher.approvePlan({ planSeriesId: "series-normal-return", planVersion: "v1", approval: { approver: "user", plan_id: "series-normal-return-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+      const normalDispatch = await normal.dispatcher.dispatchReady({ planSeriesId: "series-normal-return", planVersion: "v1" });
+      const normalResult = await normal.dispatcher.ingestExecutionReport({ report_id: "report-normal", project_id: "demo", plan_series_id: "series-normal-return", plan_id: "series-normal-return-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: normalDispatch.dispatches[0].dispatch_id, status: "returned-to-planning" });
+      assert.equal(normalResult.abnormal_stop, false);
+      assert.equal(normal.adapter.messages.at(-1).message_type, "EXECUTION_REPORT");
+    } finally {
+      await rm(normal.root, { recursive: true, force: true });
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("planning resolves an internal blocker, sends its opinion, and automatically re-dispatches the stopped task", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-internal-blocker", planVersion: "v1", plan: makePlan({ plan_id: "series-internal-blocker-plan-v1", risks: [] }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-internal-blocker", planVersion: "v1", approval: { approver: "user", plan_id: "series-internal-blocker-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const first = await dispatcher.dispatchReady({ planSeriesId: "series-internal-blocker", planVersion: "v1" });
+    await dispatcher.ingestExecutionReport({
+      report_id: "report-internal-blocker",
+      project_id: "demo",
+      plan_series_id: "series-internal-blocker",
+      plan_id: "series-internal-blocker-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: first.dispatches[0].dispatch_id,
+      status: "abnormal-stopped",
+      abnormal_stop: true,
+      new_blockers: [{ blocker_id: "B-INTERNAL", dependency: "worker restart", reason: "The worker process stopped unexpectedly.", impact: "Task T01 is incomplete.", recommended_solution: "Restart and re-dispatch T01.", requires_user: false }],
+    });
+
+    const review = await dispatcher.ingestPlanningReview({
+      message_type: "PLANNING_BLOCKER_OPINION",
+      review_id: "opinion-internal-blocker",
+      report_id: "report-internal-blocker",
+      plan_series_id: "series-internal-blocker",
+      plan_id: "series-internal-blocker-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "continue",
+      requires_user: false,
+      opinion: "The approved scope is unchanged; restart the worker and retry the same task.",
+      blocker_resolutions: [{ blocker_id: "B-INTERNAL", resolution: "Planning authorized a worker restart within the approved plan.", status: "resolved" }],
+      next_action: "dispatch",
+    });
+
+    const opinion = adapter.messages.find((message) => message.message_type === "PLANNING_BLOCKER_OPINION");
+    assert.equal(opinion.target_session_id, "exec-session-series-internal-blocker");
+    assert.equal(opinion.opinion, "The approved scope is unchanged; restart the worker and retry the same task.");
+    assert.equal(review.next_dispatches.length, 1);
+    assert.equal(review.next_dispatches[0].task_id, "T01");
+    const state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-internal-blocker"].blockers["B-INTERNAL"].status, "resolved");
+    assert.equal(state.series["series-internal-blocker"].plans.v1.tasks.find((task) => task.task_id === "T01").status, "dispatched");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("planning escalates an unresolved blocker to the user and does not resume execution", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-user-blocker", planVersion: "v1", plan: makePlan({ plan_id: "series-user-blocker-plan-v1", risks: [] }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-user-blocker", planVersion: "v1", approval: { approver: "user", plan_id: "series-user-blocker-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const first = await dispatcher.dispatchReady({ planSeriesId: "series-user-blocker", planVersion: "v1" });
+    await dispatcher.ingestExecutionReport({
+      report_id: "report-user-blocker",
+      project_id: "demo",
+      plan_series_id: "series-user-blocker",
+      plan_id: "series-user-blocker-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: first.dispatches[0].dispatch_id,
+      status: "blocked",
+      new_blockers: [{ blocker_id: "B-USER", dependency: "user-owned credential", reason: "The required credential is unavailable to the project.", impact: "Task T01 cannot access the approved service.", recommended_solution: "The user must provide or authorize the credential.", requires_user: true }],
+    });
+
+    await assert.rejects(() => dispatcher.ingestPlanningReview({
+      review_id: "legacy-blocked-user-blocker",
+      report_id: "report-user-blocker",
+      plan_series_id: "series-user-blocker",
+      plan_id: "series-user-blocker-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "blocked",
+      requires_user: true,
+      opinion: "Planning cannot supply the user-owned credential.",
+    }), /formal blocker report requires continue or await-user/);
+
+    const review = await dispatcher.ingestPlanningReview({
+      message_type: "PLANNING_BLOCKER_OPINION",
+      review_id: "opinion-user-blocker",
+      report_id: "report-user-blocker",
+      plan_series_id: "series-user-blocker",
+      plan_id: "series-user-blocker-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "await-user",
+      requires_user: true,
+      opinion: "Planning cannot supply the user-owned credential.",
+      next_action: "wait-for-user",
+    });
+
+    assert.equal(review.next_dispatches, undefined);
+    assert.equal(adapter.messages.some((message) => message.message_type === "PLANNING_BLOCKER_OPINION" && message.target_session_id === "exec-session-series-user-blocker"), true);
+    const userNotice = adapter.messages.find((message) => message.message_type === "USER_ACTION_REQUIRED");
+    assert.equal(userNotice.target_session_id, "plan-session-series-user-blocker");
+    assert.equal(userNotice.blockers[0].reason, "The required credential is unavailable to the project.");
+    assert.equal(userNotice.blockers[0].recommended_solution, "The user must provide or authorize the credential.");
+    const state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-user-blocker"].status, "waiting-on-planning");
+    assert.equal(state.series["series-user-blocker"].plans.v1.status, "awaiting-user-action");
+    assert.equal(state.series["series-user-blocker"].plans.v1.tasks.find((task) => task.task_id === "T01").status, "blocked");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("failed blocker notifications do not commit reports or planning opinions", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-notification-failure", planVersion: "v1", plan: makePlan({ plan_id: "series-notification-failure-plan-v1", risks: [] }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-notification-failure", planVersion: "v1", approval: { approver: "user", plan_id: "series-notification-failure-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const first = await dispatcher.dispatchReady({ planSeriesId: "series-notification-failure", planVersion: "v1" });
+    const blockerReport = {
+      report_id: "report-notification-failure",
+      project_id: "demo",
+      plan_series_id: "series-notification-failure",
+      plan_id: "series-notification-failure-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: first.dispatches[0].dispatch_id,
+      status: "abnormal-stopped",
+      new_blockers: [{ blocker_id: "B-FAIL", dependency: "worker transport", reason: "The worker stopped unexpectedly.", impact: "Task T01 is incomplete.", recommended_solution: "Restore the worker transport and retry.", requires_user: false }],
+    };
+
+    adapter.failTypes.add("BLOCKER_REPORT");
+    await assert.rejects(() => dispatcher.ingestExecutionReport(blockerReport), /send failed for BLOCKER_REPORT/);
+    let state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-notification-failure"].reports["report-notification-failure"], undefined);
+    assert.equal(state.series["series-notification-failure"].plans.v1.tasks.find((task) => task.task_id === "T01").status, "dispatched");
+
+    adapter.failTypes.delete("BLOCKER_REPORT");
+    await dispatcher.ingestExecutionReport(blockerReport);
+    adapter.failTypes.add("PLANNING_BLOCKER_OPINION");
+    await assert.rejects(() => dispatcher.ingestPlanningReview({
+      review_id: "opinion-notification-failure",
+      report_id: "report-notification-failure",
+      plan_series_id: "series-notification-failure",
+      plan_id: "series-notification-failure-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "continue",
+      requires_user: false,
+      opinion: "Retry is inside the approved contract.",
+      blocker_resolutions: [{ blocker_id: "B-FAIL", resolution: "Planning authorized an in-scope retry.", status: "resolved" }],
+    }), /send failed for PLANNING_BLOCKER_OPINION/);
+    state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-notification-failure"].reviews["opinion-notification-failure"], undefined);
+    assert.equal(state.series["series-notification-failure"].blockers["B-FAIL"].status, "open");
+    assert.equal(state.series["series-notification-failure"].plans.v1.status, "paused-needs-review");
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -137,9 +372,11 @@ test("file queue leaves dispatch and report messages on disk", async () => {
     assert.equal(sessions.platform_session_ids.planning, null);
     const sent = await adapter.send({ message_type: "PLAN_DISPATCH", target_session_id: "worker-1", task_id: "T01" });
     const queued = await adapter.enqueueReport({ report_id: "report-fixed", return_to: "planning-1", status: "returned-to-planning" });
+    const blocked = await adapter.enqueueReport({ report_id: "report-blocked-fixed", return_to: "planning-1", status: "blocked", new_blockers: [{ blocker_id: "B01", reason: "A dependency is unavailable.", impact: "The task cannot continue.", recommended_solution: "Restore the dependency.", requires_user: false }] });
     assert.match(await readFile(sent.path, "utf8"), /PLAN_DISPATCH/);
-    assert.equal((await adapter.receiveReports("planning-1"))[0].report_id, "report-fixed");
+    assert.equal((await adapter.receiveReports("planning-1")).some((report) => report.report_id === "report-fixed"), true);
     assert.match(queued.path, /report-fixed\.json$/);
+    assert.equal(JSON.parse(await readFile(blocked.path, "utf8")).message_type, "BLOCKER_REPORT");
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -253,7 +490,7 @@ test("runtime resumes queued reports and reviews and dispatches the next task on
   }
 });
 
-test("runtime keeps the series paused when a queued review is blocked", async () => {
+test("runtime keeps the series paused when planning waits for the user", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-runtime-blocked-"));
   let sequence = 0;
   try {
@@ -278,7 +515,7 @@ test("runtime keeps the series paused when a queued review is blocked", async ()
       task_id: "T01",
       dispatch_id: first.dispatches[0].dispatch_id,
       status: "blocked",
-      new_blockers: [{ blocker_id: "B01", dependency: "user decision", impact: "cannot continue" }],
+      new_blockers: [{ blocker_id: "B01", dependency: "user decision", reason: "The approved plan lacks a required user decision.", impact: "cannot continue", recommended_solution: "Ask the user for the missing decision.", requires_user: true }],
     });
     await runtime.runOnce();
     await adapter.enqueueReview({
@@ -288,13 +525,16 @@ test("runtime keeps the series paused when a queued review is blocked", async ()
       plan_id: "series-blocked-plan-v1",
       plan_version: "v1",
       task_id: "T01",
-      decision: "blocked",
+      decision: "await-user",
+      requires_user: true,
+      opinion: "Planning cannot make the required user-owned decision.",
+      next_action: "wait-for-user",
     });
     const cycle = await runtime.runOnce();
     assert.equal(cycle.dispatches.length, 0);
     const state = await dispatcher.store.load("demo");
     assert.equal(state.series["series-blocked"].status, "waiting-on-planning");
-    assert.equal(state.series["series-blocked"].plans.v1.status, "paused-needs-review");
+    assert.equal(state.series["series-blocked"].plans.v1.status, "awaiting-user-action");
     assert.equal(state.series["series-blocked"].plans.v1.tasks.find((task) => task.task_id === "T02").status, "pending");
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -495,8 +735,8 @@ test("Codex App Server adapter can receive governed reports and reviews when tra
   assert.equal((await adapter.receiveReports("planning-1"))[0].report_id, "report-1");
   assert.equal((await adapter.receiveReviews("execution-1"))[0].review_id, "review-1");
   assert.deepEqual(received, [
-    { session_id: "planning-1", message_types: ["EXECUTION_REPORT"] },
-    { session_id: "execution-1", message_types: ["REVIEW_DECISION"] },
+    { session_id: "planning-1", message_types: ["EXECUTION_REPORT", "EXECUTION_STOPPED", "BLOCKER_REPORT"] },
+    { session_id: "execution-1", message_types: ["REVIEW_DECISION", "PLANNING_BLOCKER_OPINION"] },
   ]);
 });
 

@@ -1,0 +1,24 @@
+schema_version: "1.0"
+message_type: PLANNING_BLOCKER_OPINION
+message_id: opinion-YYYYMMDD-NNN
+idempotency_key: opinion-YYYYMMDD-NNN
+opinion_id: opinion-YYYYMMDD-NNN
+review_id: opinion-YYYYMMDD-NNN
+report_id: report-YYYYMMDD-NNN
+project_id: project-id
+plan_series_id: PROJECT-YYYYMMDD-NNN
+plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+plan_version: v1
+task_id: T01
+dispatch_id: dispatch-YYYYMMDD-NNN
+target_session_id: execution-session-id
+return_to: execution-session-id
+decision: continue | await-user
+requires_user: false
+opinion: The blocker can be resolved without changing the approved contract.
+blockers: []
+blocker_resolutions:
+  - blocker_id: B01
+    resolution: Planning authorized an in-scope worker restart.
+    status: resolved
+next_action: dispatch | wait-for-user | stop

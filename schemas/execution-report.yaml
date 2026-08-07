@@ -1,5 +1,5 @@
 schema_version: "1.0"
-message_type: EXECUTION_REPORT
+message_type: EXECUTION_REPORT | EXECUTION_STOPPED
 trace_id: trace-YYYYMMDD-NNN
 report_id: report-YYYYMMDD-NNN
 dispatch_id: dispatch-YYYYMMDD-NNN
@@ -11,7 +11,8 @@ task_id: T01
 session_id: execution-session-id
 execution_session_id: execution-session-id
 planning_session_id: planning-session-id
-status: returned-to-planning
+status: returned-to-planning | blocked | abnormal-stopped
+abnormal_stop: false
 summary: ""
 changed_artifacts: []
 changed_files: []
@@ -21,6 +22,13 @@ assumptions: []
 deviations: []
 new_risks: []
 new_blockers: []
+blocker_contract:
+  required_when: status is blocked, abnormal_stop is true, or message_type is EXECUTION_STOPPED
+  required_fields:
+    - reason
+    - impact
+    - recommended_solution
+    - requires_user
 rollback_status: ""
 recommended_next_action: ""
 return_to: planning-session-id

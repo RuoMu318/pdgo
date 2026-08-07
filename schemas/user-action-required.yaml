@@ -1,0 +1,22 @@
+schema_version: "1.0"
+message_type: USER_ACTION_REQUIRED
+message_id: user-action-YYYYMMDD-NNN
+idempotency_key: user-action-YYYYMMDD-NNN
+opinion_id: opinion-YYYYMMDD-NNN
+report_id: report-YYYYMMDD-NNN
+project_id: project-id
+plan_series_id: PROJECT-YYYYMMDD-NNN
+plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+plan_version: v1
+task_id: T01
+target_session_id: planning-session-id
+return_to: planning-session-id
+reason: Planning cannot resolve the blocker within the approved contract.
+blockers:
+  - blocker_id: B01
+    reason: A user-owned credential is unavailable.
+    impact: Execution cannot access the approved service.
+    recommended_solution: Provide or authorize the required credential.
+    requires_user: true
+    status: open
+recommended_next_action: Resolve every listed blocker and record the resolution before execution resumes.

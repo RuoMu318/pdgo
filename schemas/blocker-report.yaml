@@ -1,0 +1,30 @@
+schema_version: "1.0"
+message_type: BLOCKER_REPORT
+message_id: blocker-report-YYYYMMDD-NNN
+idempotency_key: blocker-report-YYYYMMDD-NNN
+blocker_report_id: blocker-report-YYYYMMDD-NNN
+report_id: report-YYYYMMDD-NNN
+project_id: project-id
+plan_series_id: PROJECT-YYYYMMDD-NNN
+plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+plan_version: v1
+task_id: T01
+dispatch_id: dispatch-YYYYMMDD-NNN
+execution_session_id: execution-session-id
+planning_session_id: planning-session-id
+target_session_id: planning-session-id
+return_to: execution-session-id
+abnormal_stop: true
+summary: "Execution stopped abnormally before the task could be reviewed."
+blockers:
+  - blocker_id: B01
+    dependency: healthy execution worker
+    reason: The execution worker terminated unexpectedly.
+    impact: The approved task is incomplete and has no reviewable evidence.
+    recommended_solution: Restart the worker and re-dispatch the same approved task.
+    requires_user: false
+    owner: planning
+    status: open
+requires_user: false
+recommended_next_action: planning-review-then-resume
+review_required: true

@@ -14,6 +14,9 @@
 
 {{status}}
 
+- Abnormal stop: {{abnormal_stop}}
+- Message type: {{message_type}}
+
 ## Result
 
 {{summary}}
@@ -32,7 +35,17 @@
 
 ## New risks and blockers
 
--
+- Blocker ID:
+- Dependency:
+- Reason:
+- Impact:
+- Recommended solution:
+- Requires user: true | false
+- Owner:
+- Status: open | resolved
+
+When status is `blocked` or execution stopped abnormally, send this report as `BLOCKER_REPORT` to the fixed planning
+conversation immediately. Normal completion must remain `EXECUTION_REPORT` and does not use blocker escalation.
 
 ## Recommendation to planning
 

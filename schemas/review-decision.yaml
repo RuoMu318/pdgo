@@ -1,5 +1,5 @@
 schema_version: "1.0"
-message_type: REVIEW_DECISION
+message_type: REVIEW_DECISION | PLANNING_BLOCKER_OPINION
 review_id: review-YYYYMMDD-NNN
 message_id: review-YYYYMMDD-NNN
 idempotency_key: review-YYYYMMDD-NNN
@@ -9,15 +9,18 @@ plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
 plan_version: v1
 task_id: T01
 reviewer_session_id: review-session-id
-decision: accepted
+decision: accepted | revision-required | blocked | failed | continue | await-user
 criteria_results: []
 evidence_checked: []
 defects: []
 new_risks: []
 new_blockers: []
+opinion: ""
+requires_user: false
+blocker_resolutions: []
 required_changes: []
 scope_change: false
 material_change: false
 requires_reapproval: false
-next_action: unlock-next-task
+next_action: unlock-next-task | dispatch | wait-for-user | stop
 return_to: execution-session-id

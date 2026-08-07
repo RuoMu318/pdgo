@@ -68,10 +68,16 @@ artifacts before approval.
 The planning controller also owns the execution loop: it divides long plans into ordered serial or parallel stages,
 assigns stage-level Skills and agent selectors, dispatches each ready task, independently reviews every returned
 report, and either unlocks the next work or issues a correction. A correction stays in the same approved version only
-when it is an omitted approved item, a defect repair, or an alternate implementation method with no new risk,
-blocker, permission, acceptance, architecture, rollback, or scope change. Otherwise the controller pauses the series,
-clears approval, and requests a new version and user approval. Open blockers prevent correction, completion, and
-next-plan creation. The controller does not proactively deepen detail beyond the user request or approved plan.
+when it is an omitted approved item, a defect repair, or an alternate implementation method with no unresolved risk
+or blocker and no permission, acceptance, architecture, rollback, or scope change. Every new blocker pauses the
+series for planning disposition. Planning may resolve it inside the approved contract; otherwise it clears approval
+when required and requests a new version or user action. Open blockers prevent correction, completion, and next-plan
+creation. The controller does not proactively deepen detail beyond the user request or approved plan.
+
+The blocker escalation path is explicit. An abnormal execution stop sends `BLOCKER_REPORT` to the fixed planning
+conversation; normal completion does not. Planning returns `PLANNING_BLOCKER_OPINION`. It may resolve and re-dispatch
+the stopped task only inside the approved contract. Otherwise it sends `USER_ACTION_REQUIRED` in the planning
+conversation and keeps execution paused.
 
 ### Execution department
 

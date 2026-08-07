@@ -68,7 +68,14 @@ revision-required -> issue an in-scope correction -> repeat review
 blocked/failed    -> wait, retry within policy, or return to planning
 ```
 
-An ordinary correction is limited to work the approved plan already required: redo an omitted item, repair a defect, or use another implementation method that preserves the approved contract. These corrections can be automatically re-dispatched while the revision limit and original approval remain valid. A new risk, blocker, permission, acceptance, architecture, rollback, or scope change, or an explicit reapproval request, invalidates the old approval and pauses the series for a new plan version and user approval. The controller repeats correction and review until the task is accepted or a stop condition is reached; it never silently skips a failed correction.
+An abnormal execution stop is not a normal completion. A crash, unexpected termination, or explicit abnormal-stop
+signal immediately produces a formal `BLOCKER_REPORT` in the fixed planning conversation. The report must list each
+blocker's reason, impact, recommended solution, and whether user action is required. Planning must answer execution
+with `PLANNING_BLOCKER_OPINION`: if every blocker is resolvable inside the approved contract, planning records the
+resolutions and re-dispatches the stopped task; otherwise it sends `USER_ACTION_REQUIRED` in the planning conversation
+and keeps execution paused. Silent retries and silent blocker state changes are forbidden.
+
+An ordinary correction is limited to work the approved plan already required: redo an omitted item, repair a defect, or use another implementation method that preserves the approved contract. These corrections can be automatically re-dispatched while the revision limit and original approval remain valid. A new risk or blocker always pauses progression for planning disposition; it invalidates the old approval only when resolution changes permission, acceptance, architecture, rollback, scope, or another approved contract term. The controller repeats correction and review until the task is accepted or a stop condition is reached; it never silently skips a failed correction.
 
 When every task is accepted, no blocker is open, no new risk is awaiting disposition, and the current plan status is `completed`, the controller may prepare a declared next plan in the same series. The new version remains `awaiting-user-approval` and cannot be dispatched automatically. Brainstorming is used during planning discovery to compare options; it is not an execution authorization.
 

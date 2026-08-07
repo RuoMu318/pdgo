@@ -4,6 +4,13 @@ import { randomUUID } from "node:crypto";
 
 const STATE_VERSION = "1.0";
 const TERMINAL_TASK_STATUSES = new Set(["accepted"]);
+const ABNORMAL_EXECUTION_STATUSES = new Set([
+  "abnormal-stop",
+  "abnormal-stopped",
+  "crashed",
+  "terminated-unexpectedly",
+  "unexpected-stop",
+]);
 
 function clone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
@@ -33,6 +40,39 @@ function statusOf(item) {
 
 function blockerIsOpen(blocker) {
   return statusOf(blocker) !== "resolved";
+}
+
+function isAbnormalExecutionStop(report) {
+  return report?.abnormal_stop === true
+    || report?.message_type === "EXECUTION_STOPPED"
+    || ABNORMAL_EXECUTION_STATUSES.has(statusOf(report));
+}
+
+function normalizeReportedBlocker(blocker, index, report, fallbackIndex = index) {
+  const reason = required(blocker?.reason ?? blocker?.cause, `new_blockers[${index}].reason`);
+  const impact = required(blocker?.impact, `new_blockers[${index}].impact`);
+  const recommendedSolution = required(
+    blocker?.recommended_solution ?? blocker?.resolution_advice ?? blocker?.recommendedSolution,
+    `new_blockers[${index}].recommended_solution`,
+  );
+  const requiresUser = blocker?.requires_user ?? blocker?.requiresUser;
+  if (typeof requiresUser !== "boolean") throw new Error(`new_blockers[${index}].requires_user must be boolean`);
+  return {
+    ...clone(blocker),
+    blocker_id: blockerId(blocker, fallbackIndex),
+    dependency: String(blocker?.dependency ?? ""),
+    reason: String(reason),
+    impact: String(impact),
+    recommended_solution: String(recommendedSolution),
+    requires_user: requiresUser,
+    owner: String(blocker?.owner ?? (requiresUser ? "user" : "planning")),
+    required_decision: String(blocker?.required_decision ?? blocker?.requiredDecision ?? ""),
+    resolution: String(blocker?.resolution ?? ""),
+    status: "open",
+    report_id: String(report.report_id),
+    task_id: String(report.task_id),
+    dispatch_id: String(report.dispatch_id),
+  };
 }
 
 function safeQueueSegment(value, name) {
@@ -383,7 +423,9 @@ export class FileQueueAdapter {
     } catch (error) {
       if (error.code !== "ENOENT") throw error;
     }
-    await writeFile(filePath, `${JSON.stringify({ ...clone(report), message_type: "EXECUTION_REPORT", report_id: reportId }, null, 2)}\n`, "utf8");
+    const blockingReport = statusOf(report) === "blocked" || asArray(report.new_blockers ?? report.blockers).length > 0;
+    const messageType = report.message_type ?? (isAbnormalExecutionStop(report) ? "EXECUTION_STOPPED" : (blockingReport ? "BLOCKER_REPORT" : "EXECUTION_REPORT"));
+    await writeFile(filePath, `${JSON.stringify({ ...clone(report), message_type: messageType, report_id: reportId }, null, 2)}\n`, "utf8");
     return { report_id: reportId, path: filePath, deduplicated: false };
   }
 
@@ -399,7 +441,7 @@ export class FileQueueAdapter {
     } catch (error) {
       if (error.code !== "ENOENT") throw error;
     }
-    await writeFile(filePath, `${JSON.stringify({ ...clone(review), message_type: "REVIEW_DECISION", review_id: reviewId }, null, 2)}\n`, "utf8");
+    await writeFile(filePath, `${JSON.stringify({ ...clone(review), message_type: review.message_type ?? "REVIEW_DECISION", review_id: reviewId }, null, 2)}\n`, "utf8");
     return { review_id: reviewId, path: filePath, deduplicated: false };
   }
 
@@ -413,7 +455,7 @@ export class FileQueueAdapter {
       throw error;
     }
     const messages = await Promise.all(names.map(async (name) => JSON.parse(await readFile(path.join(directory, name), "utf8"))));
-    return messages.filter((message) => !message.message_type || message.message_type === "EXECUTION_REPORT");
+    return messages.filter((message) => !message.message_type || ["EXECUTION_REPORT", "EXECUTION_STOPPED", "BLOCKER_REPORT"].includes(message.message_type));
   }
 
   async receiveReviews(sessionId) {
@@ -426,7 +468,7 @@ export class FileQueueAdapter {
       throw error;
     }
     const messages = await Promise.all(names.map(async (name) => JSON.parse(await readFile(path.join(directory, name), "utf8"))));
-    return messages.filter((message) => message.message_type === "REVIEW_DECISION");
+    return messages.filter((message) => ["REVIEW_DECISION", "PLANNING_BLOCKER_OPINION"].includes(message.message_type));
   }
 
   async acknowledgeMessage(sessionId, messageId) {
@@ -533,11 +575,11 @@ export class CodexAppServerAdapter {
   }
 
   async receiveReports(sessionId) {
-    return this.receiveMessages(sessionId, ["EXECUTION_REPORT"]);
+    return this.receiveMessages(sessionId, ["EXECUTION_REPORT", "EXECUTION_STOPPED", "BLOCKER_REPORT"]);
   }
 
   async receiveReviews(sessionId) {
-    return this.receiveMessages(sessionId, ["REVIEW_DECISION"]);
+    return this.receiveMessages(sessionId, ["REVIEW_DECISION", "PLANNING_BLOCKER_OPINION"]);
   }
 }
 
@@ -872,18 +914,34 @@ export class FlowStateDispatcher {
       if (dispatch.plan_id !== plan.plan_id) throw new Error("dispatch plan_id does not match the plan");
       if (series.reports[report.report_id]) return { duplicate: true, report_id: report.report_id };
       if (report.plan_id && report.plan_id !== plan.plan_id) throw new Error("execution report plan_id does not match");
-      const stored = { ...clone(report), received_at: nowIso(this.clock) };
+      const reportStatus = statusOf(report) || "returned-to-planning";
+      const abnormalStop = isAbnormalExecutionStop(report);
+      const blockers = asArray(report.new_blockers ?? report.blockers);
+      if ((abnormalStop || reportStatus === "blocked") && blockers.length === 0) {
+        throw new Error("blocked or abnormal execution report requires at least one new_blockers entry");
+      }
+      const normalizedBlockers = blockers.map((blocker, index) => normalizeReportedBlocker(
+        blocker,
+        index,
+        report,
+        Object.keys(series.blockers).length + index,
+      ));
+      const stored = {
+        ...clone(report),
+        message_type: abnormalStop ? "EXECUTION_STOPPED" : String(report.message_type ?? "EXECUTION_REPORT"),
+        abnormal_stop: abnormalStop,
+        new_blockers: clone(normalizedBlockers),
+        received_at: nowIso(this.clock),
+      };
       series.reports[report.report_id] = stored;
       dispatch.status = "report-received";
       task.report_id = report.report_id;
       task.status = "report-returned";
-      const blockers = asArray(report.new_blockers);
       const reportRisks = asArray(report.new_risks);
       const highRisk = reportRisks.some((risk) => ["high", "critical"].includes(String(risk.severity ?? risk.level).toLowerCase()));
-      for (const [index, blocker] of blockers.entries()) {
-        const normalized = { ...clone(blocker), blocker_id: blockerId(blocker, Object.keys(series.blockers).length + index), status: String(blocker.status ?? "open") };
-        series.blockers[normalized.blocker_id] = normalized;
-        plan.blockers.push(normalized);
+      for (const blocker of normalizedBlockers) {
+        series.blockers[blocker.blocker_id] = blocker;
+        if (!plan.blockers.some((item) => item.blocker_id === blocker.blocker_id)) plan.blockers.push(blocker);
       }
       const normalizedReportRisks = reportRisks.map((risk, index) => ({
         ...clone(risk),
@@ -895,8 +953,9 @@ export class FlowStateDispatcher {
         if (!plan.risks.some((item) => item.risk_id === risk.risk_id)) plan.risks.push(risk);
       }
       if (normalizedReportRisks.length) stored.new_risks = clone(normalizedReportRisks);
-      const reportStatus = String(report.status ?? "returned-to-planning");
-      if (blockers.length || normalizedReportRisks.length || reportStatus === "blocked") {
+      const blockingReport = normalizedBlockers.length > 0 || abnormalStop || reportStatus === "blocked";
+      const requiresUser = normalizedBlockers.some((blocker) => blocker.requires_user);
+      if (blockingReport || normalizedReportRisks.length) {
         task.status = "blocked";
         plan.status = "paused-needs-review";
         series.status = "waiting-on-planning";
@@ -907,9 +966,9 @@ export class FlowStateDispatcher {
         series.status = task.status === "blocked" ? "waiting-on-planning" : "approved";
       }
       reviewMessage = {
-        message_type: "EXECUTION_REPORT",
-        message_id: `review-${report.report_id}`,
-        idempotency_key: `review-${report.report_id}`,
+        message_type: blockingReport ? "BLOCKER_REPORT" : "EXECUTION_REPORT",
+        message_id: blockingReport ? `blocker-${report.report_id}` : `review-${report.report_id}`,
+        idempotency_key: blockingReport ? `blocker-${report.report_id}` : `review-${report.report_id}`,
         target_session_id: series.planning_session_id,
         return_to: series.execution_session_id,
         project_id: this.projectId,
@@ -919,26 +978,60 @@ export class FlowStateDispatcher {
         task_id: report.task_id,
         dispatch_id: report.dispatch_id,
         execution_session_id: series.execution_session_id,
+        planning_session_id: series.planning_session_id,
+        blocker_report_id: blockingReport ? `blocker-${report.report_id}` : null,
+        abnormal_stop: abnormalStop,
+        blockers: clone(normalizedBlockers),
+        requires_user: requiresUser,
+        summary: String(report.summary ?? ""),
+        recommended_next_action: blockingReport ? (requiresUser ? "planning-review-then-user-escalation" : "planning-review-then-resume") : String(report.recommended_next_action ?? "independent-review"),
         report: stored,
         review_required: true,
       };
-      this.event(state, "EXECUTION_REPORT_RECEIVED", { plan_series_id: report.plan_series_id, plan_version: report.plan_version, task_id: report.task_id, dispatch_id: report.dispatch_id, blocker_count: blockers.length, high_risk: highRisk });
-      return { duplicate: false, report_id: report.report_id, review_required: true, paused: blockers.length > 0 || highRisk };
+      this.event(state, "EXECUTION_REPORT_RECEIVED", { plan_series_id: report.plan_series_id, plan_version: report.plan_version, task_id: report.task_id, dispatch_id: report.dispatch_id, blocker_count: normalizedBlockers.length, high_risk: highRisk, abnormal_stop: abnormalStop });
+      if (blockingReport) {
+        this.event(state, "EXECUTION_BLOCKER_REPORTED", { plan_series_id: report.plan_series_id, plan_version: report.plan_version, task_id: report.task_id, dispatch_id: report.dispatch_id, report_id: report.report_id, blocker_ids: normalizedBlockers.map((blocker) => blocker.blocker_id), requires_user: requiresUser, abnormal_stop: abnormalStop });
+        const delivery = await this.adapter.send(reviewMessage);
+        const messageId = delivery?.message_id ?? reviewMessage.message_id;
+        this.event(state, "PLANNING_BLOCKER_NOTIFICATION_SENT", { report_id: report.report_id, blocker_report_id: reviewMessage.blocker_report_id, target_session_id: reviewMessage.target_session_id, message_id: messageId });
+        return {
+          duplicate: false,
+          report_id: report.report_id,
+          review_required: true,
+          paused: true,
+          abnormal_stop: abnormalStop,
+          requires_user: requiresUser,
+          blocker_report_sent: true,
+          planning_notification: { message_id: messageId, target_session_id: reviewMessage.target_session_id },
+        };
+      }
+      return {
+        duplicate: false,
+        report_id: report.report_id,
+        review_required: true,
+        paused: blockingReport || highRisk,
+        abnormal_stop: abnormalStop,
+        requires_user: requiresUser,
+        blocker_report_sent: false,
+      };
     });
 
-    if (!result.duplicate && reviewMessage) {
+    if (!result.duplicate && reviewMessage?.message_type === "EXECUTION_REPORT") {
       try {
         await this.adapter.send(reviewMessage);
       } catch (error) {
         await this.store.transaction(this.projectId, async (state) => {
           this.event(state, "PLANNING_REVIEW_SEND_FAILED", { report_id: report.report_id, error: error.message });
         });
+        return { ...result, notification_error: error.message };
       }
     }
     return result;
   }
 
   async ingestPlanningReview(review) {
+    let planningOpinionMessage = null;
+    let userActionMessage = null;
     const result = await this.store.transaction(this.projectId, async (state) => {
       const series = state.series[required(review.plan_series_id, "review.plan_series_id")];
       const plan = series?.plans[String(review.plan_version)];
@@ -949,7 +1042,16 @@ export class FlowStateDispatcher {
       if (review.review_id && series.reviews[review.review_id]) return { duplicate: true, review_id: review.review_id };
       const reviewId = required(review.review_id ?? this.id("review"), "review_id");
       const decision = String(review.decision);
-      if (!["accepted", "revision-required", "blocked", "failed"].includes(decision)) throw new Error(`unsupported planning review decision: ${decision}`);
+      if (!["accepted", "revision-required", "blocked", "failed", "continue", "await-user"].includes(decision)) throw new Error(`unsupported planning review decision: ${decision}`);
+      const taskReport = series.reports[review.report_id ?? task.report_id];
+      const formalBlockerReport = asArray(taskReport?.new_blockers ?? taskReport?.blockers).length > 0;
+      if (decision === "blocked" && formalBlockerReport) throw new Error("formal blocker report requires continue or await-user");
+      const blockerDecision = ["continue", "await-user"].includes(decision);
+      const opinion = blockerDecision ? String(required(review.opinion, "review.opinion")) : String(review.opinion ?? "");
+      const requiresUser = review.requires_user ?? review.requiresUser;
+      if (blockerDecision && typeof requiresUser !== "boolean") throw new Error("review.requires_user must be boolean for a blocker decision");
+      if (decision === "continue" && requiresUser) throw new Error("continue cannot require user action");
+      if (decision === "await-user" && !requiresUser) throw new Error("await-user requires user action");
       const stored = { ...clone(review), review_id: reviewId, received_at: nowIso(this.clock) };
       series.reviews[reviewId] = stored;
       task.review_id = reviewId;
@@ -986,6 +1088,69 @@ export class FlowStateDispatcher {
       const approvalStillValid = Boolean(plan.approval && plan.approval.plan_id === plan.plan_id && plan.approval.plan_version === plan.plan_version);
       let requiresReapproval = materialChange || highRisk || reviewRisks.length > 0 || hasReviewBlockers || !approvalStillValid;
       let planCompleted = false;
+      const openBlockersBeforeDecision = plan.blockers.filter(blockerIsOpen);
+      if (blockerDecision && openBlockersBeforeDecision.length === 0) throw new Error("planning blocker opinion requires at least one open blocker");
+      if (decision === "continue") {
+        if (!approvalStillValid || materialChange || highRisk || reviewRisks.length > 0) {
+          throw new Error("continue requires the original approval to remain valid with no new risk or material change");
+        }
+        const resolutions = new Map(asArray(review.blocker_resolutions).map((resolution) => [String(resolution?.blocker_id ?? ""), resolution]));
+        for (const blocker of openBlockersBeforeDecision) {
+          const resolution = resolutions.get(blocker.blocker_id);
+          if (!resolution) throw new Error(`continue requires a resolution for open blocker ${blocker.blocker_id}`);
+          if (statusOf(resolution) !== "resolved") throw new Error(`blocker resolution ${blocker.blocker_id} must use status resolved`);
+          blocker.resolution = String(required(resolution.resolution, `blocker_resolutions.${blocker.blocker_id}.resolution`));
+          blocker.status = "resolved";
+          blocker.resolved_by = "planning";
+          blocker.resolution_review_id = reviewId;
+          if (series.blockers[blocker.blocker_id]) series.blockers[blocker.blocker_id] = blocker;
+        }
+      }
+
+      if (blockerDecision) {
+        planningOpinionMessage = {
+          message_type: "PLANNING_BLOCKER_OPINION",
+          message_id: `opinion-${reviewId}`,
+          idempotency_key: `opinion-${reviewId}`,
+          opinion_id: reviewId,
+          review_id: reviewId,
+          report_id: review.report_id ?? task.report_id ?? null,
+          target_session_id: series.execution_session_id,
+          return_to: series.execution_session_id,
+          project_id: this.projectId,
+          plan_series_id: review.plan_series_id,
+          plan_id: plan.plan_id,
+          plan_version: review.plan_version,
+          task_id: review.task_id,
+          dispatch_id: series.reports[review.report_id ?? task.report_id]?.dispatch_id ?? task.dispatch_id,
+          decision,
+          requires_user: Boolean(requiresUser),
+          opinion,
+          blockers: clone(plan.blockers.filter((blocker) => openBlockersBeforeDecision.some((candidate) => candidate.blocker_id === blocker.blocker_id))),
+          blocker_resolutions: clone(asArray(review.blocker_resolutions)),
+          next_action: decision === "continue" ? "dispatch" : (requiresUser ? "wait-for-user" : String(review.next_action ?? "wait")),
+        };
+        if (requiresUser) {
+          userActionMessage = {
+            message_type: "USER_ACTION_REQUIRED",
+            message_id: `user-action-${reviewId}`,
+            idempotency_key: `user-action-${reviewId}`,
+            target_session_id: series.planning_session_id,
+            return_to: series.planning_session_id,
+            project_id: this.projectId,
+            plan_series_id: review.plan_series_id,
+            plan_id: plan.plan_id,
+            plan_version: review.plan_version,
+            task_id: review.task_id,
+            report_id: review.report_id ?? task.report_id ?? null,
+            opinion_id: reviewId,
+            reason: opinion,
+            blockers: clone(openBlockersBeforeDecision),
+            recommended_next_action: "Resolve every listed blocker, then record an explicit resolution before execution resumes.",
+          };
+        }
+      }
+
       if (decision === "accepted") {
         task.status = "accepted";
         task.report_id = task.report_id ?? review.report_id ?? null;
@@ -1008,9 +1173,14 @@ export class FlowStateDispatcher {
           series.status = planCompleted ? "completed" : "approved";
           plan.status = planCompleted ? "completed" : "approved";
         }
-      } else if (decision === "blocked") {
+      } else if (decision === "continue") {
+        task.status = "ready";
+        plan.status = "approved";
+        series.status = "approved";
+        requiresReapproval = false;
+      } else if (decision === "await-user" || decision === "blocked") {
         task.status = "blocked";
-        plan.status = "paused-needs-review";
+        plan.status = requiresUser ? "awaiting-user-action" : "paused-needs-review";
         series.status = "waiting-on-planning";
       } else if (decision === "revision-required") {
         const maxRevisionCycles = Math.max(1, Number(plan.planning_policy?.max_revision_cycles ?? this.retryLimit) || this.retryLimit);
@@ -1046,11 +1216,24 @@ export class FlowStateDispatcher {
         task_id: review.task_id,
         review_id: reviewId,
         decision,
+        requires_user: Boolean(requiresUser),
         revision_attempt: task.revision_attempts,
         auto_revision_ready: autoRevisionReady,
         requires_reapproval: requiresReapproval,
         plan_completed: planCompleted,
       });
+      let opinionDelivery = null;
+      let userNotification = null;
+      if (blockerDecision && planningOpinionMessage) {
+        const delivery = await this.adapter.send(planningOpinionMessage);
+        opinionDelivery = { delivery: "sent", message_id: delivery?.message_id ?? planningOpinionMessage.message_id, target_session_id: planningOpinionMessage.target_session_id };
+        this.event(state, "PLANNING_BLOCKER_OPINION_SENT", { review_id: reviewId, report_id: planningOpinionMessage.report_id, decision, target_session_id: planningOpinionMessage.target_session_id, message_id: opinionDelivery.message_id });
+      }
+      if (userActionMessage) {
+        const delivery = await this.adapter.send(userActionMessage);
+        userNotification = { delivery: "sent", message_id: delivery?.message_id ?? userActionMessage.message_id, target_session_id: userActionMessage.target_session_id };
+        this.event(state, "PLANNING_USER_ACTION_REQUIRED", { review_id: reviewId, report_id: userActionMessage.report_id, target_session_id: userActionMessage.target_session_id, message_id: userNotification.message_id });
+      }
       return {
         duplicate: false,
         review_id: reviewId,
@@ -1061,10 +1244,18 @@ export class FlowStateDispatcher {
         auto_revision_ready: autoRevisionReady,
         revision_attempt: task.revision_attempts,
         plan_completed: planCompleted,
+        planning_opinion_required: blockerDecision,
+        user_action_required: Boolean(userActionMessage),
+        opinion_delivery: opinionDelivery,
+        user_notification: userNotification,
         next_plan_template: planCompleted ? clone(plan.next_plan) : null,
       };
     });
 
+    if (!result.duplicate && result.decision === "continue" && this.autoDispatch && result.auto_dispatch_ready && result.ready_tasks.length) {
+      const resumed = await this.dispatchReady({ planSeriesId: review.plan_series_id, planVersion: review.plan_version, automatic: true });
+      return { ...result, next_dispatches: resumed.dispatches };
+    }
     if (!result.duplicate && result.decision === "revision-required" && this.autoDispatch && result.auto_revision_ready) {
       const revision = await this.dispatchReady({ planSeriesId: review.plan_series_id, planVersion: review.plan_version, automatic: true });
       return { ...result, revision_dispatches: revision.dispatches };

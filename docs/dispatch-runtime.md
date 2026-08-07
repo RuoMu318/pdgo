@@ -14,8 +14,10 @@ create series/plan
   -> planning review
       accepted       -> unlock dependent task -> dispatch next task
       revision       -> in-scope correction dispatch -> repeat review
-      new risk/blocker/scope change -> pause -> new plan version and approval
-      blocked        -> planning waits for blocker resolution
+      new risk/scope change -> pause -> new plan version and approval
+      blocker/abnormal stop -> BLOCKER_REPORT -> planning opinion
+          resolvable -> PLANNING_BLOCKER_OPINION(continue) -> re-dispatch stopped task
+          user-owned -> USER_ACTION_REQUIRED -> keep execution paused
       failed         -> retry within profile limit or block
 ```
 
@@ -29,6 +31,20 @@ Any new risk or blocker prevents automatic correction, dependent-task unlock, pl
 preparation. High or critical risk also clears the current approval immediately. A blocker can restore dispatch only
 after an explicit resolution with evidence; if approval was cleared, the user must approve the matching plan version
 again.
+
+## Abnormal-stop escalation
+
+An abnormal execution stop is a worker crash, unexpected termination, or explicit `abnormal_stop: true`; a normal
+completion or ordinary `returned-to-planning` report is not an abnormal stop. On abnormal stop, execution must send a
+formal `BLOCKER_REPORT` to the fixed planning conversation immediately. Every blocker must include `reason`, `impact`,
+`recommended_solution`, and a Boolean `requires_user` value. A blocked report without those fields is rejected and
+remains unacknowledged for correction.
+
+Planning must answer with `PLANNING_BLOCKER_OPINION`. `decision: continue` is valid only when planning supplies a
+`resolved` record for every open blocker without changing the approved plan; after the opinion is delivered, the
+runtime re-dispatches the stopped task. If planning cannot resolve the blocker, it uses `decision: await-user`, sends
+`USER_ACTION_REQUIRED` in the planning conversation, changes the plan to `awaiting-user-action`, and does not dispatch.
+Silent state changes, silent retries, and treating a normal completion as an abnormal stop are forbidden.
 
 Stage scheduling follows the same gate:
 
@@ -101,9 +117,10 @@ plan, expand `allowed_paths`, override `forbidden_actions`, clear a blocker, cha
 push remote state. A selector on any non-`PLAN_DISPATCH` message is rejected so external roles cannot be invoked
 outside the governed execution path.
 
-The external worker returns the same `EXECUTION_REPORT` contract as a local worker. The execution controller records
-the report and sends it to the fixed planning session for acceptance, revision, block, or retry; an accepted report is
-the only event that can unlock a dependent task. Prompt-cache misses, metadata failures, source integrity failures,
+The external worker returns the same report contracts as a local worker: `EXECUTION_REPORT` for a normal return and
+`BLOCKER_REPORT` for an abnormal stop or explicit blocker. The execution controller records the report and sends it
+to the fixed planning session for acceptance, revision, block, or retry; an accepted report is the only event that
+can unlock a dependent task. Prompt-cache misses, metadata failures, source integrity failures,
 catalog lookup errors, or transport failures are recorded as dispatch failures. In file-queue mode the message remains
 auditable in the queue, but automatic dispatch creates a transport blocker and pauses; an unavailable external Agent
 is never reported as started or completed. A consuming profile may explicitly select a local PDGO Skill as a fallback,
@@ -130,13 +147,14 @@ Server adapter after checking platform availability and user approval.
 The dispatcher already performs the next-task transition after an accepted planning review. FlowStateRuntime adds
 the missing process boundary around that state machine:
 
-1. Read queued EXECUTION_REPORT messages for each planning controller session.
-2. Ingest each report and send a structured review request to the fixed planning session.
-3. Read queued REVIEW_DECISION messages for each execution controller session.
+1. Read queued `EXECUTION_REPORT`, `EXECUTION_STOPPED`, and `BLOCKER_REPORT` messages for each planning controller session.
+2. Ingest each report; formal blockers are forwarded to the fixed planning conversation as `BLOCKER_REPORT`.
+3. Read queued `REVIEW_DECISION` and `PLANNING_BLOCKER_OPINION` messages for each execution controller session.
 4. Record the planning decision; an accepted decision invokes the normal next-task gate.
-5. For an in-scope `revision-required` decision, dispatch the correction task again and return it to the same review loop.
-6. Resume every approved current plan whose dependencies and blocker conditions are satisfied.
-7. Acknowledge successful queue messages by moving them to processed/<session-id>/.
+5. For `continue`, deliver the planning opinion before re-dispatching the stopped task; for `await-user`, notify the user and remain paused.
+6. For an in-scope `revision-required` decision, dispatch the correction task again and return it to the same review loop.
+7. Resume every approved current plan whose dependencies and blocker conditions are satisfied.
+8. Acknowledge successful queue messages by moving them to processed/<session-id>/.
 
 The runtime is deliberately explicit rather than a hidden promise:
 

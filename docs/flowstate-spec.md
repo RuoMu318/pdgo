@@ -196,8 +196,8 @@ related sessions, tasks, dependencies, and current version.
 ## 9. Risk and blocker gates
 
 Each risk records its category, cause, probability, impact, severity, mitigation, contingency, owner,
-trigger, rollback, and user decision. Each blocker records its dependency, impact, owner, required decision,
-resolution, and status.
+trigger, rollback, and user decision. Each blocker records its dependency, reason, impact, recommended solution,
+whether user action is required, owner, required decision, resolution, and status.
 
 Required statuses:
 
@@ -245,14 +245,25 @@ or critical risks immediately clear the current approval; any risk or blocker mu
 dependent-task unlock, completion, or next-plan creation can continue. The user must re-review and approve a new
 version whenever the change is outside the approved contract.
 
-Any new risk, blocker, permission change, acceptance change, architecture change, rollback change, or material
-scope change invalidates the current approval for automatic progression. An open blocker, including one discovered
-in a report or review, prevents correction dispatch, dependent-task unlock, plan completion, and next-plan creation.
-The blocker must have an explicit resolution and evidence before the plan can return to `approved`.
+Any permission, acceptance, architecture, rollback, material scope, or other approved-contract change invalidates the
+current approval for automatic progression. A new blocker always pauses execution for planning disposition, but an
+in-scope resolution does not by itself invalidate the matching approval. An open blocker, including one discovered in
+a report or review, prevents correction dispatch, dependent-task unlock, plan completion, and next-plan creation. The
+blocker must have an explicit resolution and evidence before the plan can return to `approved`.
+
+An abnormal execution stop is not a normal completion. A crash, unexpected termination, `EXECUTION_STOPPED`, or
+explicit `abnormal_stop: true` immediately creates a formal `BLOCKER_REPORT` to the fixed planning conversation.
+Every reported blocker must contain `reason`, `impact`, `recommended_solution`, and Boolean `requires_user`; incomplete
+blocker reports are rejected. A normal completion or `returned-to-planning` report does not use this escalation path.
+
+Planning must record the blocker report and send `PLANNING_BLOCKER_OPINION` to execution. Planning may choose
+`continue` only after recording a `resolved` disposition for every open blocker inside the approved contract; the
+stopped task is then re-dispatched. If planning cannot resolve a blocker, it chooses `await-user`, sends
+`USER_ACTION_REQUIRED` in the planning conversation, and keeps execution paused in `awaiting-user-action`.
 
 An in-scope correction is limited to redoing omitted approved work, repairing a defect, or using another
-implementation method without changing the approved contract. It may reuse the current version when no new risk or
-blocker exists, the approval still matches, and the revision limit is not exceeded. A correction outside those bounds
+implementation method without changing the approved contract. It may reuse the current version when no unresolved
+risk or blocker exists, the approval still matches, and the revision limit is not exceeded. A correction outside those bounds
 returns to planning and requires a new version and user approval. A task accepted with a new risk or blocker does not
 make the plan `completed` and cannot create or dispatch `next_plan`.
 
@@ -269,6 +280,8 @@ Execution workers must:
 - test or validate according to the acceptance contract;
 - report actual changes, evidence, assumptions, deviations, new risks, and blockers;
 - mark `blocked` instead of guessing when inputs are insufficient.
+- on abnormal stop, immediately send `BLOCKER_REPORT` with reason, impact, recommended solution, and user disposition;
+- resume a stopped task only after receiving a recorded `PLANNING_BLOCKER_OPINION`.
 
 ## 13. Review and acceptance
 
@@ -290,14 +303,16 @@ After each execution report the controller performs or requests independent acce
 accepted          -> record evidence and activate the next ready stage/task
 revision-required -> issue an in-scope correction and repeat execution/review
 blocked/failed    -> wait for resolution, retry within policy, or return to planning
+continue          -> resolve every open blocker, notify execution, and re-dispatch the stopped task
+await-user        -> notify the user in planning and keep execution paused
 ```
 
 An in-scope correction means redoing an omitted approved item, repairing a defect, or changing the implementation
 method without changing the approved contract. It may reuse the same plan version while the approval is valid, no
-new risk or blocker exists, and the revision limit is not exceeded. A new risk, blocker, permission, acceptance,
-architecture, rollback, or scope change, or an explicit reapproval request, stops the loop and requires a new plan
-version and user approval. The controller continues correction and review until acceptance or a stop condition;
-it cannot skip an unsuccessful correction or proactively expand detail.
+unresolved risk or blocker exists, and the revision limit is not exceeded. A new risk or blocker stops the loop for
+planning disposition. A permission, acceptance, architecture, rollback, scope, or other approved-contract change,
+or an explicit reapproval request, requires a new plan version and user approval. The controller continues correction
+and review until acceptance or a stop condition; it cannot skip an unsuccessful correction or proactively expand detail.
 
 When every task is accepted and no blocker is open, the controller may prepare the declared `next_plan` in the same
 series. Preparing it does not approve it: the new version remains `awaiting-user-approval` and cannot dispatch.
