@@ -30,11 +30,36 @@ required_skills: []
 external_agent_id: null
 external_agent_query: null
 external_agent_division: null
+host_agent_type: null
+selection_source: null
+permission_mode: null
+role_assignment_hash: null
+# Items preserve optional purpose and evidence_cutoff from the approved plan.
+method_lenses: []
+execution_baseline:
+  goal: "The exact approved goal."
+  confirmed_decisions:
+    - decision: "Preserve the approved source."
+      source: "user-approved plan v1"
+  allowed_objects:
+    - result.txt
+  forbidden_objects:
+    - input.txt
+  allowed_actions:
+    - create
+  forbidden_actions:
+    - overwrite-source
+  completion_criteria:
+    - result.txt exists with the approved content
+  accepter: independent reviewer
+  current_action: "The one approved current action."
 allowed_paths: []
 forbidden_actions: []
 dependencies: []
-acceptance_criteria: []
-expected_evidence: []
+acceptance_criteria:
+  - result.txt exists with the approved content
+expected_evidence:
+  - result.txt content inspection
 risk_profile: []
 stop_conditions: []
 return_to: planning-session-id

@@ -177,7 +177,75 @@ but no fallback is inferred.
 Pass `--external-agents false` to use the base file-queue adapter without external Agent resolution. This disables
 selection; it does not disable approval, scope, evidence, report, or review gates.
 
-## CLI
+## BossCoding runtime discovery
+
+The Codex-native BossCoding bridge resolves exactly one descriptor at `<CodexHome>/runtime/bosscoding/runtime.json`.
+The schema-1.1 descriptor has this required shape:
+
+```json
+{
+  "schema_version": "1.1",
+  "integration_id": "pdgo-codex-native",
+  "runtime_root": "ABSOLUTE_PATH",
+  "manifest": { "path": "RELATIVE_PATH", "sha256": "SHA256_HEX" },
+  "dispatcher": { "path": "RELATIVE_PATH", "sha256": "SHA256_HEX" },
+  "runtime_tree": {
+    "algorithm": "sha256-tree-v1",
+    "paths": "PATHS_FROM_HASHED_MANIFEST",
+    "sha256": "SHA256_HEX"
+  }
+}
+```
+
+Both nested paths and every `runtime_tree.paths` entry resolve inside `runtime_root`. The manifest and dispatcher hashes
+must match, and the mandatory tree digest must exactly cover the dispatcher entrypoint, its imported libraries, and the
+configured specialist index, metadata index, and prompt tree before the bridge calls the dispatcher. The exact list comes
+from `manifest.runtime_tree.paths`; because the descriptor pins that manifest hash, the list cannot be shortened without
+invalidating the descriptor. Missing, malformed, incomplete, escaping,
+mismatched, or stale descriptors create a blocker. The bridge does not recursively search disks, fall back to the
+current working directory, or ask the user to run the CLI.
+
+Project runtime state is isolated at `<CodexHome>/state/bosscoding/projects/<name>-<hash16>`. The name is a sanitized
+project label and `hash16` is derived from the canonical project root, so two same-named projects do not share state.
+
+Cold start uses this fixed order:
+
+1. Resolve and verify the descriptor, manifest, and dispatcher with zero writes.
+2. Draft the five-field baseline, exact plan IDs, role assignments, file/test batch, and resolved state root in memory.
+3. Obtain one user approval covering state-root creation, exact plan persistence/approval, all three subagents,
+   implementation, and validation.
+4. Ensure the state root, create and approve the exact plan, then spawn and bind planning and review.
+5. Dispatch, spawn execution with the returned contract, and bind the real worker before accepting its report.
+
+There is no state-directory prerequisite and no preapproval plan write. If the persisted plan would differ materially
+from the approved draft, create a new version and ask again.
+
+Every BossCoding state action uses the installed resolver's `invoke` entry. It revalidates the descriptor and runtime
+tree, rejects linked or non-canonical project roots, recomputes the isolated state root, and refuses caller-supplied
+state roots, legacy cwd defaults, or external catalog/root overrides. It validates again after the action and blocks
+future work on detected drift. This narrows accidental time-of-check/time-of-use drift; it does not provide OS-level
+isolation from a malicious process running as the same user.
+
+Verified BossCoding invocation is owned by the installed resolver rather than selected by a caller flag. It accepts
+only new `bosscoding-v2` plans; the direct legacy CLI refuses state that contains a current BossCoding v2 plan.
+FlowState state and queue writers also reject linked, reparse-point, or non-canonical paths inside the isolated state
+tree before writes.
+
+Every new BossCoding plan declares `role_contract.version: bosscoding-v2` and complete planning/execution/review
+assignments. Only explicitly migrated `legacy-v1` plans retain identity-only compatibility. Planning/review dispatch is
+gated on bindings that exactly match the approved assignment. `hostAgentType` is recorded by the main Agent from the
+actual `spawn_agent.agent_type` argument; `selectionSource` is the approved role-selection record, not a spawn parameter.
+The dispatcher checks consistency but does not claim cryptographic or OS-level identity proof. A bound session's agent
+type is immutable. Execution `permission_mode` is exactly
+`read-only` or `approved-scope-write`; read-only execution cannot carry modification `allowed_paths`. Dispatches retain
+that exact permission mode, but actual access remains governed by Codex and project permissions. Advisory method lenses
+also preserve optional `purpose` and `evidence_cutoff`.
+
+One active invocation can select both roles and a method lens without giving either approval authority:
+`秘书，用 acy 选合适专家完成 <任务>，并用 $munger 的 Lens 检查可避免的失败。` `$nuwa-skill` is
+reserved for creating, updating, or auditing Persona Skills; ordinary work names the installed Persona Skill directly.
+
+## Legacy direct CLI
 
 ```powershell
 node scripts/flowstate-dispatcher.mjs --action create-plan --input plan.json --root .flowstate --project demo
@@ -189,7 +257,8 @@ node scripts/flowstate-dispatcher.mjs --action report --input report.json --root
 node scripts/flowstate-dispatcher.mjs --action review --input review.json --root .flowstate --project demo
 ```
 
-The CLI uses the file queue and is intentionally explicit. The `review` input must include the host-observed
+This direct dispatcher CLI is the legacy PDGO entry; it rejects any caller-supplied `--interface`. BossCoding uses the
+installed resolver's verified `invoke` entry instead. The direct CLI cannot create or operate current BossCoding v2 state. The `review` input must include the host-observed
 `observed_session_id`. The Codex-native Skill calls the built-in subagent tools itself, then binds their actual returned
 IDs; the Node CLI never fabricates or launches a Codex subagent.
 

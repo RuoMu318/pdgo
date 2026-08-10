@@ -21,6 +21,30 @@ The durable task record must carry:
 
 Do not rename a project's unique next step to the current task action.
 
+## Role selection and one exact approval
+
+The secretary first performs the zero-write runtime inspection. It then drafts in memory the five execution-baseline fields, exact `plan_id + plan_version`, exact project-state root, planning/execution/review role assignments, allowed files, prohibited actions, and validation batch before any state write or subagent starts. `acy` only selects roles; it is not approval and its prose cannot authorize a call, write, or external action.
+
+Present that complete batch once. One exact user approval covers creation of the isolated project-state root, the declared planning, execution, and review subagents, and the declared implementation and validation. After approval, ensure the state root, persist the exact drafted plan, record the matching approval, and explicitly invoke `$pdgo-codex-native-bridge`; do not wait for implicit bridge routing. Every BossCoding state action then uses the installed resolver's `invoke` entry so the runtime is revalidated and the project state root is recomputed instead of accepted from caller input. Direct dispatcher CLI remains a separately selected legacy PDGO interface. If persistence would alter the drafted plan body, stop and show the changed version instead of borrowing the prior approval.
+
+The approved planning subagent validates or refines the frozen plan. Continue without another question only when the goal, scope, permissions, accepter, external actions, material risks, role assignments, and Persona modes remain materially unchanged. Otherwise create a higher plan version and request a new exact approval.
+
+Record Codex `agent_type` in `role_assignments[].host_agent_type`. Every new BossCoding plan uses `role_contract.version: bosscoding-v2` and complete planning/execution/review assignments. `legacy-v1` is allowed only for a migrated old plan carrying `migration: role-assignments-not-recorded`; it is not a new-task fallback. Keep PDGO `external_agent_id` in the existing external-Agent selector contract. Never infer, copy, or convert one identifier into the other by display-name similarity.
+
+Every governed bind carries two different records. `host_agent_type` is recorded by the main Agent from the actual `spawn_agent.agent_type` argument. `selection_source` is the approved role-selection provenance from the plan, such as `approved-role-selection:acy`; it is not a `spawn_agent` argument. Neither value is a cryptographic or host-independent proof: the dispatcher only checks exact consistency among the approved plan, the main Agent's binding input, and persisted state. Child prose, self-description, and task names are never sources for either field. A bound session's `host_agent_type` is immutable; changing the role type requires a new session or plan series.
+
+Execution `permission_mode` is exactly `read-only` or `approved-scope-write`, and a read-only execution assignment cannot carry modification `allowed_paths`. This is a governance and dispatch boundary, not an OS sandbox; current Codex permissions, project rules, and user approval must enforce the actual read/write boundary.
+
+Persona Skills belong in `method_lenses`, not `role_assignments`. Lens is the default; Voice and Rehearsal require `explicit_opt_in: true`. Their authority is always `advisory`, they cannot apply to review, and they cannot supply identity, permissions, acceptance, or facts. `applies_to` is limited to `planning`, `execution`, an actual task id, or `task:<actual-task-id>`. A separate functional reviewer may inspect their advisory output but must decide from the approved criteria and evidence.
+
+`method_lenses` may preserve `purpose` and `evidence_cutoff` so the worker knows why the lens applies and where its dated evidence ends. These fields remain context, not authority.
+
+User-facing examples:
+
+- `秘书，用 acy 选合适专家完成登录修复，并用 $munger 的 Lens 检查可避免的权限漏洞。`
+- `秘书，按 BossCoding 做这项长程任务；acy 负责选角色，$munger 只用 Lens，不要 Voice。`
+- `$nuwa-skill` is reserved for creating, updating, or auditing a Persona Skill; ordinary work invokes the installed Persona Skill itself.
+
 ## Existing and new projects
 
 For an existing project:
@@ -47,7 +71,7 @@ Git is a project-level decision, not a per-task ritual. A feature branch is usef
 - `dbs-decision`: record major decisions; it is not the task runtime.
 - `boss-flow`: developer delivery mechanics; Git, npm, branches, preview, commit, and merge are conditional on project value and permission.
 - `boss-ladder`: local-to-public deployment stages; it does not govern every task.
-- `acy` or specialist selectors: help choose a bounded specialist; they do not replace PDGO identity and review gates.
+- `acy` or specialist selectors: help choose a bounded specialist; they do not approve calls or replace PDGO identity and review gates.
 
 ## Closeout
 

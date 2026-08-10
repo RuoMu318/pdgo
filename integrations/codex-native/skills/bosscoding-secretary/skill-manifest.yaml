@@ -13,7 +13,7 @@ stage:
 scenarios:
   - "formal modification tasks that need durable scope and independent review"
 positive_triggers:
-  - "The user requests BossCoding, secretary, emperor mode, boss mode, a long-running task, or multi-role delivery"
+  - "The user requests BossCoding, a secretary, a long-running task, or multi-role delivery"
   - "The task changes state and needs planning, execution, review, or resume support"
 negative_triggers:
   - "The request is a simple answer, translation, or read-only lookup with no durable state"

@@ -12,8 +12,15 @@ reviewer_session_id: review-session-id
 observed_source_session_id: review-session-id
 source_verified: true
 decision: accepted | revision-required | blocked | failed | continue | await-user
-criteria_results: []
-evidence_checked: []
+# accepted requires one passing criteria_result for every requested acceptance
+# criterion, explicit passing evidence_checked entries for BossCoding v2, and no
+# unresolved issue_results, defects, or required_changes.
+criteria_results:
+  - criterion: "result.txt exists with the approved content"
+    result: pass
+evidence_checked:
+  - evidence: "result.txt content inspection"
+    result: pass
 issue_results:
   - issue_id: stable-issue-id
     status: open | resolved

@@ -216,31 +216,40 @@ FlowStateDispatcher 负责状态机；FlowStateStore 持久化方案、任务、
 
 适配器必须返回真实会话 ID，或者明确返回 adapter-unavailable。不得伪造完成。
 
-## 快速开始
+## BossCoding 冷启动
 
-安装或复制项目方法 Skill：
+安装后的 BossCoding 秘书只读取 `<CodexHome>/runtime/bosscoding/runtime.json` 这一份 schema 1.1 描述符。描述符先锁定 manifest；已校验 manifest 再给出完整 `runtime_tree.paths`，覆盖 dispatcher、实际导入库、冷启动 resolver，以及专业角色的索引、元数据索引和提示词树。缺失、越界、路径经过链接或哈希漂移都会停止，不会搜索磁盘猜路径。
+
+陌生项目先只读检查，不创建项目状态。秘书在内存中起草完整批次并取得一次精确批准后，才在 `<CodexHome>/state/bosscoding/projects/<name>-<hash16>` 创建隔离状态。之后每个 BossCoding 状态动作都通过已安装 resolver 的 verified invoke 入口：它重新校验运行时、按项目规范路径重算状态根，并拒绝任意 `--root` 或外部目录覆盖。普通 PDGO 的直接 CLI 仍是单独选择的旧接口，不是老板需要手工操作的流程。
+
+新 BossCoding 计划必须使用完整的 `bosscoding-v2` 三角色契约。`host_agent_type` 由主 Agent 从真实 `spawn_agent.agent_type` 参数记录；`selection_source` 只是获批的选角来源记录，不是 spawn 参数或密码学证明。`permission_mode` 也是治理边界，不等于操作系统沙箱。当前保护目标是防止误配置、普通并发和本地漂移，不声称能隔离已经以同一 Windows 用户身份运行的恶意进程。
+
+dispatcher 明确分开“只能由已安装 resolver 发起的受控调用”和“直接旧 CLI”：直接 CLI 不接受调用者冒充受控入口，也拒绝 BossCoding v2 状态；受控入口则拒绝新建 legacy 计划。状态和队列写入会拒绝隔离目录内部的链接或非规范路径。安装器先原子发布完整锁，再记录每个原目标的类型和摘要；安装期间目标或源码变化就停止，提交后逐项复核，回滚时若发现外部新修改会保留现场而不是静默覆盖。
+
+## BossCoding 快速开始
+
+在 Codex 里直接说 `秘书：<任务>`、`秘书，按 BossCoding 做：<任务>`，或调用
+`$bosscoding-secretary <任务>`。秘书会定位已验证运行时、起草一个精确批次、取得一次批准，并自动协调
+策划、执行和独立审核。老板不需要运行 dispatcher CLI，也不需要在 Agent 之间搬运 JSON。
+
+## 旧版 PDGO 直接 CLI
+
+直接 CLI 只用于开发者兼容明确声明 `role_contract.version: legacy-v1` 且
+`migration: role-assignments-not-recorded` 的旧计划；它不能创建或操作 BossCoding v2 状态。输入文件必须是
+legacy 专用计划，不能直接使用默认 v2 的 `schemas/plan.yaml`：
 
 ~~~powershell
-Copy-Item -Recurse -Force .\skills\pdgo-route-work `
-  "$env:USERPROFILE\.codex\skills\pdgo-route-work"
+node scripts/flowstate-dispatcher.mjs --action create-plan --input legacy-plan.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action approve --input legacy-approval.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action dispatch --input legacy-dispatch.json --root .flowstate --project demo
 ~~~
 
-创建并批准方案，再通过确定性 CLI 派发：
-
-~~~powershell
-node scripts/flowstate-dispatcher.mjs --action create-plan --input plan.json --root .flowstate --project demo
-node scripts/flowstate-dispatcher.mjs --action approve --input approval.json --root .flowstate --project demo
-node scripts/flowstate-dispatcher.mjs --action dispatch --input dispatch.json --root .flowstate --project demo
-~~~
-
-重启后恢复，或运行持续的本地队列消费者：
+旧版恢复仍需显式调用；`watch` 是选择性的常驻模式，BossCoding 不会启动它：
 
 ~~~powershell
 node scripts/flowstate-dispatcher.mjs --action resume --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action watch --root .flowstate --project demo --interval-ms 1000
 ~~~
-
-watch 是显式选择的常驻模式；需要无人值守时，建议交给服务管理器或 CI 监督。
 
 ## 仓库结构
 

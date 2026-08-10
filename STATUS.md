@@ -1,6 +1,6 @@
 # BossCoding Codex integration status
 
-Updated: 2026-08-08
+Updated: 2026-08-09
 
 ## Goal
 
@@ -11,7 +11,7 @@ completion or a defined stop condition.
 
 ## Confirmed decisions
 
-- Default user experience is Emperor mode; future Boss mode changes presentation, not evidence or
+- Default user experience is direct secretary invocation; presentation never changes evidence or
   authorization rules.
 - The secretary may coordinate and advise, but may not change direction, lower acceptance criteria,
   suppress disagreement, or accept failed work.
@@ -48,8 +48,10 @@ completion or a defined stop condition.
 
 ## Current action
 
-No implementation action is pending. Both global Skills and the global policy overlay are installed
-and verified. The real three-role Codex fixture completed with authenticated worker and reviewer
-identities; validation, 54 Node tests, and the original smoke test pass. Independent specification
-and standards reviews both returned PASS. The integration is committed locally and ready for use;
-GitHub push remains outside scope.
+The approved v2 extension is complete. An unrelated empty project completed a real cold-start run
+with separate planning, execution, and review subagents; the installed resolver verified their host
+identities, permissions, the advisory-only Andrej Karpathy Lens, the execution report, and the final
+review source. The exact 32-byte artifact passed independent review, and the isolated project and
+state were then removed. The stable user entry is `秘书：<任务>`; no implementation action remains.
+GitHub push, persistent daemons, the course project, and unapproved target-project initialization
+remain outside scope.

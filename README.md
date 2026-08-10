@@ -229,34 +229,46 @@ Search by the concrete scenario and division, then use the exact `external_agent
 
 Adapters must return real session identifiers or an explicit `adapter-unavailable` status. The Codex-native integration lives under `integrations/codex-native/`; its Skill calls built-in subagent tools, then binds the real returned IDs. Node never fabricates or launches a Codex subagent.
 
+### BossCoding cold start
+
+The installed BossCoding secretary resolves one schema-1.1 descriptor at `<CodexHome>/runtime/bosscoding/runtime.json`. The descriptor contains `schema_version`, `integration_id`, `runtime_root`, nested `manifest` and `dispatcher` objects, and mandatory `runtime_tree`. The descriptor pins the manifest; that hashed manifest is the single source for the complete runtime path list, including the dispatcher, its imported libraries, the cold-start resolver, and the configured specialist index, metadata index, and prompt tree. A missing descriptor, path escape, integration mismatch, incomplete tree, or hash mismatch is a blocker rather than permission to search the disk or use an unverified runtime.
+
+Each consuming project uses isolated state at `<CodexHome>/state/bosscoding/projects/<name>-<hash16>`, where the suffix is derived from the canonical project root. The secretary and bridge resolve these paths themselves. A BossCoding user is not asked to run the CLI or move dispatch JSON between Agents.
+
+Cold start is deliberately ordered so inspection cannot become an unapproved write: resolve and verify the runtime with zero writes; draft the exact baseline, IDs, roles, file/test batch, and state root in memory; obtain one approval covering state creation and all three roles; then ensure state, persist and approve the exact plan, and spawn/bind planning, review, and execution. New BossCoding plans use the complete `bosscoding-v2` role contract. `host_agent_type` is recorded from the real `spawn_agent.agent_type` argument; `selection_source` is the approved role-selection record, not a spawn argument or cryptographic proof. The installed resolver's verified invoke entry rechecks the descriptor, recomputes the project state root, and forbids arbitrary root or catalog overrides before every BossCoding state action. Direct dispatcher CLI remains a separately opted-in legacy PDGO interface. These checks protect against mistakes and ordinary local drift; they do not claim isolation from a malicious process already running as the same OS user.
+
+The dispatcher separates resolver-owned verified BossCoding invocation from the direct legacy CLI: the direct CLI rejects caller-supplied interface claims and BossCoding v2 state, while resolver-owned creation rejects legacy plans. State and queue writers reject linked or non-canonical paths inside the isolated state tree. The installer publishes a complete ownership record atomically, snapshots every existing target before staging, refuses concurrent target or source drift, verifies committed targets, and preserves externally modified files instead of deleting them during rollback.
+
+Users can invoke the combined flow directly: `秘书，用 acy 选合适专家完成 <任务>，并用 $munger 的 Lens 检查可避免的失败。` `acy` selects functional roles, while `$munger` is only an advisory method lens. `$nuwa-skill` is reserved for creating, updating, or auditing Persona Skills; ordinary work invokes the installed Persona Skill itself. Optional lens `purpose` and `evidence_cutoff` survive into the execution dispatch without gaining authority.
+
 An adapter may mark review identity as authenticated only for the exact transport its `receiveReviews` method polls;
 wrapping a trusted worker launcher around a plain file queue does not make queued reviews trusted.
 
-## Quick start
+## BossCoding quick start
 
-Install or copy the project-method Skill:
+In Codex, say `秘书：<任务>`, `秘书，按 BossCoding 做：<任务>`, or invoke
+`$bosscoding-secretary <任务>`. The secretary resolves the verified runtime, drafts one exact batch, obtains one
+approval, and coordinates planning, execution, and independent review. BossCoding users do not run a dispatcher CLI
+or move JSON between Agents.
+
+## Legacy PDGO direct CLI
+
+The direct CLI is developer compatibility for plans that explicitly declare
+`role_contract.version: legacy-v1` and `migration: role-assignments-not-recorded`. It cannot create or operate
+BossCoding v2 state. Use a legacy-specific input rather than the v2 `schemas/plan.yaml` template:
 
 ```powershell
-Copy-Item -Recurse -Force .\skills\pdgo-route-work `
-  "$env:USERPROFILE\.codex\skills\pdgo-route-work"
+node scripts/flowstate-dispatcher.mjs --action create-plan --input legacy-plan.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action approve --input legacy-approval.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action dispatch --input legacy-dispatch.json --root .flowstate --project demo
 ```
 
-Create and approve a plan, then dispatch it through the deterministic CLI:
-
-```powershell
-node scripts/flowstate-dispatcher.mjs --action create-plan --input plan.json --root .flowstate --project demo
-node scripts/flowstate-dispatcher.mjs --action approve --input approval.json --root .flowstate --project demo
-node scripts/flowstate-dispatcher.mjs --action dispatch --input dispatch.json --root .flowstate --project demo
-```
-
-Recover after a restart or run a continuous local queue consumer:
+Legacy recovery remains explicit; `watch` is opt-in and must not be started by BossCoding:
 
 ```powershell
 node scripts/flowstate-dispatcher.mjs --action resume --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action watch --root .flowstate --project demo --interval-ms 1000
 ```
-
-`watch` is opt-in and explicit. It should be supervised by a service manager or CI when unattended operation is desired.
 
 ## Repository layout
 

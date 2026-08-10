@@ -53,5 +53,38 @@
   PASS. No unresolved blocker remains.
 
 Completion state: implementation, verification, global installation, and independent review are
-complete. The only remaining repository action is the approved local commit; no GitHub push is
-authorized.
+complete for v1, including local commit `324acd028c905753f02034bbd08fd8fd55931d82`; no GitHub push
+is authorized.
+
+- 2026-08-08: Started approved plan `BOSSCODING-PDGO-20260808-COLDSTART-v1`. Its v2 scope is
+  arbitrary-project cold start, a machine-local runtime descriptor, external generated state,
+  acy-selected host role provenance, advisory persona lenses, short user invocation, regression
+  tests, a real unrelated-project run, global reinstall, and independent review.
+- 2026-08-08: Read-only planning identified two hard gaps: the installed bridge cannot locate the
+  dispatcher from an unrelated current directory, and the old bridge called planning before the
+  permission layer had approved any subagent. The approved flow now drafts the exact batch first,
+  authorizes all named roles once, then uses planning to validate it; material changes still require
+  a new plan version and approval.
+
+- 2026-08-09: Completed the approved v2 correction and adversarial-review cycle. The runtime now
+  fails closed on descriptor, source-integrity, state-path, role-binding, stale-review, and installer
+  ownership violations. Independent security review and independent specification review both
+  returned PASS after their reported bypasses were fixed and regression-tested.
+- 2026-08-09: Final local gates pass with 104/104 Node tests and zero failures, skips, or todos;
+  project validation, the original smoke test, both integration Skill validations, and diff checks
+  also pass. The verified global installation uses descriptor schema 1.1, matches both source Skill
+  trees, contains one managed policy overlay, and a second installation reports `changed: false`.
+- 2026-08-09: Ran the globally installed integration from an unrelated empty project. Real Codex
+  subagents `/root/e2e_planning`, `/root/e2e_execution`, and `/root/e2e_review` were bound as Project
+  Shepherd, Minimal Change Engineer, and Code Reviewer. Execution alone wrote `result.txt`; the
+  independent reviewer verified it was the only project file, exactly 32 bytes with the approved LF,
+  and SHA-256 `79A8DFEBD5FFD06CFFE64D4B2D81DA4D43931F28CAC3056E616EB23637A030CA`.
+- 2026-08-09: The dispatcher verified the real worker and reviewer sources, recorded two passed
+  criteria and two passed evidence checks, and completed the task, plan, and series without a
+  follow-on dispatch. The isolated project, external state directory, and temporary registration
+  inputs were then removed by exact-path cleanup.
+
+Completion state: the approved v2 cross-project cold start, role selection, advisory persona lens,
+direct `秘书：<任务>` entry, verified global installation, independent review, and unrelated-project
+E2E are complete. No GitHub push, persistent daemon, course-project modification, publication, or
+external message occurred.

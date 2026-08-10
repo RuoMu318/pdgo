@@ -30,18 +30,26 @@ description: 用 Codex 内置子 Agent 驱动 PDGO 的真实策划、执行和�
 
 四者 ID 必须可区分。主 Agent、planning、execution 或 worker 的输出不能作为独立通过决定。
 
+所有新 BossCoding 计划使用 `role_contract.version: bosscoding-v2`，并完整记录 planning、execution、review 三项 `role_assignments`。旧计划只有在显式标记 `legacy-v1` 与 `migration: role-assignments-not-recorded` 时才保留兼容。`role_assignments` 中的 `host_agent_type` 记录 Codex 宿主的 `agent_type`；既有 `external_agent_id` 仍只属于外部 Agent 目录。两者不得按显示名静默互转。`method_lenses` 只传递获批的方法镜头：authority 必须是 `advisory`，不得应用到 review，也不得成为身份、权限或验收来源。
+
 ## 真实派工流程
 
-1. 主 Agent 调用 planning 子 Agent，要求返回五项执行基准和 PDGO plan。
-2. 将 plan 持久化，取得 `plan_id + plan_version`，立即用 `bind-host-session` 把 planning 子 Agent 的真实 ID 绑定为 `planning` 角色，再展示精确批次并取得一次用户批准。
-3. 预先创建独立 review 子 Agent，保存 `spawn_agent` 返回的真实 ID，并用 `bind-host-session` 绑定 `review` 角色。
-4. PDGO 生成 `PLAN_DISPATCH` 后，调用 execution 子 Agent；把完整 dispatch 原样交给它。
-5. 捕获真实 execution Agent ID，调用 `bind-host-worker` 绑定到精确 `dispatch_id`。缺少真实 ID 就写 transport blocker。
-6. 等待执行返回；结构化为 `EXECUTION_REPORT`，其中 `worker_session_id` 必须是已绑定的 execution Agent ID；`session_id` 保留为兼容字段，再交给 PDGO。
-7. 将 PDGO 生成的 `REVIEW_REQUEST` 和只读候选交给已绑定 review Agent；等待其 `REVIEW_DECISION`。
-8. 把宿主观察到的 review Agent ID 作为 `observed_session_id` 写入 review 动作。消息正文自报的 ID 不算证据。
-9. `accepted` 才解锁依赖；`revision-required` 生成原范围内修正；`blocked` 或 `failed` 停下。
-10. 结束时由秘书核对执行基准、实际改动、审核结果和持久状态。
+1. 用已安装解析器只读校验运行时描述符、manifest 和完整运行时树；这一步不得创建项目状态目录。
+2. 主 Agent 根据项目状态和 `acy` 方法在内存中起草五项执行基准、精确 `plan_id + plan_version`、项目状态目录、三个角色、文件和验证批次；`acy` 的角色建议本身不是批准。
+3. 秘书展示完整批次。用户一次批准覆盖创建状态目录、写入精确计划与批准、planning/execution/review 子 Agent、实施和验证。
+4. 获批后才确保状态目录存在，持久化刚才展示的 plan，并记录精确匹配的批准；任何实质变化都必须升版并重新批准。
+5. 获批后调用 planning 子 Agent 验证或细化已批准计划，再用 `bind-host-session` 绑定 planning 的真实 ID。`host_agent_type` 由主 Agent 从实际 `spawn_agent.agent_type` 参数记录；`selection_source` 原样来自获批计划中的角色选择记录，不是 spawn 参数。没有实质变化时继续；目标、范围、权限、验收者、外部动作、重大风险、角色或 Persona 模式实质变化时升版并重新批准。
+6. 创建独立 review 子 Agent，保存真实 ID，并用同样的宿主观察字段绑定 `review` 角色。
+7. PDGO 生成 `PLAN_DISPATCH` 后，按获批的 execution `host_agent_type` 调用 execution 子 Agent；把完整 dispatch 原样交给它。
+8. 捕获真实 execution Agent ID，调用 `bind-host-worker` 绑定到精确 `dispatch_id`：`host_agent_type` 来自实际调用的 `agent_type`，`selection_source` 来自获批角色选择记录。不得从子 Agent 自述获取；旧 session 不能被重标为另一类型。缺少真实 ID 或任一绑定字段就写 transport blocker。
+9. 等待执行返回；结构化为 `EXECUTION_REPORT`，其中 `worker_session_id` 必须是已绑定的 execution Agent ID；`session_id` 保留为兼容字段，再交给 PDGO。
+10. 将 PDGO 生成的 `REVIEW_REQUEST` 和只读候选交给已绑定 review Agent；等待其 `REVIEW_DECISION`。人物 Lens、Voice 或 Rehearsal 不能充当这一审核身份。
+11. 把宿主观察到的 review Agent ID 作为 `observed_session_id` 写入 review 动作。消息正文自报的 ID 不算证据。
+12. `accepted` 才解锁依赖；`revision-required` 生成原范围内修正；`blocked` 或 `failed` 停下。结束时由秘书核对执行基准、实际改动、审核结果和持久状态。
+
+以上所有 BossCoding 状态动作都通过已安装解析器的 `invoke` 入口执行。该入口必须重新校验运行时、按真实项目路径重算状态根，并拒绝调用方传入 `--root`、旧 cwd 默认值或外部角色目录覆盖。直接调用 dispatcher CLI 只属于明确选择的旧版 PDGO 接口，不能作为 BossCoding 的省事旁路。
+
+`permission_mode` 只表达治理和派工边界，不能代替 Codex 与项目权限的真实约束。执行前必须确认实际工具权限与获批模式相符。
 
 ## 修正与停止
 

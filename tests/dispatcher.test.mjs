@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { CodexAppServerAdapter, FileQueueAdapter, FlowStateDispatcher, FlowStateRuntime, FlowStateStore } from "../scripts/lib/flowstate-dispatcher.mjs";
@@ -67,6 +68,10 @@ class ConnectedQueueAdapter extends FileQueueAdapter {
 
 function makePlan(overrides = {}) {
   return {
+    role_contract: {
+      version: "legacy-v1",
+      migration: "role-assignments-not-recorded",
+    },
     project_id: "demo",
     title: "Two-step governed change",
     summary: "Run two dependent tasks in one series conversation.",
@@ -76,6 +81,30 @@ function makePlan(overrides = {}) {
       { task_id: "T01", title: "Implement change", objective: "Implement the bounded change.", acceptance_criteria: ["change exists"], expected_evidence: ["diff"] },
       { task_id: "T02", title: "Validate change", objective: "Run the validation.", dependencies: ["T01"], acceptance_criteria: ["tests pass"], expected_evidence: ["test log"] },
     ],
+    ...overrides,
+  };
+}
+
+function bossRoleAssignments(overrides = {}) {
+  return {
+    planning: { host_agent_type: "Multi-Agent Systems Architect", selection_source: "approved-role-selection:acy", permission_mode: "read-only" },
+    execution: { host_agent_type: "Senior Developer", selection_source: "approved-role-selection:acy", permission_mode: "approved-scope-write" },
+    review: { host_agent_type: "Code Reviewer", selection_source: "approved-role-selection:acy", permission_mode: "read-only" },
+    ...overrides,
+  };
+}
+
+function bossExecutionBaseline(overrides = {}) {
+  return {
+    goal: "Ship the approved bounded result.",
+    confirmed_decisions: [{ decision: "Preserve the source.", source: "user-approved plan v1" }],
+    allowed_objects: ["result.txt"],
+    forbidden_objects: ["input.txt"],
+    allowed_actions: ["create"],
+    forbidden_actions: ["overwrite"],
+    completion_criteria: ["result exists"],
+    accepter: "independent reviewer",
+    current_action: "Create result.txt.",
     ...overrides,
   };
 }
@@ -152,6 +181,464 @@ test("the durable plan preserves the complete five-field execution baseline", as
   }
 });
 
+test("BossCoding v2 requires an explicit complete execution baseline and dispatch preserves it", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-v2-missing-baseline",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-v2-missing-baseline-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+      }),
+    }), /execution_baseline.*required|complete execution baseline/i);
+
+    const incomplete = bossExecutionBaseline();
+    delete incomplete.current_action;
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-v2-incomplete-baseline",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-v2-incomplete-baseline-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: incomplete,
+      }),
+    }), /execution_baseline\.current_action.*required|complete execution baseline/i);
+
+    for (const [field, value] of [
+      ["allowed_objects", [""]],
+      ["forbidden_objects", ["   "]],
+      ["allowed_actions", [""]],
+      ["forbidden_actions", ["\t"]],
+      ["completion_criteria", [""]],
+      ["allowed_objects", [{}]],
+      ["allowed_actions", [{}]],
+      ["completion_criteria", [{}]],
+    ]) {
+      await assert.rejects(() => dispatcher.createPlan({
+        planSeriesId: `series-v2-blank-${field}`,
+        planVersion: "v1",
+        plan: makePlan({
+          plan_id: `series-v2-blank-${field}-v1`,
+          role_contract: { version: "bosscoding-v2" },
+          role_assignments: bossRoleAssignments(),
+          execution_baseline: bossExecutionBaseline({ [field]: value }),
+        }),
+      }), new RegExp(`execution_baseline\\.${field}.*blank|meaningful`, "i"));
+    }
+
+    for (const [field, taskValue] of [
+      ["acceptance_criteria", []],
+      ["expected_evidence", []],
+      ["acceptance_criteria", [""]],
+      ["expected_evidence", ["   "]],
+      ["acceptance_criteria", [{}]],
+      ["expected_evidence", [{}]],
+    ]) {
+      await assert.rejects(() => dispatcher.createPlan({
+        planSeriesId: `series-v2-empty-task-${field}-${taskValue.length}`,
+        planVersion: "v1",
+        plan: makePlan({
+          plan_id: `series-v2-empty-task-${field}-${taskValue.length}-v1`,
+          role_contract: { version: "bosscoding-v2" },
+          role_assignments: bossRoleAssignments(),
+          execution_baseline: bossExecutionBaseline(),
+          tasks: [{
+            task_id: "T01",
+            title: "Implement change",
+            objective: "Implement the bounded change.",
+            acceptance_criteria: ["change exists"],
+            expected_evidence: ["diff"],
+            [field]: taskValue,
+          }],
+        }),
+      }), new RegExp(`tasks\\[0\\]\\.${field}.*(must not be empty|blank|meaningful)`, "i"));
+    }
+
+    const baseline = bossExecutionBaseline();
+    await dispatcher.createPlan({
+      planSeriesId: "series-v2-baseline-dispatch",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-v2-baseline-dispatch-v1",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: baseline,
+      }),
+    });
+    await dispatcher.approvePlan({
+      planSeriesId: "series-v2-baseline-dispatch",
+      planVersion: "v1",
+      approval: { approver: "user", plan_id: "series-v2-baseline-dispatch-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] },
+    });
+    await dispatcher.bindHostSession({ planSeriesId: "series-v2-baseline-dispatch", planVersion: "v1", role: "planning", sessionId: "plan-session-series-v2-baseline-dispatch", hostAgentType: "Multi-Agent Systems Architect", selectionSource: "approved-role-selection:acy" });
+    await dispatcher.bindHostSession({ planSeriesId: "series-v2-baseline-dispatch", planVersion: "v1", role: "review", sessionId: "review-session-series-v2-baseline-dispatch", hostAgentType: "Code Reviewer", selectionSource: "approved-role-selection:acy" });
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: "series-v2-baseline-dispatch", planVersion: "v1" });
+    assert.deepEqual(dispatched.dispatches[0].execution_baseline, baseline);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("approved role assignments and advisory execution lenses persist into dispatch without becoming external Agent selectors", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-role-contract",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-role-contract-plan-v1",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline(),
+        method_lenses: [
+          {
+            skill_id: "munger",
+            mode: "lens",
+            applies_to: ["execution"],
+            authority: "advisory",
+            purpose: "Invert the permission and identity failure modes.",
+            evidence_cutoff: "2026-07-24",
+          },
+          { skill_id: "steve-jobs", mode: "lens", applies_to: ["planning"], authority: "advisory" },
+        ],
+      }),
+    });
+    await dispatcher.approvePlan({
+      planSeriesId: "series-role-contract",
+      planVersion: "v1",
+      approval: {
+        approver: "user",
+        plan_id: "series-role-contract-plan-v1",
+        plan_version: "v1",
+        decision: "approved",
+        acknowledged_risks: [],
+      },
+    });
+
+    await assert.rejects(
+      () => dispatcher.dispatchReady({ planSeriesId: "series-role-contract", planVersion: "v1" }),
+      /host-observed planning role binding/,
+    );
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-role-contract",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "plan-session-series-role-contract",
+      hostAgentType: "Multi-Agent Systems Architect",
+      selectionSource: "approved-role-selection:acy",
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-role-contract",
+      planVersion: "v1",
+      role: "review",
+      sessionId: "review-session-series-role-contract",
+      hostAgentType: "Code Reviewer",
+      selectionSource: "approved-role-selection:acy",
+    });
+
+    const result = await dispatcher.dispatchReady({ planSeriesId: "series-role-contract", planVersion: "v1" });
+    const dispatch = result.dispatches[0];
+    const state = await dispatcher.store.load("demo");
+    const plan = state.series["series-role-contract"].plans.v1;
+
+    assert.equal(plan.role_assignments.execution.host_agent_type, "Senior Developer");
+    assert.equal(plan.method_lenses.length, 2);
+    assert.equal(dispatch.host_agent_type, "Senior Developer");
+    assert.equal(dispatch.selection_source, "approved-role-selection:acy");
+    assert.equal(dispatch.permission_mode, "approved-scope-write");
+    assert.match(dispatch.role_assignment_hash, /^[a-f0-9]{64}$/);
+    assert.deepEqual(dispatch.method_lenses, [
+      {
+        skill_id: "munger",
+        mode: "lens",
+        applies_to: ["execution"],
+        explicit_opt_in: false,
+        authority: "advisory",
+        purpose: "Invert the permission and identity failure modes.",
+        evidence_cutoff: "2026-07-24",
+      },
+    ]);
+    assert.equal(dispatch.external_agent_id, null);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("BossCoding v2 requires an explicit complete role contract", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    const withoutContract = makePlan({ plan_id: "missing-role-contract-v1" });
+    delete withoutContract.role_contract;
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-missing-role-contract",
+      planVersion: "v1",
+      plan: withoutContract,
+    }), /role_contract is required/);
+
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-invalid-legacy-contract",
+      planVersion: "v1",
+      plan: makePlan({ plan_id: "invalid-legacy-contract-v1", role_contract: { version: "legacy-v1" } }),
+    }), /migration.*role-assignments-not-recorded/);
+
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-partial-bosscoding-contract",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "partial-bosscoding-contract-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: {
+          execution: { host_agent_type: "Senior Developer", selection_source: "approved-role-selection:acy", permission_mode: "approved-scope-write" },
+        },
+      }),
+    }), /planning, execution, and review/);
+
+    const missingSelection = bossRoleAssignments();
+    delete missingSelection.review.selection_source;
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-missing-role-selection",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "missing-role-selection-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: missingSelection,
+      }),
+    }), /role_assignments\.review\.selection_source.*required/);
+
+    const created = await dispatcher.createPlan({
+      planSeriesId: "series-complete-bosscoding-contract",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "complete-bosscoding-contract-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline(),
+      }),
+    });
+    assert.equal(created.plan_id, "complete-bosscoding-contract-v1");
+    const state = await dispatcher.store.load("demo");
+    assert.deepEqual(state.series["series-complete-bosscoding-contract"].plans.v1.role_contract, { version: "bosscoding-v2" });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("direct CLI cannot claim verified mode, cannot downgrade v2 state, and resolver-owned invocation rejects new legacy plans", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-cli-interface-"));
+  try {
+    const dispatcherCli = path.resolve("scripts", "flowstate-dispatcher.mjs");
+    const v2Input = path.join(root, "v2-plan.json");
+    const legacyInput = path.join(root, "legacy-plan.json");
+    const legacyExtensionInput = path.join(root, "legacy-extension.json");
+    await writeFile(v2Input, `${JSON.stringify({
+      planSeriesId: "series-cli-v2",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-cli-v2-plan-v1",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline(),
+      }),
+    })}\n`, "utf8");
+    await writeFile(legacyInput, `${JSON.stringify({
+      planSeriesId: "series-cli-legacy",
+      planVersion: "v1",
+      plan: makePlan({ plan_id: "series-cli-legacy-plan-v1", risks: [] }),
+    })}\n`, "utf8");
+    await writeFile(legacyExtensionInput, `${JSON.stringify({
+      planSeriesId: "series-cli-v2",
+      planVersion: "v2",
+      relation: "extension",
+      plan: makePlan({ plan_id: "series-cli-v2-plan-v2-legacy", risks: [] }),
+    })}\n`, "utf8");
+
+    const run = (stateName, input, { claimedInterface = null, resolverOwned = false } = {}) => spawnSync(process.execPath, [
+      dispatcherCli,
+      "--action", "create-plan",
+      "--input", input,
+      "--root", path.join(root, stateName),
+      "--project", "demo",
+      "--external-agents", "false",
+      ...(claimedInterface ? ["--interface", claimedInterface] : []),
+    ], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      windowsHide: true,
+      env: resolverOwned ? {
+        ...process.env,
+        BOSSCODING_VERIFIED_INVOKE: "1",
+        BOSSCODING_VERIFIED_PARENT_PID: String(process.pid),
+        BOSSCODING_VERIFIED_STATE_ROOT: path.join(root, stateName),
+        BOSSCODING_VERIFIED_PROJECT_KEY: "demo",
+        BOSSCODING_VERIFIED_RUNTIME_ROOT: path.resolve("."),
+      } : process.env,
+    });
+
+    const directV2 = run("direct-v2", v2Input);
+    assert.notEqual(directV2.status, 0);
+    assert.match(directV2.stderr, /BossCoding v2.*resolver-owned/i);
+
+    const claimedVerified = run("claimed-v2", v2Input, { claimedInterface: "verified-bosscoding" });
+    assert.notEqual(claimedVerified.status, 0);
+    assert.match(claimedVerified.stderr, /resolver-owned|does not accept --interface/i);
+
+    const verifiedV2 = run("verified-v2", v2Input, { resolverOwned: true });
+    assert.equal(verifiedV2.status, 0, verifiedV2.stderr);
+
+    const verifiedLegacy = run("verified-legacy", legacyInput, { resolverOwned: true });
+    assert.notEqual(verifiedLegacy.status, 0);
+    assert.match(verifiedLegacy.stderr, /verified BossCoding.*bosscoding-v2/i);
+
+    const directLegacy = run("mixed-state", legacyInput);
+    assert.equal(directLegacy.status, 0, directLegacy.stderr);
+    const mixedVerifiedCreate = run("mixed-state", v2Input, { resolverOwned: true });
+    assert.notEqual(mixedVerifiedCreate.status, 0);
+    assert.match(mixedVerifiedCreate.stderr, /legacy current plan state|cannot mix|migration/i);
+
+    const legacyDowngrade = run("verified-v2", legacyExtensionInput);
+    assert.notEqual(legacyDowngrade.status, 0);
+    assert.match(legacyDowngrade.stderr, /BossCoding v2 state actions require|role contract.*cannot change/i);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("a plan series cannot change role contract versions across extensions", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-contract-continuity",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-contract-continuity-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline(),
+      }),
+    });
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-contract-continuity",
+      planVersion: "v2",
+      relation: "extension",
+      plan: makePlan({ plan_id: "series-contract-continuity-v2-legacy" }),
+    }), /role contract version cannot change across a plan series/i);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("execution permission mode is closed to the two declared values and read-only cannot carry modification paths", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-execution-permission-invalid",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-execution-permission-invalid-plan-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments({
+          execution: { host_agent_type: "Senior Developer", selection_source: "approved-role-selection:acy", permission_mode: "unbounded-write" },
+        }),
+      }),
+    }), /permission_mode must be read-only or approved-scope-write/);
+
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-execution-read-only-write-path",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-execution-read-only-write-path-plan-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments({
+          execution: { host_agent_type: "Codebase Archaeologist", selection_source: "approved-role-selection:acy", permission_mode: "read-only" },
+        }),
+        execution_baseline: bossExecutionBaseline({ allowed_actions: ["read"], forbidden_actions: ["write"] }),
+        tasks: [{ task_id: "T01", title: "Inspect", objective: "Inspect only.", allowed_paths: ["src/**"], acceptance_criteria: ["inspection completed"], expected_evidence: ["inspection report"] }],
+      }),
+    }), /read-only execution cannot have modification allowed_paths/);
+
+    const created = await dispatcher.createPlan({
+      planSeriesId: "series-execution-read-only",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-execution-read-only-plan-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments({
+          execution: { host_agent_type: "Codebase Archaeologist", selection_source: "approved-role-selection:acy", permission_mode: "read-only" },
+        }),
+        execution_baseline: bossExecutionBaseline({ allowed_actions: ["read"], forbidden_actions: ["write"] }),
+        tasks: [{ task_id: "T01", title: "Inspect", objective: "Inspect only.", allowed_paths: [], acceptance_criteria: ["inspection completed"], expected_evidence: ["inspection report"] }],
+      }),
+    });
+    assert.equal(created.plan_id, "series-execution-read-only-plan-v1");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("role assignments reject undeclared authority roles instead of silently ignoring them", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-role-leak",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-role-leak-plan-v1",
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: {
+          approver: { host_agent_type: "munger", selection_source: "approved-role-selection:acy", permission_mode: "approve" },
+        },
+      }),
+    }), /unsupported role assignment: approver/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("persona method lenses fail closed on authority and identity leakage", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    const invalidLenses = [
+      [{ skill_id: "munger", mode: "lens", applies_to: ["review"], authority: "advisory" }, /cannot apply to review/],
+      [{ skill_id: "munger", mode: "lens", applies_to: ["review:T01"], authority: "advisory" }, /cannot apply to review/],
+      [{ skill_id: "munger", mode: "lens", applies_to: ["reviewer"], authority: "advisory" }, /cannot apply to review/],
+      [{ skill_id: "munger", mode: "lens", applies_to: ["task:missing"], authority: "advisory" }, /invalid applies_to target/],
+      [{ skill_id: "munger", mode: "lens", applies_to: ["arbitrary-target"], authority: "advisory" }, /invalid applies_to target/],
+      [{ skill_id: "munger", mode: "voice", applies_to: ["execution"], authority: "advisory" }, /explicit_opt_in must be true/],
+      [{ skill_id: "munger", mode: "lens", applies_to: ["execution"], authority: "approver" }, /authority must be advisory/],
+      [{ skill_id: "munger", mode: "lens", applies_to: ["execution"], authority: "advisory", hostAgentType: "Code Reviewer" }, /cannot grant identity, permission, or acceptance authority/],
+    ];
+    for (const [index, [lens, expectedError]] of invalidLenses.entries()) {
+      await assert.rejects(() => dispatcher.createPlan({
+        planSeriesId: `series-lens-leak-${index}`,
+        planVersion: "v1",
+        plan: makePlan({
+          plan_id: `series-lens-leak-${index}-plan-v1`,
+          method_lenses: [lens],
+        }),
+      }), expectedError);
+    }
+
+    await dispatcher.createPlan({
+      planSeriesId: "series-valid-lens-targets",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-valid-lens-targets-v1",
+        method_lenses: [
+          { skill_id: "munger", mode: "lens", applies_to: ["planning", "execution", "T01", "task:T02"], authority: "advisory" },
+        ],
+      }),
+    });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("only the independent reviewer session can accept an execution report", async () => {
   const { root, dispatcher } = await fixture();
   try {
@@ -177,6 +664,8 @@ test("only the independent reviewer session can accept an execution report", asy
       plan_version: "v1",
       task_id: "T01",
       decision: "accepted",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: ["diff"],
     };
     await assert.rejects(
       () => dispatcher.ingestPlanningReview(
@@ -300,6 +789,8 @@ test("host bridge binds real controller and worker ids before accepting reports 
       plan_version: "v1",
       task_id: "T01",
       decision: "accepted",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: ["diff"],
     });
     assert.equal(accepted.decision, "accepted");
 
@@ -307,6 +798,329 @@ test("host bridge binds real controller and worker ids before accepting reports 
     assert.equal(state.series["series-host-bind"].planning_session_id, "codex-planning-agent-1");
     assert.equal(state.series["series-host-bind"].reviewer_session_id, "codex-review-agent-1");
     assert.equal(state.series["series-host-bind"].dispatches[pending.dispatches[0].dispatch_id].worker_session_id, "codex-worker-agent-1");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("governed host bindings require and persist host-observed role metadata from the approved plan", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-governed-host-bind-"));
+  const dispatcher = new FlowStateDispatcher({
+    store: new FlowStateStore({ root: path.join(root, "state") }),
+    adapter: new FileQueueAdapter({ root: path.join(root, "queue") }),
+    projectId: "demo",
+  });
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-governed-host-bind-plan-v1",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline(),
+      }),
+    });
+
+    await assert.rejects(() => dispatcher.bindHostSession({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "real-planning-agent",
+      hostAgentType: "Multi-Agent Systems Architect",
+      selectionSource: "approved-role-selection:acy",
+    }), /current approved plan/);
+
+    await dispatcher.approvePlan({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      approval: {
+        approver: "user",
+        plan_id: "series-governed-host-bind-plan-v1",
+        plan_version: "v1",
+        decision: "approved",
+        acknowledged_risks: [],
+      },
+    });
+
+    await assert.rejects(() => dispatcher.bindHostSession({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "real-planning-agent",
+    }), /hostAgentType.*required/);
+    await assert.rejects(() => dispatcher.bindHostSession({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "real-planning-agent",
+      hostAgentType: "Project Shepherd",
+      selectionSource: "approved-role-selection:acy",
+    }), /hostAgentType does not match/);
+    await assert.rejects(() => dispatcher.bindHostSession({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "real-planning-agent",
+      hostAgentType: "Multi-Agent Systems Architect",
+      selectionSource: "direct-user",
+    }), /selectionSource does not match/);
+
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "real-planning-agent",
+      hostAgentType: "Multi-Agent Systems Architect",
+      selectionSource: "approved-role-selection:acy",
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      role: "review",
+      sessionId: "real-review-agent",
+      hostAgentType: "Code Reviewer",
+      selectionSource: "approved-role-selection:acy",
+    });
+
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: "series-governed-host-bind", planVersion: "v1" });
+    const dispatchId = dispatched.dispatches[0].dispatch_id;
+    assert.equal(dispatched.dispatches[0].permission_mode, "approved-scope-write");
+
+    await assert.rejects(() => dispatcher.bindHostWorker({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      taskId: "T01",
+      dispatchId,
+      workerSessionId: "real-execution-agent",
+    }), /hostAgentType.*required/);
+    await assert.rejects(() => dispatcher.bindHostWorker({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      taskId: "T01",
+      dispatchId,
+      workerSessionId: "real-execution-agent",
+      hostAgentType: "Senior Developer",
+      selectionSource: "direct-user",
+    }), /selectionSource does not match/);
+
+    await dispatcher.bindHostWorker({
+      planSeriesId: "series-governed-host-bind",
+      planVersion: "v1",
+      taskId: "T01",
+      dispatchId,
+      workerSessionId: "real-execution-agent",
+      hostAgentType: "Senior Developer",
+      selectionSource: "approved-role-selection:acy",
+    });
+
+    const state = await dispatcher.store.load("demo");
+    assert.deepEqual(state.series["series-governed-host-bind"].host_bound_role_observations.planning, {
+      plan_version: "v1",
+      host_agent_type: "Multi-Agent Systems Architect",
+      selection_source: "approved-role-selection:acy",
+      permission_mode: "read-only",
+    });
+    assert.equal(state.series["series-governed-host-bind"].dispatches[dispatchId].observed_host_agent_type, "Senior Developer");
+    assert.equal(state.series["series-governed-host-bind"].dispatches[dispatchId].observed_selection_source, "approved-role-selection:acy");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("BossCoding v2 rejects execution reports until the exact worker is host-bound", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-v2-report-bind-"));
+  const dispatcher = new FlowStateDispatcher({
+    store: new FlowStateStore({ root: path.join(root, "state") }),
+    adapter: new FileQueueAdapter({ root: path.join(root, "queue") }),
+    projectId: "demo",
+  });
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-v2-report-bind",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-v2-report-bind-plan-v1",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline(),
+      }),
+    });
+    await dispatcher.approvePlan({
+      planSeriesId: "series-v2-report-bind",
+      planVersion: "v1",
+      approval: {
+        approver: "user",
+        plan_id: "series-v2-report-bind-plan-v1",
+        plan_version: "v1",
+        decision: "approved",
+        acknowledged_risks: [],
+      },
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-v2-report-bind",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "planning-v2-report-bind",
+      hostAgentType: "Multi-Agent Systems Architect",
+      selectionSource: "approved-role-selection:acy",
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-v2-report-bind",
+      planVersion: "v1",
+      role: "review",
+      sessionId: "review-v2-report-bind",
+      hostAgentType: "Code Reviewer",
+      selectionSource: "approved-role-selection:acy",
+    });
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: "series-v2-report-bind", planVersion: "v1" });
+    const dispatch = dispatched.dispatches[0];
+    await assert.rejects(() => dispatcher.ingestExecutionReport({
+      report_id: "unbound-v2-report",
+      project_id: "demo",
+      plan_series_id: "series-v2-report-bind",
+      plan_id: "series-v2-report-bind-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: dispatch.dispatch_id,
+      worker_session_id: dispatch.worker_session_id,
+      status: "returned-to-planning",
+    }), /BossCoding v2.*host-bound worker/i);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("state and queue writes reject linked paths inside their governed roots", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-linked-writes-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const outsideState = path.join(root, "outside-state");
+  const stateRoot = path.join(root, "state");
+  await mkdir(outsideState, { recursive: true });
+  await mkdir(stateRoot, { recursive: true });
+  await symlink(outsideState, path.join(stateRoot, "plan-index.json"), "junction");
+  const store = new FlowStateStore({ root: stateRoot });
+  await assert.rejects(
+    () => store.save({ schema_version: "1.0", project_id: "demo", series: {}, events: [] }),
+    /unsafe state write path|symbolic link|reparse|non-canonical/i,
+  );
+
+  const outsideQueue = path.join(root, "outside-queue");
+  const queueRoot = path.join(root, "queue");
+  await mkdir(outsideQueue, { recursive: true });
+  await symlink(outsideQueue, queueRoot, "junction");
+  const queue = new FileQueueAdapter({ root: queueRoot });
+  await assert.rejects(
+    () => queue.send({ message_id: "linked-write", target_session_id: "session-a" }),
+    /unsafe queue write path|symbolic link|reparse|non-canonical/i,
+  );
+  assert.deepEqual(await readdir(outsideQueue), []);
+});
+
+test("a missing state root below a junction ancestor is rejected before any outside write", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-linked-root-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const outside = path.join(root, "outside");
+  const linkedAncestor = path.join(root, "linked-ancestor");
+  await mkdir(outside, { recursive: true });
+  await symlink(outside, linkedAncestor, "junction");
+  const store = new FlowStateStore({ root: path.join(linkedAncestor, "must-not-be-created") });
+  await assert.rejects(
+    () => store.save({ schema_version: "1.0", project_id: "demo", series: {}, events: [] }),
+    /symbolic link|junction|reparse|non-canonical/i,
+  );
+  assert.deepEqual(await readdir(outside), []);
+});
+
+test("host_agent_type is immutable for a bound session across BossCoding v2 plan versions", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-host-identity-immutable-"));
+  const dispatcher = new FlowStateDispatcher({
+    store: new FlowStateStore({ root: path.join(root, "state") }),
+    adapter: new FileQueueAdapter({ root: path.join(root, "queue") }),
+    projectId: "demo",
+  });
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-host-identity-immutable",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-host-identity-immutable-v1",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline(),
+      }),
+    });
+    await dispatcher.approvePlan({
+      planSeriesId: "series-host-identity-immutable",
+      planVersion: "v1",
+      approval: { approver: "user", plan_id: "series-host-identity-immutable-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] },
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-host-identity-immutable",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "real-planning-session",
+      hostAgentType: "Multi-Agent Systems Architect",
+      selectionSource: "approved-role-selection:acy",
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-host-identity-immutable",
+      planVersion: "v1",
+      role: "review",
+      sessionId: "real-review-session",
+      hostAgentType: "Code Reviewer",
+      selectionSource: "approved-role-selection:acy",
+    });
+
+    await dispatcher.createPlan({
+      planSeriesId: "series-host-identity-immutable",
+      planVersion: "v2",
+      relation: "extension",
+      plan: makePlan({
+        plan_id: "series-host-identity-immutable-v2",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments({
+          planning: { host_agent_type: "Project Shepherd", selection_source: "approved-role-selection:acy", permission_mode: "read-only" },
+        }),
+        execution_baseline: bossExecutionBaseline(),
+      }),
+    });
+    await dispatcher.approvePlan({
+      planSeriesId: "series-host-identity-immutable",
+      planVersion: "v2",
+      approval: { approver: "user", plan_id: "series-host-identity-immutable-v2", plan_version: "v2", decision: "approved", acknowledged_risks: [] },
+    });
+
+    await assert.rejects(() => dispatcher.bindHostSession({
+      planSeriesId: "series-host-identity-immutable",
+      planVersion: "v2",
+      role: "planning",
+      sessionId: "real-planning-session",
+      hostAgentType: "Project Shepherd",
+      selectionSource: "approved-role-selection:acy",
+    }), /host_agent_type is immutable for a bound session/);
+    await assert.rejects(() => dispatcher.bindHostSession({
+      planSeriesId: "series-host-identity-immutable",
+      planVersion: "v2",
+      role: "planning",
+      sessionId: "replacement-planning-session",
+      hostAgentType: "Project Shepherd",
+      selectionSource: "approved-role-selection:acy",
+    }), /cannot rebind the planning host session/);
+
+    const state = await dispatcher.store.load("demo");
+    assert.deepEqual(state.series["series-host-identity-immutable"].host_session_identities["real-planning-session"], {
+      session_id: "real-planning-session",
+      binding_role: "planning-controller",
+      host_agent_type: "Multi-Agent Systems Architect",
+      first_plan_version: "v1",
+    });
+    assert.equal(state.series["series-host-identity-immutable"].host_bound_role_observations.planning.plan_version, "v1");
+    assert.equal(state.series["series-host-identity-immutable"].host_bound_role_observations.planning.host_agent_type, "Multi-Agent Systems Architect");
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -324,7 +1138,7 @@ test("approval acknowledges every risk and accepted report unlocks the next task
     assert.equal(firstDispatch.dispatches[0].target_session_id, "worker-session-series-a-T01");
     assert.equal(firstDispatch.dispatches[0].reviewer_session_id, "review-session-series-a");
     await dispatcher.ingestExecutionReport({ report_id: "report-1", project_id: "demo", plan_series_id: "series-a", plan_id: "series-a-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: firstDispatch.dispatches[0].dispatch_id, session_id: "worker-session-series-a-T01", status: "returned-to-planning", evidence: ["diff"] });
-    const review = await ingestObservedReview(dispatcher, { review_id: "review-1", reviewer_session_id: "review-session-series-a", report_id: "report-1", plan_series_id: "series-a", plan_version: "v1", task_id: "T01", decision: "accepted", criteria_results: [{ criterion: "change exists", result: "pass" }] });
+    const review = await ingestObservedReview(dispatcher, { review_id: "review-1", reviewer_session_id: "review-session-series-a", report_id: "report-1", plan_series_id: "series-a", plan_version: "v1", task_id: "T01", decision: "accepted", criteria_results: [{ criterion: "change exists", result: "pass" }], evidence_checked: ["diff"] });
     assert.equal(review.next_dispatches.length, 1);
     assert.equal(review.next_dispatches[0].task_id, "T02");
     const state = await dispatcher.store.load("demo");
@@ -628,6 +1442,363 @@ test("file queue dispatches are idempotent and processed messages are archived",
   }
 });
 
+test("accepted review requires every criterion and evidence item to pass with no unresolved defect", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-acceptance-gate", planVersion: "v1", plan: makePlan({ plan_id: "series-acceptance-gate-v1", risks: [] }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-acceptance-gate", planVersion: "v1", approval: { approver: "user", plan_id: "series-acceptance-gate-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: "series-acceptance-gate", planVersion: "v1" });
+    await dispatcher.ingestExecutionReport({ report_id: "acceptance-report", project_id: "demo", plan_series_id: "series-acceptance-gate", plan_id: "series-acceptance-gate-v1", plan_version: "v1", task_id: "T01", dispatch_id: dispatched.dispatches[0].dispatch_id, status: "returned-to-planning", evidence: ["diff"] });
+    const base = {
+      reviewer_session_id: "review-session-series-acceptance-gate",
+      report_id: "acceptance-report",
+      plan_series_id: "series-acceptance-gate",
+      plan_id: "series-acceptance-gate-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "accepted",
+    };
+    const invalid = [
+      [{ ...base, review_id: "accept-missing-criteria", evidence_checked: ["diff"] }, /criteria_results.*cover|acceptance criterion/i],
+      [{ ...base, review_id: "accept-failed-criterion", criteria_results: [{ criterion: "change exists", result: "fail" }], evidence_checked: ["diff"] }, /criterion.*pass|failed criterion/i],
+      [{ ...base, review_id: "accept-required-change", criteria_results: [{ criterion: "change exists", result: "pass" }], evidence_checked: ["diff"], required_changes: ["Fix it."] }, /required_changes.*empty|cannot contain/i],
+      [{ ...base, review_id: "accept-defect", criteria_results: [{ criterion: "change exists", result: "pass" }], evidence_checked: ["diff"], defects: ["Broken output."] }, /defects.*empty|cannot contain/i],
+      [{ ...base, review_id: "accept-open-issue", criteria_results: [{ criterion: "change exists", result: "pass" }], evidence_checked: ["diff"], issue_results: [{ issue_id: "I01", status: "open", evidence: ["still broken"] }] }, /unresolved issue|issue_results.*resolved/i],
+      [{ ...base, review_id: "accept-missing-evidence", criteria_results: [{ criterion: "change exists", result: "pass" }] }, /evidence_checked.*cover|expected evidence/i],
+    ];
+    for (const [review, pattern] of invalid) await assert.rejects(() => ingestObservedReview(dispatcher, review), pattern);
+
+    const accepted = await ingestObservedReview(dispatcher, {
+      ...base,
+      review_id: "accept-complete",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: ["diff"],
+      issue_results: [],
+    });
+    assert.equal(accepted.decision, "accepted");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("BossCoding v2 cannot complete with empty gates, unchecked evidence, or omitted final baseline criteria", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-v2-acceptance-gate",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-v2-acceptance-gate-v1",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline({ completion_criteria: ["result exists"] }),
+        tasks: [{
+          task_id: "T01",
+          title: "Implement change",
+          objective: "Implement the bounded change.",
+          acceptance_criteria: ["change exists"],
+          expected_evidence: ["diff"],
+        }],
+      }),
+    });
+    await dispatcher.approvePlan({
+      planSeriesId: "series-v2-acceptance-gate",
+      planVersion: "v1",
+      approval: { approver: "user", plan_id: "series-v2-acceptance-gate-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] },
+    });
+    await dispatcher.bindHostSession({ planSeriesId: "series-v2-acceptance-gate", planVersion: "v1", role: "planning", sessionId: "plan-session-series-v2-acceptance-gate", hostAgentType: "Multi-Agent Systems Architect", selectionSource: "approved-role-selection:acy" });
+    await dispatcher.bindHostSession({ planSeriesId: "series-v2-acceptance-gate", planVersion: "v1", role: "review", sessionId: "review-session-series-v2-acceptance-gate", hostAgentType: "Code Reviewer", selectionSource: "approved-role-selection:acy" });
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: "series-v2-acceptance-gate", planVersion: "v1" });
+    await dispatcher.bindHostWorker({ planSeriesId: "series-v2-acceptance-gate", planVersion: "v1", taskId: "T01", dispatchId: dispatched.dispatches[0].dispatch_id, workerSessionId: "worker-v2-acceptance", hostAgentType: "Senior Developer", selectionSource: "approved-role-selection:acy" });
+    await dispatcher.ingestExecutionReport({
+      report_id: "v2-acceptance-report",
+      project_id: "demo",
+      plan_series_id: "series-v2-acceptance-gate",
+      plan_id: "series-v2-acceptance-gate-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: dispatched.dispatches[0].dispatch_id,
+      worker_session_id: "worker-v2-acceptance",
+      status: "returned-to-planning",
+      evidence: ["diff"],
+    });
+    const request = adapter.messages.find((message) => message.message_type === "REVIEW_REQUEST" && message.report_id === "v2-acceptance-report");
+    assert.equal(request.final_acceptance, true);
+    assert.deepEqual(request.acceptance_criteria, ["change exists", "result exists"]);
+    assert.deepEqual(request.expected_evidence, ["diff"]);
+    const base = {
+      reviewer_session_id: "review-session-series-v2-acceptance-gate",
+      report_id: "v2-acceptance-report",
+      plan_series_id: "series-v2-acceptance-gate",
+      plan_id: "series-v2-acceptance-gate-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "accepted",
+    };
+    await assert.rejects(() => ingestObservedReview(dispatcher, {
+      ...base,
+      review_id: "v2-string-only-evidence",
+      criteria_results: [
+        { criterion: "change exists", result: "pass" },
+        { criterion: "result exists", result: "pass" },
+      ],
+      evidence_checked: ["diff"],
+    }), /evidence_checked.*explicit.*pass|checked evidence.*pass/i);
+    await assert.rejects(() => ingestObservedReview(dispatcher, {
+      ...base,
+      review_id: "v2-missing-baseline-criterion",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: [{ evidence: "diff", result: "pass" }],
+    }), /completion criterion|criteria_results.*cover.*result exists/i);
+    const accepted = await ingestObservedReview(dispatcher, {
+      ...base,
+      review_id: "v2-complete-acceptance",
+      criteria_results: request.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
+      evidence_checked: request.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+    });
+    assert.equal(accepted.plan_completed, true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("parallel BossCoding reviews refresh the last request before final plan acceptance", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    const seriesId = "series-v2-parallel-final-review";
+    await dispatcher.createPlan({
+      planSeriesId: seriesId,
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: `${seriesId}-v1`,
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline({ completion_criteria: ["all outputs exist"] }),
+        serial_parallel_policy: "parallel",
+        max_parallel: 2,
+        tasks: [
+          { task_id: "T01", title: "Create one", objective: "Create one.", stage_kind: "parallel", acceptance_criteria: ["one exists"], expected_evidence: ["one diff"] },
+          { task_id: "T02", title: "Create two", objective: "Create two.", stage_kind: "parallel", acceptance_criteria: ["two exists"], expected_evidence: ["two diff"] },
+        ],
+      }),
+    });
+    await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "planning", sessionId: `plan-session-${seriesId}`, hostAgentType: "Multi-Agent Systems Architect", selectionSource: "approved-role-selection:acy" });
+    await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "review", sessionId: `review-session-${seriesId}`, hostAgentType: "Code Reviewer", selectionSource: "approved-role-selection:acy" });
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: seriesId, planVersion: "v1" });
+    assert.equal(dispatched.dispatches.length, 2);
+    for (const dispatch of dispatched.dispatches) {
+      const workerSessionId = `worker-${dispatch.task_id}`;
+      await dispatcher.bindHostWorker({ planSeriesId: seriesId, planVersion: "v1", taskId: dispatch.task_id, dispatchId: dispatch.dispatch_id, workerSessionId, hostAgentType: "Senior Developer", selectionSource: "approved-role-selection:acy" });
+      await dispatcher.ingestExecutionReport({
+        report_id: `report-${dispatch.task_id}`,
+        project_id: "demo",
+        plan_series_id: seriesId,
+        plan_id: `${seriesId}-v1`,
+        plan_version: "v1",
+        task_id: dispatch.task_id,
+        dispatch_id: dispatch.dispatch_id,
+        worker_session_id: workerSessionId,
+        status: "returned-to-planning",
+        evidence: [`${dispatch.task_id} diff`],
+      });
+    }
+    const initialRequests = adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.plan_series_id === seriesId);
+    assert.equal(initialRequests.length, 2);
+    assert.equal(initialRequests.every((request) => request.final_acceptance === false), true);
+
+    const firstRequest = initialRequests.find((request) => request.task_id === "T01");
+    const firstAccepted = await ingestObservedReview(dispatcher, {
+      review_id: "parallel-review-T01",
+      reviewer_session_id: `review-session-${seriesId}`,
+      report_id: "report-T01",
+      plan_series_id: seriesId,
+      plan_id: `${seriesId}-v1`,
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "accepted",
+      criteria_results: firstRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
+      evidence_checked: firstRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+    });
+    assert.equal(firstAccepted.plan_completed, false);
+
+    const staleSecondRequest = initialRequests.find((request) => request.task_id === "T02");
+    const refresh = await ingestObservedReview(dispatcher, {
+      review_id: "parallel-review-T02-preliminary",
+      reviewer_session_id: `review-session-${seriesId}`,
+      report_id: "report-T02",
+      plan_series_id: seriesId,
+      plan_id: `${seriesId}-v1`,
+      plan_version: "v1",
+      task_id: "T02",
+      decision: "accepted",
+      criteria_results: staleSecondRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
+      evidence_checked: staleSecondRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+      new_blockers: [{ blocker_id: "B-resolved-observation", status: "resolved", reason: "Observed and already resolved." }],
+    });
+    assert.equal(refresh.decision, "review-refresh-required");
+    assert.equal(refresh.plan_completed, false);
+
+    const refreshedRequest = adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.task_id === "T02").at(-1);
+    assert.equal(refreshedRequest.final_acceptance, true);
+    assert.deepEqual(refreshedRequest.acceptance_criteria, ["two exists", "all outputs exist"]);
+    const completed = await ingestObservedReview(dispatcher, {
+      review_id: "parallel-review-T02-final",
+      reviewer_session_id: `review-session-${seriesId}`,
+      report_id: "report-T02",
+      plan_series_id: seriesId,
+      plan_id: `${seriesId}-v1`,
+      plan_version: "v1",
+      task_id: "T02",
+      decision: "accepted",
+      criteria_results: refreshedRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
+      evidence_checked: refreshedRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+    });
+    assert.equal(completed.plan_completed, true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("parallel stale acceptance with a new risk waits for reapproval before final review", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    const seriesId = "series-v2-parallel-risk-final-review";
+    await dispatcher.createPlan({
+      planSeriesId: seriesId,
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: `${seriesId}-v1`,
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline({ completion_criteria: ["all outputs exist"] }),
+        serial_parallel_policy: "parallel",
+        max_parallel: 2,
+        tasks: [
+          { task_id: "T01", title: "Create one", objective: "Create one.", stage_kind: "parallel", acceptance_criteria: ["one exists"], expected_evidence: ["one diff"] },
+          { task_id: "T02", title: "Create two", objective: "Create two.", stage_kind: "parallel", acceptance_criteria: ["two exists"], expected_evidence: ["two diff"] },
+        ],
+      }),
+    });
+    await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "planning", sessionId: `plan-session-${seriesId}`, hostAgentType: "Multi-Agent Systems Architect", selectionSource: "approved-role-selection:acy" });
+    await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "review", sessionId: `review-session-${seriesId}`, hostAgentType: "Code Reviewer", selectionSource: "approved-role-selection:acy" });
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: seriesId, planVersion: "v1" });
+    for (const dispatch of dispatched.dispatches) {
+      const workerSessionId = `risk-worker-${dispatch.task_id}`;
+      await dispatcher.bindHostWorker({ planSeriesId: seriesId, planVersion: "v1", taskId: dispatch.task_id, dispatchId: dispatch.dispatch_id, workerSessionId, hostAgentType: "Senior Developer", selectionSource: "approved-role-selection:acy" });
+      await dispatcher.ingestExecutionReport({ report_id: `risk-report-${dispatch.task_id}`, project_id: "demo", plan_series_id: seriesId, plan_id: `${seriesId}-v1`, plan_version: "v1", task_id: dispatch.task_id, dispatch_id: dispatch.dispatch_id, worker_session_id: workerSessionId, status: "returned-to-planning" });
+    }
+    const initialRequests = adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.plan_series_id === seriesId);
+    const firstRequest = initialRequests.find((request) => request.task_id === "T01");
+    await ingestObservedReview(dispatcher, {
+      review_id: "risk-parallel-review-T01",
+      reviewer_session_id: `review-session-${seriesId}`,
+      report_id: "risk-report-T01",
+      plan_series_id: seriesId,
+      plan_id: `${seriesId}-v1`,
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "accepted",
+      criteria_results: firstRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
+      evidence_checked: firstRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+    });
+    const staleSecondRequest = initialRequests.find((request) => request.task_id === "T02");
+    const pending = await ingestObservedReview(dispatcher, {
+      review_id: "risk-parallel-review-T02-preliminary",
+      reviewer_session_id: `review-session-${seriesId}`,
+      report_id: "risk-report-T02",
+      plan_series_id: seriesId,
+      plan_id: `${seriesId}-v1`,
+      plan_version: "v1",
+      task_id: "T02",
+      decision: "accepted",
+      criteria_results: staleSecondRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
+      evidence_checked: staleSecondRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+      new_risks: [{ risk_id: "R-late", severity: "medium", impact: "Requires explicit acknowledgement." }],
+    });
+    assert.equal(pending.decision, "review-refresh-required");
+    assert.equal(pending.approval_required, true);
+    let state = await dispatcher.store.load("demo");
+    assert.equal(state.series[seriesId].plans.v1.tasks.find((task) => task.task_id === "T02").status, "report-returned");
+    assert.equal(state.series[seriesId].plans.v1.approval, null);
+    assert.equal(adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.task_id === "T02").length, 1);
+
+    const approved = await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: ["R-late"] } });
+    assert.equal(approved.final_review_requests_sent, 1);
+    const finalRequest = adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.task_id === "T02").at(-1);
+    assert.equal(finalRequest.final_acceptance, true);
+    const completed = await ingestObservedReview(dispatcher, {
+      review_id: "risk-parallel-review-T02-final",
+      reviewer_session_id: `review-session-${seriesId}`,
+      report_id: "risk-report-T02",
+      plan_series_id: seriesId,
+      plan_id: `${seriesId}-v1`,
+      plan_version: "v1",
+      task_id: "T02",
+      decision: "accepted",
+      criteria_results: finalRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
+      evidence_checked: finalRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+    });
+    assert.equal(completed.plan_completed, true);
+    state = await dispatcher.store.load("demo");
+    assert.equal(state.series[seriesId].plans.v1.status, "completed");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("a newer plan approval never releases a superseded version final review request", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    const seriesId = "series-v2-superseded-final-review";
+    const tasks = [
+      { task_id: "T01", title: "Create one", objective: "Create one.", stage_kind: "parallel", acceptance_criteria: ["one exists"], expected_evidence: ["one diff"] },
+      { task_id: "T02", title: "Create two", objective: "Create two.", stage_kind: "parallel", acceptance_criteria: ["two exists"], expected_evidence: ["two diff"] },
+    ];
+    const plan = (version) => makePlan({
+      plan_id: `${seriesId}-${version}`,
+      risks: [],
+      role_contract: { version: "bosscoding-v2" },
+      role_assignments: bossRoleAssignments(),
+      execution_baseline: bossExecutionBaseline({ completion_criteria: ["all outputs exist"] }),
+      serial_parallel_policy: "parallel",
+      max_parallel: 2,
+      tasks,
+    });
+    await dispatcher.createPlan({ planSeriesId: seriesId, planVersion: "v1", plan: plan("v1") });
+    await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "planning", sessionId: `plan-session-${seriesId}`, hostAgentType: "Multi-Agent Systems Architect", selectionSource: "approved-role-selection:acy" });
+    await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "review", sessionId: `review-session-${seriesId}`, hostAgentType: "Code Reviewer", selectionSource: "approved-role-selection:acy" });
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: seriesId, planVersion: "v1" });
+    for (const dispatch of dispatched.dispatches) {
+      const workerSessionId = `supersede-worker-${dispatch.task_id}`;
+      await dispatcher.bindHostWorker({ planSeriesId: seriesId, planVersion: "v1", taskId: dispatch.task_id, dispatchId: dispatch.dispatch_id, workerSessionId, hostAgentType: "Senior Developer", selectionSource: "approved-role-selection:acy" });
+      await dispatcher.ingestExecutionReport({ report_id: `supersede-report-${dispatch.task_id}`, project_id: "demo", plan_series_id: seriesId, plan_id: `${seriesId}-v1`, plan_version: "v1", task_id: dispatch.task_id, dispatch_id: dispatch.dispatch_id, worker_session_id: workerSessionId, status: "returned-to-planning" });
+    }
+    const initialRequests = adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.plan_series_id === seriesId);
+    const firstRequest = initialRequests.find((request) => request.task_id === "T01");
+    await ingestObservedReview(dispatcher, { review_id: "supersede-review-T01", reviewer_session_id: `review-session-${seriesId}`, report_id: "supersede-report-T01", plan_series_id: seriesId, plan_id: `${seriesId}-v1`, plan_version: "v1", task_id: "T01", decision: "accepted", criteria_results: firstRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })), evidence_checked: firstRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })) });
+    const secondRequest = initialRequests.find((request) => request.task_id === "T02");
+    const pending = await ingestObservedReview(dispatcher, { review_id: "supersede-review-T02", reviewer_session_id: `review-session-${seriesId}`, report_id: "supersede-report-T02", plan_series_id: seriesId, plan_id: `${seriesId}-v1`, plan_version: "v1", task_id: "T02", decision: "accepted", criteria_results: secondRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })), evidence_checked: secondRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })), scope_change: true });
+    assert.equal(pending.approval_required, true);
+    const sentBeforeV2 = adapter.messages.length;
+
+    await dispatcher.createPlan({ planSeriesId: seriesId, planVersion: "v2", relation: "extension", plan: plan("v2") });
+    const approved = await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v2", approval: { approver: "user", plan_id: `${seriesId}-v2`, plan_version: "v2", decision: "approved", acknowledged_risks: [] } });
+    assert.equal(approved.final_review_requests_sent, 0);
+    assert.equal(adapter.messages.length, sentBeforeV2);
+    const state = await dispatcher.store.load("demo");
+    assert.equal(Object.keys(state.series[seriesId].pending_final_reviews).length, 0);
+    assert.equal(Object.values(state.series[seriesId].archived_final_reviews).some((entry) => entry.message.plan_version === "v1" && entry.status === "superseded"), true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("file queue safely routes canonical Codex subagent names without changing their identity", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-queue-codex-session-"));
   try {
@@ -880,6 +2051,8 @@ test("runtime resumes queued reports and reviews and dispatches the next task on
       plan_version: "v1",
       task_id: "T01",
       decision: "accepted",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: ["diff"],
     });
     const reviewCycle = await runtime.runOnce();
     assert.equal(reviewCycle.reviews.length, 1);
@@ -948,6 +2121,8 @@ test("runtime does not accept a review from an unauthenticated file queue", asyn
       plan_version: "v1",
       task_id: "T01",
       decision: "accepted",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: ["diff"],
     });
     const cycle = await runtime.runOnce();
     assert.equal(cycle.reviews.length, 0);
@@ -1006,6 +2181,8 @@ test("runtime surfaces legacy reviews routed to the execution controller for req
       plan_version: "v1",
       task_id: "T01",
       decision: "accepted",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: ["diff"],
     });
     const cycle = await runtime.runOnce();
     assert.equal(cycle.reviews.length, 0);
@@ -1119,7 +2296,7 @@ test("accepted serial stages activate the next parallel stage with stage Skills"
     const first = await dispatcher.dispatchReady({ planSeriesId: "series-stages", planVersion: "v1" });
     assert.deepEqual(first.dispatches.map((dispatch) => dispatch.task_id), ["T01"]);
     await dispatcher.ingestExecutionReport({ report_id: "stage-report-1", project_id: "demo", plan_series_id: "series-stages", plan_id: "series-stages-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: first.dispatches[0].dispatch_id, status: "returned-to-planning" });
-    const review = await ingestObservedReview(dispatcher, { review_id: "stage-review-1", reviewer_session_id: "review-session-series-stages", report_id: "stage-report-1", plan_series_id: "series-stages", plan_id: "series-stages-plan-v1", plan_version: "v1", task_id: "T01", decision: "accepted" });
+    const review = await ingestObservedReview(dispatcher, { review_id: "stage-review-1", reviewer_session_id: "review-session-series-stages", report_id: "stage-report-1", plan_series_id: "series-stages", plan_id: "series-stages-plan-v1", plan_version: "v1", task_id: "T01", decision: "accepted", criteria_results: [{ criterion: "foundation exists", result: "pass" }] });
     assert.deepEqual(review.next_dispatches.map((dispatch) => dispatch.task_id).sort(), ["T02", "T03"]);
     assert.deepEqual(review.next_dispatches[0].required_skills, ["pdgo-tdd-work"]);
     assert.equal(review.next_dispatches[0].external_agent_id, "agency-agents/testing/testing-api-tester.md");
@@ -1157,7 +2334,7 @@ test("revision-required creates an in-scope correction dispatch until acceptance
     assert.equal(taskAfterCorrection.revision_attempts, 1);
 
     await dispatcher.ingestExecutionReport({ report_id: "revision-report-2", project_id: "demo", plan_series_id: "series-revision", plan_id: "series-revision-plan-v1", plan_version: "v1", task_id: "T01", dispatch_id: taskAfterCorrection.dispatch_id, status: "returned-to-planning" });
-    const accepted = await ingestObservedReview(dispatcher, { review_id: "revision-review-2", reviewer_session_id: "review-session-series-revision", report_id: "revision-report-2", plan_series_id: "series-revision", plan_id: "series-revision-plan-v1", plan_version: "v1", task_id: "T01", decision: "accepted" });
+    const accepted = await ingestObservedReview(dispatcher, { review_id: "revision-review-2", reviewer_session_id: "review-session-series-revision", report_id: "revision-report-2", plan_series_id: "series-revision", plan_id: "series-revision-plan-v1", plan_version: "v1", task_id: "T01", decision: "accepted", criteria_results: [{ criterion: "change exists", result: "pass" }], evidence_checked: ["diff"] });
     assert.equal(accepted.next_dispatches.length, 1);
     assert.equal(accepted.next_dispatches[0].task_id, "T02");
     const finalState = await dispatcher.store.load("demo");
@@ -1277,7 +2454,7 @@ test("accepted review with a new risk pauses the plan and requires reapproval", 
       plan: makePlan({
         plan_id: "series-risk-review-plan-v1",
         risks: [],
-        next_plan: { title: "Follow-up", summary: "Continue after approval.", objective: "Continue.", risks: [], tasks: [{ task_id: "T03", title: "Follow-up task", objective: "Continue the work." }] },
+        next_plan: { role_contract: { version: "legacy-v1", migration: "role-assignments-not-recorded" }, title: "Follow-up", summary: "Continue after approval.", objective: "Continue.", risks: [], tasks: [{ task_id: "T03", title: "Follow-up task", objective: "Continue the work." }] },
       }),
     });
     await dispatcher.approvePlan({ planSeriesId: "series-risk-review", planVersion: "v1", approval: { approver: "user", plan_id: "series-risk-review-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
@@ -1291,6 +2468,8 @@ test("accepted review with a new risk pauses the plan and requires reapproval", 
       plan_version: "v1",
       task_id: "T01",
       decision: "accepted",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: ["diff"],
       reviewer_session_id: "review-session-series-risk-review",
       scope_change: true,
     });
@@ -1319,7 +2498,7 @@ test("completed plans proactively create the next version but keep its approval 
         plan_id: "series-next-plan-v1",
         risks: [],
         tasks: [{ task_id: "T01", title: "First stage", objective: "Complete the first stage." }],
-        next_plan: { title: "Second stage", summary: "Continue after the first stage.", objective: "Complete the second stage.", risks: [], tasks: [{ task_id: "T02", title: "Second stage task", objective: "Complete the second stage task." }] },
+        next_plan: { role_contract: { version: "legacy-v1", migration: "role-assignments-not-recorded" }, title: "Second stage", summary: "Continue after the first stage.", objective: "Complete the second stage.", risks: [], tasks: [{ task_id: "T02", title: "Second stage task", objective: "Complete the second stage task." }] },
       }),
     });
     await dispatcher.approvePlan({ planSeriesId: "series-next-plan", planVersion: "v1", approval: { approver: "user", plan_id: "series-next-plan-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
