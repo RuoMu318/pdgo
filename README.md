@@ -306,6 +306,13 @@ npm.cmd run validate
 
 The test suite covers Skill inventory, approval binding, series continuity, dispatch contracts, queue idempotency, restart recovery, blocker handling, external-role boundaries, and generated indexes.
 
+### BossCoding attribution
+
+The BossCoding-related integration is an independent PDGO adaptation based on
+BossCoding 0.5.1 by Khazix, licensed under the MIT License. It is not presented
+as an official BossCoding release, collaboration, or endorsement. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ## Status and license
 
 PDGO is an MIT-licensed reference implementation of the FlowState method. The repository is intentionally platform-neutral; a platform adapter is required for any conversation or background capability that the local file system cannot provide.

@@ -287,6 +287,13 @@ npm.cmd run validate
 
 测试覆盖 Skill 目录、审批绑定、系列连续性、派发契约、队列幂等、重启恢复、卡点处理、外部角色边界和生成索引。
 
+### BossCoding 来源与署名
+
+本仓库中的 BossCoding 相关集成，是 PDGO 基于 Khazix 的 BossCoding 0.5.1
+所做的独立适配，原项目采用 MIT 许可证。本适配不代表 BossCoding 官方发布、
+合作或背书。完整来源与许可见
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
 ## 状态和许可
 
 PDGO 是 FlowState 方法的 MIT 许可参考实现。仓库保持平台中立；任何文件系统无法提供的会话或后台能力，都必须通过平台适配器接入。
