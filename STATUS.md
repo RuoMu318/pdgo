@@ -48,8 +48,8 @@ completion or a defined stop condition.
 
 ## Current action
 
-Implementation is complete and release-ready. Both global Skills and the global policy overlay are
-installed and verified. The real three-role Codex fixture completed with authenticated worker and
-reviewer identities; validation, 54 Node tests, and the original smoke test pass. Independent
-specification and standards reviews both returned PASS. This changeset is ready for its local
-completion commit; GitHub push remains outside scope.
+No implementation action is pending. Both global Skills and the global policy overlay are installed
+and verified. The real three-role Codex fixture completed with authenticated worker and reviewer
+identities; validation, 54 Node tests, and the original smoke test pass. Independent specification
+and standards reviews both returned PASS. The integration is committed locally and ready for use;
+GitHub push remains outside scope.
