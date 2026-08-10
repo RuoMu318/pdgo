@@ -243,10 +243,16 @@ Cold start is deliberately ordered so inspection cannot become an unapproved wri
 
 The dispatcher separates resolver-owned verified BossCoding invocation from the direct legacy CLI: the direct CLI rejects caller-supplied interface claims and BossCoding v2 state, while resolver-owned creation rejects legacy plans. State and queue writers reject linked or non-canonical paths inside the isolated state tree. The installer publishes a complete ownership record atomically, snapshots every existing target before staging, refuses concurrent target or source drift, verifies committed targets, and preserves externally modified files instead of deleting them during rollback.
 
-Users can invoke the combined flow directly: `秘书，用 acy 选合适专家完成 <任务>，并用 $munger 的 Lens 检查可避免的失败。` `acy` selects functional roles, while `$munger` is only an advisory method lens. `$nuwa-skill` is reserved for creating, updating, or auditing Persona Skills; ordinary work invokes the installed Persona Skill itself. Optional lens `purpose` and `evidence_cutoff` survive into the execution dispatch without gaining authority.
+Users can invoke the combined flow directly: `秘书，用 Agency Agents 选合适专家完成 <任务>，并用 $munger 的 Lens 检查可避免的失败。` Agency Agents selects functional roles, while `$munger` is only an advisory method lens. `$nuwa-skill` is reserved for creating, updating, or auditing Persona Skills; ordinary work invokes the installed Persona Skill itself. Optional lens `purpose` and `evidence_cutoff` survive into the execution dispatch without gaining authority.
 
 An adapter may mark review identity as authenticated only for the exact transport its `receiveReviews` method polls;
 wrapping a trusted worker launcher around a plain file queue does not make queued reviews trusted.
+
+### Optional Persona Skills
+
+PDGO works independently without [Nuwa](https://github.com/alchaincyf/nuwa-skill). Leaving Nuwa uninstalled does not affect normal tasks or Agency Agents specialist-role selection. Agency Agents provides functional specialists, but it does not replace a named-person Persona perspective.
+
+Install Nuwa separately only when you need to create, update, or audit Persona Skills. To use a particular person's perspective, install the corresponding Persona Skill separately.
 
 ## BossCoding quick start
 

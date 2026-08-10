@@ -230,6 +230,12 @@ FlowStateDispatcher 负责状态机；FlowStateStore 持久化方案、任务、
 
 dispatcher 明确分开“只能由已安装 resolver 发起的受控调用”和“直接旧 CLI”：直接 CLI 不接受调用者冒充受控入口，也拒绝 BossCoding v2 状态；受控入口则拒绝新建 legacy 计划。状态和队列写入会拒绝隔离目录内部的链接或非规范路径。安装器先原子发布完整锁，再记录每个原目标的类型和摘要；安装期间目标或源码变化就停止，提交后逐项复核，回滚时若发现外部新修改会保留现场而不是静默覆盖。
 
+### 可选的人物 Skill
+
+PDGO 可独立使用，不安装[女娲](https://github.com/alchaincyf/nuwa-skill)也不影响正常任务和 Agency Agents 专业角色选择。Agency Agents 负责提供功能专家，但不替代特定人物视角。
+
+需要创建、更新或审核人物 Skill 时，再从女娲官方仓库单独安装女娲；需要使用某位人物视角时，请单独安装对应的人物 Skill。
+
 ## BossCoding 快速开始
 
 在 Codex 里直接说 `秘书：<任务>`、`秘书，按 BossCoding 做：<任务>`，或调用
