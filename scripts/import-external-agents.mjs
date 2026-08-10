@@ -106,7 +106,7 @@ function markdown(provider, entries, divisions) {
     `Source commit: \`${provider.source_commit}\``,
     `Agents imported: **${entries.length}**`,
     "",
-    "This catalog is an external Agent prompt source, not a replacement for PDGO governance. Every invocation still needs a classified scenario, approved dispatch, scope, evidence, report, and planning review.",
+    "This catalog is an external Agent prompt source, not a replacement for PDGO governance. Every invocation still needs a classified scenario, approved dispatch, scope, evidence, report, and source-verified independent review.",
     "",
     "## Divisions",
     "",

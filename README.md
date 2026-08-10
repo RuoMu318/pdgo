@@ -33,7 +33,7 @@ project intake
   -> request explicit user approval for the exact plan version
   -> dispatch one ready task to execution
   -> collect an execution report
-  -> send the report to planning for independent acceptance
+  -> send a REVIEW_REQUEST to the bound independent reviewer
   -> accept, revise, block, or fail the task
   -> unlock and dispatch the next dependent task when all gates pass
   -> write checkpoints, summaries, indexes, and audit records
@@ -50,17 +50,17 @@ Planning review is not user approval. A worker report is not completion approval
 | Review | Compare reports and evidence with acceptance criteria | Rewrite scope silently or clear an unresolved blocker |
 | Coordination | Route Skills, maintain state, persist memory, dispatch messages, and audit transitions | Infer approval, fabricate evidence, or claim an unavailable adapter completed work |
 
-For a project series, planning and execution controllers have persistent session identities. Task workers and reviewers remain task-scoped. An extension reuses the series controller identities; a genuinely parallel branch gets a new series and a `parallel_of` link.
+For a project series, planning, execution, and independent review controllers have three persistent, distinct session identities. Task workers remain task-scoped. An extension reuses the controller trio; a genuinely parallel branch gets a new series and a `parallel_of` link.
 
-When no repository or project is available, the orchestrator still performs planning, execution reasoning, and acceptance in the current Codex window. It uses an explicit unscoped project identity, keeps planning/execution/review as logical roles in the state record, and does not modify unknown product files or dispatch external work without a concrete scope and approval.
+When no repository or project is available, the orchestrator may still perform read-only planning in the current Codex window. Logical roles in one window are not independent review evidence, so acceptance remains unavailable until a concrete scope, approval, and distinct reviewer session exist.
 
 ## Planning Controller Responsibilities
 
-The planning controller owns the workflow from a clarified objective through final acceptance. It works with the user to define the goal, target outcome, modification scope, excluded scope, acceptance criteria, evidence, rollback, risks, blockers, assumptions, and stop conditions. It does not proactively deepen implementation details beyond what the user requested.
+The planning controller owns the plan lifecycle and blocker disposition. It works with the user to define the goal, target outcome, modification scope, excluded scope, acceptance criteria, evidence, rollback, risks, blockers, assumptions, and stop conditions. It does not accept its own plan or proactively deepen implementation details beyond what the user requested.
 
 For a long plan, the controller splits work into explicit stages and marks each stage as serial or parallel. Every stage and task declares the required Skills and, when applicable, an agent selector. Serial stages must be accepted before later stages activate. Parallel stages may fan out only for independent tasks with isolated workspaces and a later fan-in review.
 
-After each execution report, the controller sends the result through independent planning review:
+After each normal execution report, the dispatcher sends the result to the bound independent reviewer:
 
 ```text
 accepted          -> record evidence -> unlock the next stage/task
@@ -75,7 +75,7 @@ with `PLANNING_BLOCKER_OPINION`: if every blocker is resolvable inside the appro
 resolutions and re-dispatches the stopped task; otherwise it sends `USER_ACTION_REQUIRED` in the planning conversation
 and keeps execution paused. Silent retries and silent blocker state changes are forbidden.
 
-An ordinary correction is limited to work the approved plan already required: redo an omitted item, repair a defect, or use another implementation method that preserves the approved contract. These corrections can be automatically re-dispatched while the revision limit and original approval remain valid. A new risk or blocker always pauses progression for planning disposition; it invalidates the old approval only when resolution changes permission, acceptance, architecture, rollback, scope, or another approved contract term. The controller repeats correction and review until the task is accepted or a stop condition is reached; it never silently skips a failed correction.
+An ordinary correction is limited to work the approved plan already required: redo an omitted item, repair a defect, or use another implementation method that preserves the approved contract. These corrections can be automatically re-dispatched while the revision limit and original approval remain valid. A new risk or blocker always pauses progression for planning disposition. After the first failed-review baseline, two completed correction rounds that repeat the same issue without new evidence stop as `repeated-no-progress`; partial progress or new evidence resets that count.
 
 When every task is accepted, no blocker is open, no new risk is awaiting disposition, and the current plan status is `completed`, the controller may prepare a declared next plan in the same series. The new version remains `awaiting-user-approval` and cannot be dispatched automatically. Brainstorming is used during planning discovery to compare options; it is not an execution authorization.
 
@@ -87,7 +87,7 @@ Continuous automatic dispatch means that the runtime advances a previously appro
 approved plan
   -> dispatch ready task A
   -> receive execution report
-  -> planning accepts report A
+  -> independent review accepts report A
   -> dispatch ready dependent task B
   -> receive report B
   -> continue until the series is complete or a gate stops it
@@ -160,7 +160,7 @@ Use a stable series ID and a descriptive plan title. A recommended human-readabl
 PROJECT-YYYYMMDD-NNN-readable-topic-vN
 ```
 
-The `plan_series_id` is reused for a scope-preserving extension. The extension creates a new immutable version and reuses the same planning/execution controller identities. A parallel objective creates a new series, uses new controller identities, and records `parallel_of` so its accepted result can be synchronized back to the parent.
+The `plan_series_id` is reused for a scope-preserving extension. The extension creates a new immutable version and reuses the same planning/execution/review controller identities. A parallel objective creates a new series, uses a new controller trio, and records `parallel_of` so its accepted result can be synchronized back to the parent.
 
 ## Conversation memory and indexes
 
@@ -223,11 +223,14 @@ Search by the concrete scenario and division, then use the exact `external_agent
 
 | Adapter | Use | Limitation |
 | --- | --- | --- |
-| `FileQueueAdapter` | Local, CI, manual handoff, and audit review | Requires a queue consumer; it does not claim a remote conversation exists |
-| `CodexAppServerAdapter` | Real `thread/start` and `turn/start` transport | Requires an injected reachable transport |
+| `FileQueueAdapter` | Local, CI, manual handoff, and audit review | Logical IDs are not author authentication; queued reviews remain non-authoritative without host source attestation |
+| `CodexAppServerAdapter` | Real planning, execution, reviewer, and worker threads | Requires an injected reachable transport |
 | `AgencyAgentsAdapter` | Scenario-based external role selection wrapped around a base adapter | External role prompts remain advisory and cannot approve, expand scope, or clear blockers |
 
-Adapters must return real session identifiers or an explicit `adapter-unavailable` status. They must never fabricate a completion.
+Adapters must return real session identifiers or an explicit `adapter-unavailable` status. The Codex-native integration lives under `integrations/codex-native/`; its Skill calls built-in subagent tools, then binds the real returned IDs. Node never fabricates or launches a Codex subagent.
+
+An adapter may mark review identity as authenticated only for the exact transport its `receiveReviews` method polls;
+wrapping a trusted worker launcher around a plain file queue does not make queued reviews trusted.
 
 ## Quick start
 

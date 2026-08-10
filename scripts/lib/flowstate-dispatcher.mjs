@@ -1,6 +1,6 @@
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 const STATE_VERSION = "1.0";
 const TERMINAL_TASK_STATUSES = new Set(["accepted"]);
@@ -24,6 +24,27 @@ function idFactory(prefix) {
   return `${prefix}-${randomUUID()}`;
 }
 
+function processIsAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return null;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error.code === "ESRCH" || error.code === "EINVAL") return false;
+    return true;
+  }
+}
+
+function lockRecoveryId(owner) {
+  return createHash("sha256")
+    .update(`${String(owner?.token ?? "")}:${String(owner?.pid ?? "")}`)
+    .digest("hex");
+}
+
+async function readLockOwner(lockPath) {
+  return JSON.parse(await readFile(path.join(lockPath, "owner.json"), "utf8"));
+}
+
 function required(value, name) {
   if (value === undefined || value === null || value === "") throw new Error(`${name} is required`);
   return value;
@@ -32,6 +53,14 @@ function required(value, name) {
 function asArray(value) {
   if (value === undefined || value === null) return [];
   return Array.isArray(value) ? value : [value];
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function statusOf(item) {
@@ -81,6 +110,17 @@ function safeQueueSegment(value, name) {
     throw new Error(`${name} must be a safe queue path segment`);
   }
   return segment;
+}
+
+function queueSessionSegment(value, name) {
+  const sessionId = String(required(value, name));
+  try {
+    const safe = safeQueueSegment(sessionId, name);
+    if (!safe.startsWith("__pdgo_session_b64__")) return safe;
+  } catch {
+    // Fall through to the collision-free encoded namespace.
+  }
+  return `__pdgo_session_b64__${Buffer.from(sessionId, "utf8").toString("base64url")}`;
 }
 
 function versionNumber(value) {
@@ -189,9 +229,84 @@ function normalizeTask(task, index) {
     revision_attempts: Number(task.revision_attempts ?? task.revisionAttempts ?? 0),
     revision_feedback: asArray(task.revision_feedback ?? task.revisionFeedback),
     revision_history: asArray(task.revision_history ?? task.revisionHistory),
+    issue_progress: clone(task.issue_progress ?? task.issueProgress ?? {}),
+    stop_reason: task.stop_reason ?? task.stopReason ?? null,
+    stopped_issue_ids: asArray(task.stopped_issue_ids ?? task.stoppedIssueIds).map(String),
     dispatch_id: task.dispatch_id ?? null,
     report_id: task.report_id ?? null,
     review_id: task.review_id ?? null,
+  };
+}
+
+function normalizeExecutionBaseline(plan) {
+  const baseline = plan.execution_baseline ?? plan.executionBaseline ?? {};
+  const scope = baseline.scope ?? {};
+  const completion = baseline.completion ?? {};
+  const tasks = asArray(plan.tasks);
+  return {
+    goal: String(baseline.goal ?? plan.goal ?? plan.objective ?? ""),
+    confirmed_decisions: clone(asArray(
+      baseline.confirmed_decisions
+      ?? baseline.confirmedDecisions
+      ?? plan.confirmed_decisions
+      ?? plan.confirmedDecisions,
+    )),
+    allowed_objects: clone(asArray(
+      baseline.allowed_objects
+      ?? baseline.allowedObjects
+      ?? scope.allowed_objects
+      ?? scope.allowedObjects
+      ?? scope.allowed
+      ?? plan.modification_scope
+      ?? plan.modificationScope
+      ?? plan.allowed_paths
+      ?? plan.allowedPaths,
+    )),
+    forbidden_objects: clone(asArray(
+      baseline.forbidden_objects
+      ?? baseline.forbiddenObjects
+      ?? scope.forbidden_objects
+      ?? scope.forbiddenObjects
+      ?? scope.forbidden
+      ?? plan.excluded_scope
+      ?? plan.excludedScope
+      ?? plan.non_goals
+      ?? plan.nonGoals,
+    )),
+    allowed_actions: clone(asArray(
+      baseline.allowed_actions
+      ?? baseline.allowedActions
+      ?? scope.allowed_actions
+      ?? scope.allowedActions
+      ?? plan.allowed_actions
+      ?? plan.allowedActions,
+    )),
+    forbidden_actions: clone(asArray(
+      baseline.forbidden_actions
+      ?? baseline.forbiddenActions
+      ?? scope.forbidden_actions
+      ?? scope.forbiddenActions
+      ?? plan.forbidden_actions
+      ?? plan.forbiddenActions,
+    )),
+    completion_criteria: clone(asArray(
+      baseline.completion_criteria
+      ?? baseline.completionCriteria
+      ?? completion.criteria
+      ?? plan.acceptance_criteria
+      ?? plan.acceptanceCriteria
+      ?? tasks.flatMap((task) => asArray(task?.acceptance_criteria ?? task?.acceptanceCriteria)),
+    )),
+    accepter: String(baseline.accepter ?? completion.accepter ?? plan.accepter ?? "independent reviewer"),
+    current_action: String(
+      baseline.current_action
+      ?? baseline.currentAction
+      ?? plan.current_action
+      ?? plan.currentAction
+      ?? tasks[0]?.objective
+      ?? tasks[0]?.title
+      ?? "",
+    ),
   };
 }
 
@@ -242,12 +357,19 @@ function normalizePlan(input, seriesId, version) {
     summary,
     objective: String(plan.objective ?? ""),
     goal: String(plan.goal ?? plan.objective ?? ""),
+    execution_baseline: normalizeExecutionBaseline(plan),
     target_outcome: String(plan.target_outcome ?? plan.expected_outcome ?? ""),
     modification_scope: asArray(plan.modification_scope ?? plan.modificationScope ?? plan.allowed_paths ?? plan.allowedPaths),
     excluded_scope: asArray(plan.excluded_scope ?? plan.excludedScope ?? plan.non_goals ?? plan.nonGoals),
     detail_policy: String(plan.detail_policy ?? plan.detailPolicy ?? "do-not-deepen-without-request"),
     brainstorming: clone(plan.brainstorming ?? plan.brainstorming_brief ?? { enabled: false, options: [], decisions: [] }),
-    planning_policy: clone(plan.planning_policy ?? plan.planningPolicy ?? { auto_split_long_plan: true, auto_revision_in_scope: true }),
+    planning_policy: {
+      auto_split_long_plan: true,
+      auto_revision_in_scope: true,
+      max_revision_cycles: 6,
+      no_progress_limit: 2,
+      ...clone(plan.planning_policy ?? plan.planningPolicy ?? {}),
+    },
     non_goals: asArray(plan.non_goals ?? plan.nonGoals),
     current_state: String(plan.current_state ?? plan.currentState ?? ""),
     inputs: asArray(plan.inputs),
@@ -327,11 +449,13 @@ function initialState(projectId) {
 }
 
 export class FlowStateStore {
-  constructor({ root, fileName = "flowstate-state.json", clock = Date.now } = {}) {
+  constructor({ root, fileName = "flowstate-state.json", clock = Date.now, lockTimeoutMs = 5000 } = {}) {
     if (!root) throw new Error("FlowStateStore root is required");
     this.root = path.resolve(root);
     this.filePath = path.join(this.root, fileName);
+    this.lockPath = `${this.filePath}.lock`;
     this.clock = clock;
+    this.lockTimeoutMs = Math.max(100, Number(lockTimeoutMs) || 5000);
   }
 
   async load(projectId = null) {
@@ -340,6 +464,23 @@ export class FlowStateStore {
       if (!value || typeof value !== "object") throw new Error("state must be an object");
       value.series ??= {};
       value.events ??= [];
+      for (const series of Object.values(value.series)) {
+        series.reviewer_session_id ??= null;
+        series.review_delivery_status ??= series.reviewer_session_id ? (series.delivery_status ?? "connected") : "review-unavailable";
+        series.platform_session_ids ??= {
+          planning: series.planning_session_id ?? null,
+          execution: series.execution_session_id ?? null,
+        };
+        series.platform_session_ids.review ??= series.reviewer_session_id;
+        series.host_bound_sessions ??= {};
+        if (series.delivery_status === "connected") {
+          series.host_bound_sessions.planning ??= series.planning_session_id;
+          series.host_bound_sessions.execution ??= series.execution_session_id;
+        }
+        if (series.review_delivery_status === "connected" || series.delivery_status === "connected") {
+          series.host_bound_sessions.review ??= series.reviewer_session_id;
+        }
+      }
       return value;
     } catch (error) {
       if (error.code === "ENOENT") return initialState(projectId);
@@ -366,7 +507,7 @@ export class FlowStateStore {
           search_terms: plan.search_terms,
           knowledge_domains: plan.knowledge_domains,
           status: plan.status,
-          related_sessions: [series.planning_session_id, series.execution_session_id],
+          related_sessions: [series.planning_session_id, series.execution_session_id, series.reviewer_session_id].filter(Boolean),
           task_ids: plan.tasks.map((task) => task.task_id),
           parallel_of: series.parallel_of ?? null,
         });
@@ -374,23 +515,119 @@ export class FlowStateStore {
       sessionIndex.push(
         { session_id: series.planning_session_id, project_id: series.project_id, department: "planning", role: "controller", plan_series_id: series.plan_series_id },
         { session_id: series.execution_session_id, project_id: series.project_id, department: "execution", role: "controller", plan_series_id: series.plan_series_id },
+        series.reviewer_session_id
+          ? { session_id: series.reviewer_session_id, project_id: series.project_id, department: "review", role: "controller", plan_series_id: series.plan_series_id }
+          : null,
       );
       for (const dispatch of Object.values(series.dispatches ?? {})) {
         if (dispatch.worker_session_id) sessionIndex.push({ session_id: dispatch.worker_session_id, project_id: series.project_id, department: "execution", role: "worker", plan_series_id: series.plan_series_id, task_id: dispatch.task_id });
       }
     }
     planIndex.sort((left, right) => `${left.plan_series_id}/${left.plan_version}`.localeCompare(`${right.plan_series_id}/${right.plan_version}`));
-    sessionIndex.sort((left, right) => left.session_id.localeCompare(right.session_id));
+    const validSessionIndex = sessionIndex.filter(Boolean);
+    validSessionIndex.sort((left, right) => left.session_id.localeCompare(right.session_id));
     await writeFile(path.join(this.root, "plan-index.json"), `${JSON.stringify({ schema_version: STATE_VERSION, plans: planIndex }, null, 2)}\n`, "utf8");
-    await writeFile(path.join(this.root, "session-index.json"), `${JSON.stringify({ schema_version: STATE_VERSION, sessions: sessionIndex }, null, 2)}\n`, "utf8");
+    await writeFile(path.join(this.root, "session-index.json"), `${JSON.stringify({ schema_version: STATE_VERSION, sessions: validSessionIndex }, null, 2)}\n`, "utf8");
     return this.filePath;
   }
 
   async transaction(projectId, mutator) {
-    const state = await this.load(projectId);
-    const result = await mutator(state);
-    await this.save(state);
-    return result;
+    await mkdir(this.root, { recursive: true });
+    const deadline = Date.now() + this.lockTimeoutMs;
+    const lockToken = randomUUID();
+    const owner = { token: lockToken, pid: process.pid, acquired_at: new Date().toISOString() };
+    let ownsLock = false;
+    while (!ownsLock) {
+      const candidatePath = `${this.lockPath}.candidate-${lockToken}`;
+      try {
+        await mkdir(candidatePath);
+        await writeFile(path.join(candidatePath, "owner.json"), `${JSON.stringify(owner)}\n`, "utf8");
+      } catch (error) {
+        await rm(candidatePath, { recursive: true, force: true });
+        throw error;
+      }
+      try {
+        await rename(candidatePath, this.lockPath);
+        ownsLock = true;
+        continue;
+      } catch (error) {
+        await rm(candidatePath, { recursive: true, force: true });
+        if (!["EEXIST", "ENOTEMPTY", "EPERM"].includes(error.code)) throw error;
+      }
+
+      try {
+        const observedOwner = await readLockOwner(this.lockPath);
+        if (processIsAlive(Number(observedOwner.pid)) === false) {
+          const recoveryRoot = `${this.lockPath}.recovery-${lockRecoveryId(observedOwner)}`;
+          const recoveredLockPath = path.join(recoveryRoot, "lock");
+          await mkdir(recoveryRoot, { recursive: true });
+          try {
+            await writeFile(
+              path.join(recoveryRoot, "recovery.json"),
+              `${JSON.stringify({ owner: observedOwner, detected_at: new Date().toISOString() })}\n`,
+              { encoding: "utf8", flag: "wx" },
+            );
+          } catch (error) {
+            if (error.code !== "EEXIST") throw error;
+          }
+
+          try {
+            const currentOwner = await readLockOwner(this.lockPath);
+            if (
+              currentOwner.token === observedOwner.token
+              && Number(currentOwner.pid) === Number(observedOwner.pid)
+              && processIsAlive(Number(currentOwner.pid)) === false
+            ) {
+              try {
+                await rename(this.lockPath, recoveredLockPath);
+                continue;
+              } catch (error) {
+                if (!["ENOENT", "EEXIST", "ENOTEMPTY", "EPERM"].includes(error.code)) throw error;
+              }
+            }
+          } catch (error) {
+            if (error.code === "ENOENT") continue;
+            throw error;
+          }
+        }
+      } catch (error) {
+        if (error.code === "ENOENT") continue;
+        // Invalid or unverifiable owner data fails closed until an operator
+        // inspects the one exact lock directory.
+      }
+
+      if (Date.now() >= deadline) throw new Error(`Timed out waiting for FlowState state lock: ${this.lockPath}`);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+
+    try {
+      const state = await this.load(projectId);
+      const result = await mutator(state);
+      await this.save(state);
+      return result;
+    } finally {
+      const releasedPath = `${this.lockPath}.released-${lockToken}`;
+      const releaseDeadline = Date.now() + this.lockTimeoutMs;
+      while (true) {
+        try {
+          const currentOwner = await readLockOwner(this.lockPath);
+          if (currentOwner.token !== lockToken) {
+            throw new Error(`FlowState state lock ownership changed before release: ${this.lockPath}`);
+          }
+          await rename(this.lockPath, releasedPath);
+          break;
+        } catch (error) {
+          if (error.code === "ENOENT") {
+            throw new Error(`FlowState state lock disappeared before release: ${this.lockPath}`);
+          }
+          if (!["EACCES", "EBUSY", "EPERM"].includes(error.code) || Date.now() >= releaseDeadline) {
+            throw error;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+      }
+      await rm(releasedPath, { recursive: true, force: true });
+    }
   }
 }
 
@@ -400,13 +637,16 @@ export class FileQueueAdapter {
     this.root = path.resolve(root);
     this.clock = clock;
     this.id = id;
+    this.authenticatedReviewSource = false;
   }
 
   async ensureSeriesSessions({ seriesId }) {
     return {
       planning_session_id: `local-planning-${seriesId}`,
       execution_session_id: `local-execution-${seriesId}`,
-      platform_session_ids: { planning: null, execution: null },
+      reviewer_session_id: `local-review-${seriesId}`,
+      platform_session_ids: { planning: null, execution: null, review: null },
+      review_delivery_status: "adapter-unavailable",
       delivery_status: "adapter-unavailable",
       adapter: "file-queue",
     };
@@ -421,7 +661,7 @@ export class FileQueueAdapter {
   }
 
   async send(message) {
-    const target = safeQueueSegment(message.target_session_id ?? message.return_to, "target_session_id");
+    const target = queueSessionSegment(message.target_session_id ?? message.return_to, "target_session_id");
     const directory = path.join(this.root, "outbox", target);
     await mkdir(directory, { recursive: true });
     const messageId = String(message.message_id ?? message.dispatch_id ?? this.id("message"));
@@ -439,11 +679,12 @@ export class FileQueueAdapter {
   }
 
   async enqueueReport(report) {
-    const target = safeQueueSegment(report.return_to ?? report.planning_session_id, "return_to");
+    const target = queueSessionSegment(report.return_to ?? report.planning_session_id, "return_to");
     const directory = path.join(this.root, "inbox", target);
     await mkdir(directory, { recursive: true });
     const reportId = String(report.report_id ?? this.id("report"));
-    const filePath = path.join(directory, `${reportId}.json`);
+    const safeReportId = safeQueueSegment(reportId, "report_id");
+    const filePath = path.join(directory, `${safeReportId}.json`);
     try {
       await readFile(filePath, "utf8");
       return { report_id: reportId, path: filePath, deduplicated: true };
@@ -457,11 +698,15 @@ export class FileQueueAdapter {
   }
 
   async enqueueReview(review) {
-    const target = safeQueueSegment(review.return_to ?? review.execution_session_id, "return_to");
+    const target = queueSessionSegment(
+      review.return_to ?? review.reviewer_session_id ?? review.planning_session_id,
+      "return_to",
+    );
     const directory = path.join(this.root, "inbox", target);
     await mkdir(directory, { recursive: true });
     const reviewId = String(review.review_id ?? this.id("review"));
-    const filePath = path.join(directory, `${reviewId}.json`);
+    const safeReviewId = safeQueueSegment(reviewId, "review_id");
+    const filePath = path.join(directory, `${safeReviewId}.json`);
     try {
       await readFile(filePath, "utf8");
       return { review_id: reviewId, path: filePath, deduplicated: true };
@@ -473,7 +718,7 @@ export class FileQueueAdapter {
   }
 
   async receiveReports(sessionId) {
-    const directory = path.join(this.root, "inbox", safeQueueSegment(sessionId, "sessionId"));
+    const directory = path.join(this.root, "inbox", queueSessionSegment(sessionId, "sessionId"));
     let names;
     try {
       names = (await readdir(directory)).filter((name) => name.endsWith(".json")).sort();
@@ -486,7 +731,7 @@ export class FileQueueAdapter {
   }
 
   async receiveReviews(sessionId) {
-    const directory = path.join(this.root, "inbox", safeQueueSegment(sessionId, "sessionId"));
+    const directory = path.join(this.root, "inbox", queueSessionSegment(sessionId, "sessionId"));
     let names;
     try {
       names = (await readdir(directory)).filter((name) => name.endsWith(".json")).sort();
@@ -499,7 +744,7 @@ export class FileQueueAdapter {
   }
 
   async acknowledgeMessage(sessionId, messageId) {
-    const safeSession = safeQueueSegment(sessionId, "sessionId");
+    const safeSession = queueSessionSegment(sessionId, "sessionId");
     const safeMessage = safeQueueSegment(messageId, "messageId");
     const directory = path.join(this.root, "inbox", safeSession);
     const directPath = path.join(directory, `${safeMessage}.json`);
@@ -553,6 +798,7 @@ export class CodexAppServerAdapter {
     this.request = request;
     this.receive = receive;
     this.id = id;
+    this.authenticatedReviewSource = true;
   }
 
   async ensureSeriesSessions({ seriesId, projectId }) {
@@ -562,14 +808,20 @@ export class CodexAppServerAdapter {
     const execution = await this.request("thread/start", {
       metadata: { flowstate_role: "execution-controller", project_id: projectId, plan_series_id: seriesId },
     });
+    const reviewer = await this.request("thread/start", {
+      metadata: { flowstate_role: "review-controller", project_id: projectId, plan_series_id: seriesId },
+    });
     return {
       planning_session_id: planning?.thread?.id ?? planning?.id ?? planning?.threadId,
       execution_session_id: execution?.thread?.id ?? execution?.id ?? execution?.threadId,
+      reviewer_session_id: reviewer?.thread?.id ?? reviewer?.id ?? reviewer?.threadId,
       platform_session_ids: {
         planning: planning?.thread?.id ?? planning?.id ?? planning?.threadId ?? null,
         execution: execution?.thread?.id ?? execution?.id ?? execution?.threadId ?? null,
+        review: reviewer?.thread?.id ?? reviewer?.id ?? reviewer?.threadId ?? null,
       },
       delivery_status: "connected",
+      review_delivery_status: "connected",
       adapter: "codex-app-server",
     };
   }
@@ -656,8 +908,11 @@ export class FlowStateDispatcher {
       if (!series) {
         seriesId ??= `series-${this.id("plan")}`;
         const sessions = await this.adapter.ensureSeriesSessions({ seriesId, projectId: this.projectId });
-        if (!sessions?.planning_session_id || !sessions?.execution_session_id) {
-          throw new Error("adapter did not return planning and execution session ids");
+        if (!sessions?.planning_session_id || !sessions?.execution_session_id || !sessions?.reviewer_session_id) {
+          throw new Error("adapter did not return planning, execution, and reviewer session ids");
+        }
+        if (new Set([sessions.planning_session_id, sessions.execution_session_id, sessions.reviewer_session_id]).size !== 3) {
+          throw new Error("planning, execution, and reviewer sessions must be distinct");
         }
         series = {
           plan_series_id: seriesId,
@@ -666,7 +921,24 @@ export class FlowStateDispatcher {
           parallel_of: relation === "parallel" ? String(parallelOf) : null,
           planning_session_id: sessions.planning_session_id,
           execution_session_id: sessions.execution_session_id,
-          platform_session_ids: sessions.platform_session_ids ?? { planning: sessions.planning_session_id, execution: sessions.execution_session_id },
+          reviewer_session_id: sessions.reviewer_session_id,
+          review_delivery_status: sessions.review_delivery_status ?? sessions.delivery_status ?? "connected",
+          platform_session_ids: sessions.platform_session_ids ?? {
+            planning: sessions.planning_session_id,
+            execution: sessions.execution_session_id,
+            review: sessions.reviewer_session_id,
+          },
+          host_bound_sessions: {
+            ...(sessions.delivery_status === "connected"
+              ? {
+                  planning: sessions.planning_session_id,
+                  execution: sessions.execution_session_id,
+                }
+              : {}),
+            ...((sessions.review_delivery_status === "connected" || sessions.delivery_status === "connected")
+              ? { review: sessions.reviewer_session_id }
+              : {}),
+          },
           delivery_status: sessions.delivery_status ?? "connected",
           adapter: sessions.adapter ?? "custom",
           current_plan_version: null,
@@ -711,7 +983,130 @@ export class FlowStateDispatcher {
       series.current_plan_version = version;
       series.updated_at = nowIso(this.clock);
       this.event(state, "PLAN_CREATED", { plan_series_id: seriesId, plan_version: version, relation });
-      return clone({ plan_series_id: seriesId, plan_id: normalized.plan_id, plan_version: version, planning_session_id: series.planning_session_id, execution_session_id: series.execution_session_id });
+      return clone({
+        plan_series_id: seriesId,
+        plan_id: normalized.plan_id,
+        plan_version: version,
+        planning_session_id: series.planning_session_id,
+        execution_session_id: series.execution_session_id,
+        reviewer_session_id: series.reviewer_session_id,
+      });
+    });
+  }
+
+  async bindHostSession({ planSeriesId, role, sessionId } = {}) {
+    return this.store.transaction(this.projectId, async (state) => {
+      const series = state.series[required(planSeriesId, "planSeriesId")];
+      if (!series) throw new Error(`Plan series not found: ${planSeriesId}`);
+      const normalizedRole = String(required(role, "role")).toLowerCase();
+      const field = {
+        planning: "planning_session_id",
+        execution: "execution_session_id",
+        review: "reviewer_session_id",
+        reviewer: "reviewer_session_id",
+      }[normalizedRole];
+      if (!field) throw new Error(`unsupported host session role: ${role}`);
+      const normalizedSessionId = String(required(sessionId, "sessionId"));
+      series.host_bound_sessions ??= {};
+      const platformRole = field === "reviewer_session_id" ? "review" : normalizedRole;
+      const existingHostSession = series.host_bound_sessions[platformRole];
+      if (existingHostSession) {
+        if (existingHostSession !== normalizedSessionId) throw new Error(`cannot rebind the ${platformRole} host session`);
+        return clone({
+          plan_series_id: planSeriesId,
+          role: platformRole,
+          session_id: normalizedSessionId,
+          idempotent: true,
+        });
+      }
+      if (Object.keys(series.dispatches ?? {}).length > 0) {
+        throw new Error("controller sessions must be bound before the first dispatch");
+      }
+      const otherControllerIds = [
+        series.planning_session_id,
+        series.execution_session_id,
+        series.reviewer_session_id,
+      ].filter((candidate) => candidate && candidate !== series[field]);
+      if (otherControllerIds.includes(normalizedSessionId)) {
+        throw new Error("bound planning, execution, and reviewer sessions must be distinct");
+      }
+      series[field] = normalizedSessionId;
+      series.platform_session_ids ??= {};
+      series.platform_session_ids[platformRole] = normalizedSessionId;
+      series.host_bound_sessions[platformRole] = normalizedSessionId;
+      if (field === "reviewer_session_id") series.review_delivery_status = "connected";
+      series.updated_at = nowIso(this.clock);
+      this.event(state, "HOST_CONTROLLER_BOUND", {
+        plan_series_id: planSeriesId,
+        role: platformRole,
+        session_id: normalizedSessionId,
+      });
+      return clone({
+        plan_series_id: planSeriesId,
+        role: platformRole,
+        session_id: normalizedSessionId,
+      });
+    });
+  }
+
+  async bindHostWorker({ planSeriesId, planVersion, taskId, dispatchId, workerSessionId } = {}) {
+    return this.store.transaction(this.projectId, async (state) => {
+      const series = state.series[required(planSeriesId, "planSeriesId")];
+      const plan = series?.plans[String(required(planVersion, "planVersion"))];
+      const dispatch = series?.dispatches[required(dispatchId, "dispatchId")];
+      const task = plan?.tasks.find((candidate) => candidate.task_id === required(taskId, "taskId"));
+      if (!series || !plan || !dispatch || !task) throw new Error("host worker binding identifiers do not match a known dispatch");
+      if (dispatch.plan_version !== plan.plan_version || dispatch.task_id !== task.task_id || task.dispatch_id !== dispatch.dispatch_id) {
+        throw new Error("host worker binding does not match the active task dispatch");
+      }
+      if (series.reports[task.report_id] || dispatch.status === "report-received") {
+        throw new Error("cannot bind a host worker after its report was received");
+      }
+      const normalizedWorkerId = String(required(workerSessionId, "workerSessionId"));
+      if (dispatch.host_bound) {
+        if (dispatch.worker_session_id !== normalizedWorkerId) throw new Error("cannot rebind a host worker session");
+        return clone({
+          plan_series_id: planSeriesId,
+          plan_version: plan.plan_version,
+          task_id: task.task_id,
+          dispatch_id: dispatch.dispatch_id,
+          worker_session_id: normalizedWorkerId,
+          idempotent: true,
+        });
+      }
+      const reservedIds = [
+        series.planning_session_id,
+        series.execution_session_id,
+        series.reviewer_session_id,
+        ...Object.values(series.dispatches)
+          .filter((candidate) => candidate.dispatch_id !== dispatch.dispatch_id)
+          .map((candidate) => candidate.worker_session_id),
+      ].filter(Boolean);
+      if (reservedIds.includes(normalizedWorkerId)) {
+        throw new Error("bound worker session must be distinct from controllers and other workers");
+      }
+      dispatch.worker_session_id = normalizedWorkerId;
+      dispatch.target_session_id = normalizedWorkerId;
+      dispatch.platform_worker_session_id = normalizedWorkerId;
+      dispatch.worker_delivery_status = "connected";
+      dispatch.manual_handoff = false;
+      dispatch.host_bound = true;
+      dispatch.host_bound_at = nowIso(this.clock);
+      series.updated_at = dispatch.host_bound_at;
+      this.event(state, "HOST_WORKER_BOUND", {
+        plan_series_id: planSeriesId,
+        plan_version: plan.plan_version,
+        task_id: task.task_id,
+        dispatch_id: dispatch.dispatch_id,
+        worker_session_id: normalizedWorkerId,
+      });
+      return clone({
+        plan_series_id: planSeriesId,
+        plan_version: plan.plan_version,
+        task_id: task.task_id,
+        dispatch_id: dispatch.dispatch_id,
+        worker_session_id: normalizedWorkerId,
+      });
     });
   }
 
@@ -723,7 +1118,7 @@ export class FlowStateDispatcher {
       if (!series || !plan) throw new Error(`Plan not found: ${planSeriesId}/${version}`);
       if (approval?.approver !== "user") throw new Error("approval.approver must be user");
       if (approval?.plan_version !== version) throw new Error("approval.plan_version must exactly match the plan version");
-      if (approval?.plan_id && approval.plan_id !== plan.plan_id) throw new Error("approval.plan_id does not match the plan");
+      if (required(approval?.plan_id, "approval.plan_id") !== plan.plan_id) throw new Error("approval.plan_id does not match the plan");
       if (!new Set(["approved", "approved-with-conditions"]).has(approval?.decision)) {
         throw new Error("approval decision must be approved or approved-with-conditions");
       }
@@ -761,6 +1156,7 @@ export class FlowStateDispatcher {
       const plan = series?.plans[version];
       if (!series || !plan) throw new Error(`Plan not found: ${planSeriesId}/${version}`);
       if (plan.status !== "approved") throw new Error(`plan is not executable in status ${plan.status}`);
+      if (!series.reviewer_session_id) throw new Error("plan review is unavailable until an independent reviewer session is bound");
       if (!plan.approval || plan.approval.plan_id !== plan.plan_id || plan.approval.plan_version !== version) {
         throw new Error("plan is missing exact user approval for this plan id and version");
       }
@@ -823,6 +1219,7 @@ export class FlowStateDispatcher {
           task_id: task.task_id,
           parent_session_id: series.execution_session_id,
           planning_session_id: series.planning_session_id,
+          reviewer_session_id: series.reviewer_session_id,
           target_session_id: worker.worker_session_id,
           worker_session_id: worker.worker_session_id,
           platform_worker_session_id: Object.prototype.hasOwnProperty.call(worker, "platform_session_id") ? worker.platform_session_id : worker.worker_session_id,
@@ -940,6 +1337,22 @@ export class FlowStateDispatcher {
       if (dispatch.task_id !== report.task_id) throw new Error("execution report task_id does not match the dispatch");
       if (dispatch.plan_version !== String(report.plan_version)) throw new Error("execution report plan_version does not match the dispatch");
       if (dispatch.plan_id !== plan.plan_id) throw new Error("dispatch plan_id does not match the plan");
+      if (
+        report.session_id
+        && report.worker_session_id
+        && report.session_id !== report.worker_session_id
+        && report.session_id !== series.execution_session_id
+      ) {
+        throw new Error("execution report session_id must identify the execution controller or the same worker");
+      }
+      const reportWorkerSessionId = report.worker_session_id
+        ?? (report.session_id && report.session_id !== series.execution_session_id ? report.session_id : null);
+      if (dispatch.host_bound && !reportWorkerSessionId) {
+        throw new Error("execution report from a host-bound dispatch requires worker_session_id");
+      }
+      if (dispatch.host_bound && reportWorkerSessionId !== dispatch.worker_session_id) {
+        throw new Error("execution report must come from the bound worker session");
+      }
       if (series.reports[report.report_id]) return { duplicate: true, report_id: report.report_id };
       if (report.plan_id && report.plan_id !== plan.plan_id) throw new Error("execution report plan_id does not match");
       const reportStatus = statusOf(report) || "returned-to-planning";
@@ -956,6 +1369,12 @@ export class FlowStateDispatcher {
       ));
       const stored = {
         ...clone(report),
+        session_id: report.session_id ?? null,
+        worker_session_id: reportWorkerSessionId ?? null,
+        worker_identity_verified: Boolean(dispatch.host_bound && reportWorkerSessionId === dispatch.worker_session_id),
+        identity_format: report.worker_session_id
+          ? "worker-session-field"
+          : (reportWorkerSessionId ? "worker-in-session-id" : "legacy-controller-session"),
         message_type: abnormalStop ? "EXECUTION_STOPPED" : String(report.message_type ?? "EXECUTION_REPORT"),
         abnormal_stop: abnormalStop,
         new_blockers: clone(normalizedBlockers),
@@ -994,11 +1413,13 @@ export class FlowStateDispatcher {
         series.status = task.status === "blocked" ? "waiting-on-planning" : "approved";
       }
       reviewMessage = {
-        message_type: blockingReport ? "BLOCKER_REPORT" : "EXECUTION_REPORT",
-        message_id: blockingReport ? `blocker-${report.report_id}` : `review-${report.report_id}`,
-        idempotency_key: blockingReport ? `blocker-${report.report_id}` : `review-${report.report_id}`,
-        target_session_id: series.planning_session_id,
-        return_to: series.execution_session_id,
+        message_type: blockingReport ? "BLOCKER_REPORT" : "REVIEW_REQUEST",
+        message_id: blockingReport ? `blocker-${report.report_id}` : `review-request-${report.report_id}`,
+        idempotency_key: blockingReport ? `blocker-${report.report_id}` : `review-request-${report.report_id}`,
+        review_request_id: blockingReport ? null : `review-request-${report.report_id}`,
+        report_id: report.report_id,
+        target_session_id: blockingReport ? series.planning_session_id : series.reviewer_session_id,
+        return_to: blockingReport ? series.planning_session_id : series.reviewer_session_id,
         project_id: this.projectId,
         plan_series_id: report.plan_series_id,
         plan_id: plan.plan_id,
@@ -1007,6 +1428,10 @@ export class FlowStateDispatcher {
         dispatch_id: report.dispatch_id,
         execution_session_id: series.execution_session_id,
         planning_session_id: series.planning_session_id,
+        reviewer_session_id: series.reviewer_session_id,
+        acceptance_criteria: clone(task.acceptance_criteria),
+        expected_evidence: clone(task.expected_evidence),
+        read_only: !blockingReport,
         blocker_report_id: blockingReport ? `blocker-${report.report_id}` : null,
         abnormal_stop: abnormalStop,
         blockers: clone(normalizedBlockers),
@@ -1044,12 +1469,12 @@ export class FlowStateDispatcher {
       };
     });
 
-    if (!result.duplicate && reviewMessage?.message_type === "EXECUTION_REPORT") {
+    if (!result.duplicate && reviewMessage?.message_type === "REVIEW_REQUEST") {
       try {
         await this.adapter.send(reviewMessage);
       } catch (error) {
         await this.store.transaction(this.projectId, async (state) => {
-          this.event(state, "PLANNING_REVIEW_SEND_FAILED", { report_id: report.report_id, error: error.message });
+          this.event(state, "REVIEW_REQUEST_SEND_FAILED", { report_id: report.report_id, error: error.message });
         });
         return { ...result, notification_error: error.message };
       }
@@ -1057,30 +1482,46 @@ export class FlowStateDispatcher {
     return result;
   }
 
-  async ingestPlanningReview(review) {
+  async ingestPlanningReview(review, { observedSessionId = null, sourceVerified = false } = {}) {
     let planningOpinionMessage = null;
     let userActionMessage = null;
     const result = await this.store.transaction(this.projectId, async (state) => {
       const series = state.series[required(review.plan_series_id, "review.plan_series_id")];
       const plan = series?.plans[String(review.plan_version)];
       const task = plan?.tasks.find((item) => item.task_id === review.task_id);
-      if (!series || !plan || !task) throw new Error("planning review identifiers do not match a known task");
-      if (review.plan_id && review.plan_id !== plan.plan_id) throw new Error("planning review plan_id does not match");
-      if (review.report_id && task.report_id && review.report_id !== task.report_id) throw new Error("planning review report_id does not match the task report");
+      if (!series || !plan || !task) throw new Error("review identifiers do not match a known task");
+      if (review.plan_id && review.plan_id !== plan.plan_id) throw new Error("review plan_id does not match");
+      if (review.report_id && task.report_id && review.report_id !== task.report_id) throw new Error("review report_id does not match the task report");
       if (review.review_id && series.reviews[review.review_id]) return { duplicate: true, review_id: review.review_id };
       const reviewId = required(review.review_id ?? this.id("review"), "review_id");
       const decision = String(review.decision);
-      if (!["accepted", "revision-required", "blocked", "failed", "continue", "await-user"].includes(decision)) throw new Error(`unsupported planning review decision: ${decision}`);
+      if (!["accepted", "revision-required", "blocked", "failed", "continue", "await-user"].includes(decision)) throw new Error(`unsupported review decision: ${decision}`);
       const taskReport = series.reports[review.report_id ?? task.report_id];
       const formalBlockerReport = asArray(taskReport?.new_blockers ?? taskReport?.blockers).length > 0;
       if (decision === "blocked" && formalBlockerReport) throw new Error("formal blocker report requires continue or await-user");
       const blockerDecision = ["continue", "await-user"].includes(decision);
+      const expectedReviewerSessionId = blockerDecision ? series.planning_session_id : series.reviewer_session_id;
+      const sourceSessionId = String(required(observedSessionId, "observedSessionId"));
+      if (sourceVerified !== true) throw new Error("review source must be authenticated by the host transport");
+      if (sourceSessionId !== expectedReviewerSessionId) {
+        throw new Error(
+          blockerDecision
+            ? "planning blocker decision must come from the planning session"
+            : "review decision must come from the independent reviewer session",
+        );
+      }
       const opinion = blockerDecision ? String(required(review.opinion, "review.opinion")) : String(review.opinion ?? "");
       const requiresUser = review.requires_user ?? review.requiresUser;
       if (blockerDecision && typeof requiresUser !== "boolean") throw new Error("review.requires_user must be boolean for a blocker decision");
       if (decision === "continue" && requiresUser) throw new Error("continue cannot require user action");
       if (decision === "await-user" && !requiresUser) throw new Error("await-user requires user action");
-      const stored = { ...clone(review), review_id: reviewId, received_at: nowIso(this.clock) };
+      const stored = {
+        ...clone(review),
+        review_id: reviewId,
+        observed_source_session_id: sourceSessionId,
+        source_verified: true,
+        received_at: nowIso(this.clock),
+      };
       series.reviews[reviewId] = stored;
       task.review_id = reviewId;
 
@@ -1113,6 +1554,9 @@ export class FlowStateDispatcher {
         ...asArray(review.criteria_results).filter((item) => ["fail", "failed", "revision-required"].includes(String(item?.result ?? item?.status).toLowerCase())),
       ];
       let autoRevisionReady = false;
+      let noProgressCount = 0;
+      let stopReason = null;
+      let stoppedIssueIds = [];
       const approvalStillValid = Boolean(plan.approval && plan.approval.plan_id === plan.plan_id && plan.approval.plan_version === plan.plan_version);
       let requiresReapproval = materialChange || highRisk || reviewRisks.length > 0 || hasReviewBlockers || !approvalStillValid;
       let planCompleted = false;
@@ -1211,11 +1655,54 @@ export class FlowStateDispatcher {
         plan.status = requiresUser ? "awaiting-user-action" : "paused-needs-review";
         series.status = "waiting-on-planning";
       } else if (decision === "revision-required") {
-        const maxRevisionCycles = Math.max(1, Number(plan.planning_policy?.max_revision_cycles ?? this.retryLimit) || this.retryLimit);
+        task.issue_progress ??= {};
+        const rawIssueResults = asArray(review.issue_results ?? review.issueResults);
+        if (!rawIssueResults.length) throw new Error("revision-required review requires issue_results");
+        const issueResults = rawIssueResults
+          .map((issue) => {
+            const evidence = asArray(issue?.evidence);
+            if (!evidence.length) throw new Error("revision-required issue_results require evidence");
+            return {
+              issue_id: String(required(issue?.issue_id ?? issue?.issueId, "issue_results.issue_id")),
+              status: String(required(issue?.status, "issue_results.status")).toLowerCase(),
+              progress: String(required(issue?.progress, "issue_results.progress")).toLowerCase(),
+              evidence,
+            };
+          })
+          .filter((issue) => !["resolved", "accepted", "pass", "passed"].includes(issue.status));
+        if (!issueResults.length) throw new Error("revision-required review requires at least one unresolved issue_result");
+        for (const issue of issueResults) {
+          const previous = task.issue_progress[issue.issue_id] ?? null;
+          const evidenceSignature = stableJson(issue.evidence);
+          const explicitProgress = !["", "none", "no-progress", "unchanged"].includes(issue.progress);
+          const sameEvidence = previous?.evidence_signature === evidenceSignature;
+          const repeatedWithoutProgress = Boolean(previous && sameEvidence && !explicitProgress);
+          const issueNoProgressCount = repeatedWithoutProgress
+            ? Number(previous.no_progress_count ?? 0) + 1
+            : 0;
+          task.issue_progress[issue.issue_id] = {
+            issue_id: issue.issue_id,
+            status: issue.status,
+            progress: issue.progress,
+            evidence: clone(issue.evidence),
+            evidence_signature: evidenceSignature,
+            no_progress_count: issueNoProgressCount,
+            last_review_id: reviewId,
+            updated_at: nowIso(this.clock),
+          };
+          noProgressCount = Math.max(noProgressCount, issueNoProgressCount);
+        }
+        const noProgressLimit = Math.max(1, Number(plan.planning_policy?.no_progress_limit ?? 2) || 2);
+        stoppedIssueIds = issueResults
+          .filter((issue) => Number(task.issue_progress[issue.issue_id]?.no_progress_count ?? 0) >= noProgressLimit)
+          .map((issue) => issue.issue_id);
+        const repeatedNoProgress = stoppedIssueIds.length > 0;
+        const maxRevisionCycles = Math.max(1, Number(plan.planning_policy?.max_revision_cycles ?? 6) || 6);
         const inScopeCorrection = this.autoRevision
           && plan.planning_policy?.auto_revision_in_scope !== false
           && !requiresReapproval
           && !plan.blockers.some(blockerIsOpen)
+          && !repeatedNoProgress
           && task.revision_attempts < maxRevisionCycles;
         if (inScopeCorrection && plan.approval) {
           task.revision_history ??= [];
@@ -1226,6 +1713,22 @@ export class FlowStateDispatcher {
           plan.status = "approved";
           series.status = "approved";
           autoRevisionReady = true;
+        } else if (repeatedNoProgress) {
+          task.revision_history ??= [];
+          task.stop_reason = "repeated-no-progress";
+          task.stopped_issue_ids = clone(stoppedIssueIds);
+          task.revision_history.push({
+            review_id: reviewId,
+            status: "stopped-no-progress",
+            issue_ids: clone(stoppedIssueIds),
+            no_progress_count: noProgressCount,
+            created_at: nowIso(this.clock),
+          });
+          task.status = "blocked";
+          plan.status = "paused-needs-review";
+          series.status = "waiting-on-planning";
+          autoRevisionReady = false;
+          stopReason = task.stop_reason;
         } else {
           task.status = "revision-required";
           plan.status = requiresReapproval ? "awaiting-user-approval" : "revision-required";
@@ -1238,7 +1741,7 @@ export class FlowStateDispatcher {
         series.status = task.status === "blocked" ? "waiting-on-planning" : "approved";
       }
       syncStageStatuses(plan);
-      this.event(state, "PLANNING_REVIEW_RECORDED", {
+      this.event(state, "REVIEW_DECISION_RECORDED", {
         plan_series_id: review.plan_series_id,
         plan_version: review.plan_version,
         task_id: review.task_id,
@@ -1247,6 +1750,9 @@ export class FlowStateDispatcher {
         requires_user: Boolean(requiresUser),
         revision_attempt: task.revision_attempts,
         auto_revision_ready: autoRevisionReady,
+        no_progress_count: noProgressCount,
+        stop_reason: stopReason,
+        stopped_issue_ids: clone(stoppedIssueIds),
         requires_reapproval: requiresReapproval,
         plan_completed: planCompleted,
       });
@@ -1271,6 +1777,9 @@ export class FlowStateDispatcher {
         auto_dispatch_ready: plan.status === "approved" && Boolean(plan.approval) && !plan.blockers.some(blockerIsOpen),
         auto_revision_ready: autoRevisionReady,
         revision_attempt: task.revision_attempts,
+        no_progress_count: noProgressCount,
+        stop_reason: stopReason,
+        stopped_issue_ids: clone(stoppedIssueIds),
         plan_completed: planCompleted,
         planning_opinion_required: blockerDecision,
         user_action_required: Boolean(userActionMessage),
@@ -1499,8 +2008,18 @@ export class FlowStateRuntime {
 
   async processReviews(state, result) {
     if (typeof this.adapter.receiveReviews !== "function") return;
-    const sessions = uniqueValues(Object.values(state.series ?? {}).map((series) => series.execution_session_id));
-    for (const sessionId of sessions) {
+    const deliveries = new Map();
+    for (const series of Object.values(state.series ?? {})) {
+      for (const [sessionId, role] of [
+        [series.reviewer_session_id, "review"],
+        [series.planning_session_id, "planning"],
+        [series.execution_session_id, "legacy-execution"],
+      ]) {
+        if (!sessionId || deliveries.has(String(sessionId))) continue;
+        deliveries.set(String(sessionId), role);
+      }
+    }
+    for (const [sessionId, role] of deliveries) {
       let reviews;
       try {
         reviews = await this.adapter.receiveReviews(sessionId);
@@ -1509,8 +2028,36 @@ export class FlowStateRuntime {
         continue;
       }
       for (const review of reviews) {
+        if (role === "legacy-execution") {
+          let quarantined = false;
+          if (typeof this.adapter.acknowledgeReview === "function" && review.review_id) {
+            try {
+              const disposition = await this.adapter.acknowledgeReview(sessionId, review.review_id);
+              quarantined = disposition?.acknowledged === true;
+            } catch (error) {
+              result.errors.push({
+                phase: "legacy-review-quarantine",
+                session_id: sessionId,
+                review_id: review.review_id,
+                error: error.message,
+              });
+              continue;
+            }
+          }
+          result.errors.push({
+            phase: "legacy-review-routing",
+            session_id: sessionId,
+            review_id: review.review_id ?? null,
+            quarantined,
+            error: "legacy review was isolated and must be requeued to the bound reviewer session before it can be authenticated",
+          });
+          continue;
+        }
         try {
-          const ingested = await this.dispatcher.ingestPlanningReview(review);
+          const ingested = await this.dispatcher.ingestPlanningReview(review, {
+            observedSessionId: sessionId,
+            sourceVerified: this.adapter.authenticatedReviewSource === true,
+          });
           if (typeof this.adapter.acknowledgeReview === "function" && review.review_id) {
             await this.adapter.acknowledgeReview(sessionId, review.review_id);
           }

@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "consumer_id": "bosscoding-codex",
+  "integration_manifest": "integrations/codex-native/manifest.json",
+  "secretary_skill": "bosscoding-secretary",
+  "bridge_skill": "pdgo-codex-native-bridge",
+  "task_system": {
+    "type": "existing-obsidian-vault",
+    "role": "cross-project-summary-and-curated-knowledge",
+    "project_files_remain_authoritative": true,
+    "second_task_system_forbidden": true
+  },
+  "host_transport": {
+    "type": "codex-built-in-subagents",
+    "required_operations": [
+      "spawn_agent",
+      "followup_task",
+      "wait_agent"
+    ],
+    "real_host_id_required": true,
+    "cli_model_handoff_forbidden": true,
+    "persistent_daemon_required": false
+  },
+  "roles": {
+    "secretary": "root-agent",
+    "planning": "distinct-subagent",
+    "execution": "distinct-subagent",
+    "review": "distinct-read-only-subagent"
+  },
+  "policy": {
+    "approval_key": [
+      "plan_id",
+      "plan_version"
+    ],
+    "max_revision_cycles": 6,
+    "no_progress_limit": 2,
+    "direction_change_requires_user": true,
+    "failed_review_cannot_be_overridden_by_secretary": true
+  }
+}

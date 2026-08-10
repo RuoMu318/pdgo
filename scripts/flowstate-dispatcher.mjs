@@ -23,7 +23,7 @@ async function readJson(filePath) {
 }
 
 const options = argsToObject(process.argv.slice(2));
-const usage = "Usage: node scripts/flowstate-dispatcher.mjs --action <create-plan|approve|dispatch|report|review|resume|watch|resolve-blocker|sync> --input <json> [--root <state-dir>] [--project <id>] [--interval-ms <ms>] [--max-cycles <n>]";
+const usage = "Usage: node scripts/flowstate-dispatcher.mjs --action <create-plan|bind-host-session|bind-host-worker|approve|dispatch|report|review|resume|watch|resolve-blocker|sync> --input <json> [--root <state-dir>] [--project <id>] [--interval-ms <ms>] [--max-cycles <n>]";
 if (options.help || process.argv.slice(2).includes("-h")) {
   console.log(usage);
   process.exit(0);
@@ -65,10 +65,19 @@ try {
   let result;
   if (action === "search-agents") result = await adapter.searchAgents({ query: options.query ?? input.query ?? "", division: options.division ?? input.division ?? null, limit: Number(options.limit ?? 10) });
   else if (action === "create-plan") result = await dispatcher.createPlan(input);
+  else if (action === "bind-host-session") result = await dispatcher.bindHostSession(input);
+  else if (action === "bind-host-worker") result = await dispatcher.bindHostWorker(input);
   else if (action === "approve") result = await dispatcher.approvePlan(input);
   else if (action === "dispatch") result = await dispatcher.dispatchReady(input);
   else if (action === "report") result = await dispatcher.ingestExecutionReport(input);
-  else if (action === "review") result = await dispatcher.ingestPlanningReview(input);
+  else if (action === "review") {
+    const observedSessionId = input.observed_session_id ?? input.observedSessionId;
+    if (!observedSessionId) throw new Error("review action requires observed_session_id from the host transport");
+    result = await dispatcher.ingestPlanningReview(input, {
+      observedSessionId: String(observedSessionId),
+      sourceVerified: true,
+    });
+  }
   else if (action === "resume" || action === "run-once") result = await runtime.runOnce({ resume: true });
   else if (action === "watch") {
     const controller = new AbortController();

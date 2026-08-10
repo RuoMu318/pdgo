@@ -2,7 +2,7 @@
 
 Agents imported: **271**
 
-This catalog is an external Agent prompt source, not a replacement for PDGO governance. Every invocation still needs a classified scenario, approved dispatch, scope, evidence, report, and planning review.
+This catalog is an external Agent prompt source, not a replacement for PDGO governance. Every invocation still needs a classified scenario, approved dispatch, scope, evidence, report, and source-verified independent review.
 
 ## Divisions
 
@@ -33,6 +33,6 @@ This catalog is an external Agent prompt source, not a replacement for PDGO gove
 2. Select an Agent by scenario fit, not by name alone.
 3. Include `external_agent_id` in the approved task dispatch.
 4. The external adapter injects the cached prompt plus the PDGO dispatch contract into the worker session.
-5. Return the result as an ordinary execution report and let the planning controller review it.
+5. Return the result as an ordinary execution report and let the bound independent reviewer check it; planning handles blockers.
 
 The cached prompt files retain their upstream paths, SHA, and source URL for auditability.

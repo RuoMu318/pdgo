@@ -9,9 +9,16 @@ plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
 plan_version: v1
 task_id: T01
 reviewer_session_id: review-session-id
+observed_source_session_id: review-session-id
+source_verified: true
 decision: accepted | revision-required | blocked | failed | continue | await-user
 criteria_results: []
 evidence_checked: []
+issue_results:
+  - issue_id: stable-issue-id
+    status: open | resolved
+    progress: none | partial | complete
+    evidence: []
 defects: []
 new_risks: []
 new_blockers: []
@@ -23,4 +30,4 @@ scope_change: false
 material_change: false
 requires_reapproval: false
 next_action: unlock-next-task | dispatch | wait-for-user | stop
-return_to: execution-session-id
+return_to: review-session-id

@@ -10,8 +10,8 @@ create series/plan
   -> approved
   -> ready task
   -> PLAN_DISPATCH to task worker
-  -> EXECUTION_REPORT to fixed execution controller
-  -> planning review
+  -> EXECUTION_REPORT from bound task worker
+  -> REVIEW_REQUEST to fixed independent reviewer
       accepted       -> unlock dependent task -> dispatch next task
       revision       -> in-scope correction dispatch -> repeat review
       new risk/scope change -> pause -> new plan version and approval
@@ -21,8 +21,9 @@ create series/plan
       failed         -> retry within profile limit or block
 ```
 
-The planning controller receives every execution report and records the review decision. A worker cannot unlock a
-dependent task by reporting success. A correction may stay in the same version only when it redoes omitted approved
+The dispatcher records every execution report and sends a normal result to the bound reviewer. Planning receives only
+blocker disposition work. A worker cannot unlock a dependent task by reporting success, and planning cannot accept its
+own plan. A correction may stay in the same version only when it redoes omitted approved
 work, repairs a defect, or uses another method without changing the approved contract. New risks, blockers,
 permissions, acceptance, architecture, rollback, or scope changes invalidate approval until planning and the user
 review the change.
@@ -64,21 +65,42 @@ The dispatcher stores these identifiers on every series:
 |---|---|
 | `planning_session_id` | One planning-controller conversation for the series |
 | `execution_session_id` | One execution-controller conversation for the series |
+| `reviewer_session_id` | One independent review-controller conversation for the series |
 | `worker_session_id` | New task-scoped worker conversation per dispatched task |
 | `parallel_of` | Parent series used only by a parallel branch |
 
 Calling `createPlan({ relation: "extension" })` with an existing series only adds a new immutable plan version; it
 must return the existing controller IDs. Calling `createPlan({ relation: "parallel" })` requires a new series ID and
-creates a new controller pair. When the branch reaches `completed`, `syncParallelResult` sends `PARALLEL_PLAN_SYNC`
+creates a new controller trio. When the branch reaches `completed`, `syncParallelResult` sends `PARALLEL_PLAN_SYNC`
 to the parent planning session.
+
+Connected controller IDs are locked when the series is created. Loading a pre-upgrade connected state backfills the
+same lock, so `bind-host-session` cannot replace an already-real planning, execution, or review identity. Logical
+FileQueue placeholders remain bindable once, before the first dispatch.
+
+State transactions use a fail-closed ownership-lock directory acquired by atomic rename. A contender checks the
+recorded process ID and never expires a lock merely because it looks old: a live long-running writer keeps ownership.
+When the owner process is confirmed dead, the exact lock directory is atomically moved into a token-derived recovery
+quarantine. That permanent quarantine prevents two simultaneous restarts from moving or deleting a newer live
+owner's lock. Invalid or unverifiable owner metadata still fails closed; an operator must verify no writer is alive
+before moving that one exact `.lock` directory.
 
 ## Adapters
 
-`FileQueueAdapter` is the safe local handoff mode. It writes dispatch messages to `outbox/<session-id>/` and accepts reports
-in `inbox/<session-id>/`. It is useful for manual handoff, CI, and audit review. Its logical session IDs have
-`delivery_status: adapter-unavailable`; continuous automatic dispatch treats that as a transport blocker and waits.
+`FileQueueAdapter` is the safe local handoff mode. It writes dispatch messages to `outbox/<session-id>/` and accepts
+reports in `inbox/<session-id>/`. Its logical IDs support tests and manual handoff but do not authenticate an author
+or prove an independent reviewer. The runtime therefore records but does not accept a review found only in a plain
+file queue; a host transport must attest the observed source before that review can change task state. Automatic
+dispatch treats `adapter-unavailable` as a transport blocker and waits.
 
-`CodexAppServerAdapter` requires an injected transport. It calls `thread/start` only when a new series or task worker
+Host session IDs that are not safe path segments, including canonical Codex subagent names such as
+`/root/reviewer`, are deterministically encoded inside a reserved namespace for queue directory names. Safe raw IDs
+that begin with that namespace are encoded too, preventing a raw name from colliding with an encoded name. The
+original session ID remains unchanged inside messages and persisted state, so filesystem safety does not weaken
+identity checks.
+
+`CodexAppServerAdapter` requires an injected transport. It creates planning, execution, and review controller threads
+for a new series, then calls `thread/start` only when a task worker
 needs a session, and calls `turn/start` with a structured JSON message. The adapter must return the server's actual
 thread ID. A transport error becomes a recorded dispatch failure and never a fabricated completion.
 
@@ -144,8 +166,8 @@ push remote state. A selector on any non-`PLAN_DISPATCH` message is rejected so 
 outside the governed execution path.
 
 The external worker returns the same report contracts as a local worker: `EXECUTION_REPORT` for a normal return and
-`BLOCKER_REPORT` for an abnormal stop or explicit blocker. The execution controller records the report and sends it
-to the fixed planning session for acceptance, revision, block, or retry; an accepted report is the only event that
+`BLOCKER_REPORT` for an abnormal stop or explicit blocker. The dispatcher records a normal report and sends a
+`REVIEW_REQUEST` to the fixed reviewer; an accepted, source-verified review is the only event that
 can unlock a dependent task. Prompt-cache misses, metadata failures, source integrity failures,
 catalog lookup errors, or transport failures are recorded as dispatch failures. In file-queue mode the message remains
 auditable in the queue, but automatic dispatch creates a transport blocker and pauses; an unavailable external Agent
@@ -159,26 +181,37 @@ selection; it does not disable approval, scope, evidence, report, or review gate
 
 ```powershell
 node scripts/flowstate-dispatcher.mjs --action create-plan --input plan.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action bind-host-session --input reviewer-binding.json --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action approve --input approval.json --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action dispatch --input dispatch.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action bind-host-worker --input worker-binding.json --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action report --input report.json --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action review --input review.json --root .flowstate --project demo
 ```
 
-The CLI uses the file queue and is intentionally explicit. A project profile can wrap these calls with a real App
-Server adapter after checking platform availability and user approval.
+The CLI uses the file queue and is intentionally explicit. The `review` input must include the host-observed
+`observed_session_id`. The Codex-native Skill calls the built-in subagent tools itself, then binds their actual returned
+IDs; the Node CLI never fabricates or launches a Codex subagent.
+
+Execution-report schema 1.1 preserves `session_id` as the legacy execution-controller field and adds
+`worker_session_id` for the task-scoped worker. A host-bound dispatch requires the latter to match the exact worker.
+Early bridge reports that duplicated the worker in `session_id` remain readable; they are stored with an explicit
+identity-format marker rather than silently changing the old field's meaning.
 
 ## Continuous runtime
 
-The dispatcher already performs the next-task transition after an accepted planning review. FlowStateRuntime adds
+The dispatcher already performs the next-task transition after a source-verified accepted review. FlowStateRuntime adds
 the missing process boundary around that state machine:
 
 1. Read queued `EXECUTION_REPORT`, `EXECUTION_STOPPED`, and `BLOCKER_REPORT` messages for each planning controller session.
 2. Ingest each report; formal blockers are forwarded to the fixed planning conversation as `BLOCKER_REPORT`.
-3. Read queued `REVIEW_DECISION` and `PLANNING_BLOCKER_OPINION` messages for each execution controller session.
-4. Record the planning decision; an accepted decision invokes the normal next-task gate.
+3. Read `REVIEW_DECISION` from each reviewer session and `PLANNING_BLOCKER_OPINION` from each planning session.
+   A legacy review found in an execution-controller inbox is moved to processed storage, reported for requeue, and
+   never accepted in place.
+4. Record the transport-observed source; only the bound reviewer may accept or require revision.
 5. For `continue`, deliver the planning opinion before re-dispatching the stopped task; for `await-user`, notify the user and remain paused.
-6. For an in-scope `revision-required` decision, dispatch the correction task again and return it to the same review loop.
+6. For an in-scope `revision-required` decision, dispatch the correction task again. Stop after two completed
+   correction rounds repeat the same issue without new evidence.
 7. Resume every approved current plan whose dependencies and blocker conditions are satisfied.
 8. Acknowledge successful queue messages by moving them to processed/<session-id>/.
 
@@ -203,11 +236,10 @@ transition succeeds; failed messages remain in inbox/ for inspection or retry.
 
 The runtime may be started again after a process or machine restart. Persisted state determines whether a task is
 already dispatched, report-returned, accepted, ready, blocked, or complete. It never treats a worker's self-reported
-success as a planning acceptance.
+success as reviewer acceptance.
 
 ## No-project same-window mode
 
-When a host has no repository or project profile, it may use an explicit unscoped project ID (the CLI default is
-project). The same Codex window can still run the planning, execution reasoning, and review phases in order. The
-state records keep these as logical departments and preserve the same approval and evidence gates. No unknown
-product path is writable and no external dispatch is allowed until a concrete project scope and user approval exist.
+When a host has no repository or project profile, it may use an explicit unscoped project ID for read-only planning.
+One visible Codex window cannot prove independent review. Acceptance remains unavailable until a concrete scope,
+approval, and distinct bound reviewer exist.

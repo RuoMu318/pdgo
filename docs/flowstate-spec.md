@@ -56,29 +56,26 @@ new series.
 project controller
 ├── planning controller session
 │   ├── planning worker sessions
-│   ├── research worker sessions
-│   └── planning review session
-└── execution controller session
+│   └── research worker sessions
+├── execution controller session
     ├── execution worker sessions
-    ├── validation worker sessions
-    └── execution review session
+    └── validation worker sessions
+└── independent review controller session
 ```
 
 Controllers coordinate. Workers perform bounded work. Reviewers independently evaluate artifacts.
 Each worker and reviewer has a separate conversation and receives only the task-local context and artifact IDs it
-needs. A series has one persistent planning-controller conversation and one persistent execution-controller
-conversation. A version that extends the same series reuses that pair; a genuinely parallel series creates a new
-pair, records `parallel_of`, and sends a structured fan-in message to the parent planning conversation. Cross-
+needs. A series has persistent, mutually distinct planning, execution, and review controller conversations. A version
+that extends the same series reuses that trio; a genuinely parallel series creates a new trio, records `parallel_of`,
+and sends a structured fan-in message to the parent planning conversation. Cross-
 department communication uses versioned artifacts and control messages, not copied chat history.
 
 ### No-project same-window mode
 
-If no repository, project profile, or product path can be identified, the orchestrator uses an explicit unscoped
-project identity and still completes the planning, execution reasoning, and review phases in the current visible
-Codex window. The state records preserve the logical departments and approval gates, but no unknown product artifact
-may be changed and no external dispatch may be created until a concrete scope and user approval exist. This mode
-keeps the workflow usable for research, design, clarification, and method-level changes without pretending that a
-project repository or remote worker exists.
+If no repository, project profile, or product path can be identified, the orchestrator may use an explicit unscoped
+identity for read-only planning, research, and clarification. Logical roles in one visible window are not independent
+identity evidence. No product change or accepted review may occur until a concrete scope, approval, and distinct
+bound reviewer exist.
 
 ## 5. Universal startup routing
 
@@ -286,8 +283,9 @@ Execution workers must:
 ## 13. Review and acceptance
 
 Workers never self-approve. Reviewers compare the result with the exact acceptance criteria and evidence.
-The execution report returns to planning. Planning accepts, revises, blocks, or closes the task. Only an
-accepted task unlocks its dependents. High-impact releases require an additional user acceptance gate.
+A normal execution report becomes a `REVIEW_REQUEST` to the bound independent reviewer. Only a review decision
+observed from that session can accept or require revision and unlock dependents. Planning alone handles formal
+blocker opinions. High-impact releases require an additional user acceptance gate.
 
 ### Planning controller responsibilities
 
@@ -297,7 +295,7 @@ agent selectors. A serial stage must be accepted before a later stage becomes ac
 only independent tasks with no shared mutable writes, bounded by `max_parallel`; each result is reviewed and the
 stage is not complete until its fan-in conditions pass.
 
-After each execution report the controller performs or requests independent acceptance and classifies the result:
+After each normal execution report the reviewer classifies the result; planning classifies blocker disposition:
 
 ```text
 accepted          -> record evidence and activate the next ready stage/task
@@ -312,7 +310,9 @@ method without changing the approved contract. It may reuse the same plan versio
 unresolved risk or blocker exists, and the revision limit is not exceeded. A new risk or blocker stops the loop for
 planning disposition. A permission, acceptance, architecture, rollback, scope, or other approved-contract change,
 or an explicit reapproval request, requires a new plan version and user approval. The controller continues correction
-and review until acceptance or a stop condition; it cannot skip an unsuccessful correction or proactively expand detail.
+and review until acceptance or a stop condition. The first failed review establishes an issue baseline; after two
+completed correction rounds repeat the same `issue_id` with `progress: none` and no new evidence, the task stops as
+`repeated-no-progress`. New evidence or partial progress resets that consecutive count.
 
 When every task is accepted and no blocker is open, the controller may prepare the declared `next_plan` in the same
 series. Preparing it does not approve it: the new version remains `awaiting-user-approval` and cannot dispatch.
@@ -326,8 +326,8 @@ clear a blocker.
 The series ID is the continuity key:
 
 ```text
-same plan_series_id + extension -> reuse planning_session_id and execution_session_id
-parallel plan                  -> new plan_series_id and new controller sessions
+same plan_series_id + extension -> reuse planning, execution, and reviewer session ids
+parallel plan                  -> new plan_series_id and a new controller trio
 parallel completion             -> PARALLEL_PLAN_SYNC to parent planning session
 ```
 

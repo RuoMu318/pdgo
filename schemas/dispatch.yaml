@@ -12,6 +12,7 @@ parent_session_id: execution-session-id
 target_session_id: execution-worker-session-id
 planning_session_id: planning-session-id
 execution_session_id: execution-session-id
+reviewer_session_id: review-session-id
 worker_session_id: execution-worker-session-id
 platform_worker_session_id: null
 worker_delivery_status: connected | adapter-unavailable
