@@ -83,10 +83,70 @@
     "external_agent_id_field": "tasks[].external_agent_id or stages[].agent_selectors[]",
     "host_to_external_id_conversion": "forbidden"
   },
+  "capability_awareness": {
+    "startup_card": {
+      "label": "本次用人卡",
+      "display_timing": "before-formal-work-starts",
+      "display_action": "show",
+      "first_role_name_format": "中文名（English exact host type）",
+      "later_role_name_format": "中文名",
+      "required_fields": [
+        "用途",
+        "为何选中",
+        "范围",
+        "权限"
+      ]
+    },
+    "closeout_card": {
+      "label": "实际贡献卡",
+      "display_timing": "formal-task-closeout",
+      "display_action": "show",
+      "entry_types": [
+        "角色",
+        "Lens"
+      ],
+      "no_material_value_statement": "没有实质价值"
+    },
+    "capability_queries": {
+      "names": [
+        "能力图",
+        "为什么选它"
+      ],
+      "catalog_source": "current-verifiable-catalog",
+      "source_order": [
+        "host-current-actually-available-roles",
+        "currently-installed-and-available-persona-or-skill",
+        "manifest-hash-verified-external-agents"
+      ],
+      "forbidden_realtime_sources": [
+        "README",
+        "cache",
+        "memory",
+        "static-excerpt"
+      ],
+      "action_order": [
+        "query-relevant-live-sources-in-source-order",
+        "answer-from-current-query-results"
+      ],
+      "hardcoded_role_or_persona_counts": false,
+      "hardcoded_complete_role_or_persona_lists": false,
+      "expose_internal_ids": false
+    },
+    "persistence": {
+      "required_conditions": [
+        "current-run-evidence-proves-effective",
+        "reusable-across-tasks"
+      ],
+      "preferred_target": "existing-knowledge-note",
+      "empty_directory_forbidden": true,
+      "static_capability_directory_forbidden": true
+    }
+  },
   "method_lenses": {
     "default_mode": "lens",
     "voice_and_rehearsal_require_explicit_opt_in": true,
     "authority": "advisory-only",
+    "fact_source": false,
     "review_target_forbidden": true,
     "optional_context_fields": [
       "purpose",

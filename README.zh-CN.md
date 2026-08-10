@@ -170,6 +170,8 @@ indexes/knowledge-index.json
 
 调度器会在状态文件旁生成 plan-index.json 和 session-index.json。索引只用于发现；方案、会话、报告和总结等源记录才是证据来源。每次跨会话读取都要记录在当前会话中。
 
+能力经验只有同时满足“本轮有证据证明有效”和“可跨任务复用”才持久化。优先更新既有知识笔记；不新建空目录或静态能力目录。
+
 ## 按场景路由 Skill
 
 启动时至少识别：
@@ -202,7 +204,9 @@ inputs, outputs, constraints, risk, mode, approval state
 
 机器审计记录工作流基线的 SHA-256、Git blob 哈希和逻辑段落融合去向，活动路由不显示外部来源名称。
 
-锁定目录按 18 个分类保存 271 个专业 Agent，每个 Agent 都有基于原始提示证据生成的 YAML 说明。只有高置信度且具备结构化输入、输出证据的条目允许自动选择，其余均为 `manual-only`，需要在获批任务中显式填写 `external_agent_id`。Agent 不能批准方案、关闭卡点、改变范围或替代独立验收；部门候选分类和 Skill 要求见 `profiles/pdgo-agent-routing.json`。
+当前可验证目录保存专业 Agent 及其基于原始提示证据生成的说明。只有高置信度且具备结构化输入、输出证据的条目允许自动选择，其余均为 `manual-only`，需要在获批任务中显式填写 `external_agent_id`。Agent 不能批准方案、关闭卡点、改变范围或替代独立验收；部门候选分类和 Skill 要求见 `profiles/pdgo-agent-routing.json`。
+
+用户问“能力图”或“为什么选它”时，BossCoding 先查询当时实时可验证的目录；查询和选择顺序固定为：先查宿主当前实际可用的角色，再查当前已安装且可用的 Persona／人物 Skill，最后查经当前 manifest 哈希校验的外部 Agent；先查询相关来源，再回答。不硬编码角色或 Persona 的数量与完整名单，也不向用户倾倒内部 ID。README、缓存、记忆和静态摘录只能作线索，不能作为实时来源。
 
 ## 运行时和适配器
 

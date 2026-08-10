@@ -88,3 +88,25 @@ Completion state: the approved v2 cross-project cold start, role selection, advi
 direct `秘书：<任务>` entry, verified global installation, independent review, and unrelated-project
 E2E are complete. No GitHub push, persistent daemon, course-project modification, publication, or
 external message occurred.
+
+- 2026-08-09: Started approved plan `BOSSCODING-CAPABILITY-AWARENESS-20260809-v1` on
+  `feat/capability-awareness`, limited to nine declared documentation, profile, and contract-test files.
+- 2026-08-09: Added `本次用人卡`, `实际贡献卡`, current-catalog query, Persona fact-source, and
+  evidence-gated persistence contracts through six targeted red/green slices. Each targeted test
+  passes individually; full validation, smoke, Skill quick validation, and diff checks remain pending.
+- 2026-08-09: Full validation passes for `BOSSCODING-CAPABILITY-AWARENESS-20260809-v1`: the
+  integration file passes 17/17 and the full Node suite passes 110/110 with zero failures, skips, or
+  todos; project validation, smoke, both Skill quick validations, and diff checks also pass. This is
+  executor evidence only; independent review has not run and no acceptance is claimed.
+- 2026-08-09: Approved plan `BOSSCODING-CAPABILITY-AWARENESS-20260809-v2` T01 adds a dispatcher
+  regression slice for worker-1 report → revision-required → new dispatch → worker-2 binding. The
+  one-line runtime fix limits the existing-report guard to the current dispatch, preserves the old
+  report, rejects old-dispatch rebinding and worker-1 reporting on the new dispatch, and accepts only
+  the newly bound worker-2 report.
+- 2026-08-09: The six capability-awareness slices now consistently specify pre-start and closeout
+  display actions plus the fixed live-source order: host-current roles, installed available
+  Persona/Skills, then manifest-hash-verified external Agents. README, cache, memory, and static
+  excerpts cannot be treated as live sources.
+- 2026-08-09: v2 T01 validation passes: dispatcher 52/52, integration 17/17, and full Node 111/111,
+  with zero failures, skips, or todos; project validation, smoke, both Skill quick validations, and
+  diff checks pass. This remains executor evidence pending independent review.

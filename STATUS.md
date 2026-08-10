@@ -48,10 +48,11 @@ completion or a defined stop condition.
 
 ## Current action
 
-The approved v2 extension is complete. An unrelated empty project completed a real cold-start run
-with separate planning, execution, and review subagents; the installed resolver verified their host
-identities, permissions, the advisory-only Andrej Karpathy Lens, the execution report, and the final
-review source. The exact 32-byte artifact passed independent review, and the isolated project and
-state were then removed. The stable user entry is `秘书：<任务>`; no implementation action remains.
-GitHub push, persistent daemons, the course project, and unapproved target-project initialization
-remain outside scope.
+Approved plan `BOSSCODING-CAPABILITY-AWARENESS-20260809-v2` T01 fixes revision worker rebinding
+without deleting historical reports or weakening worker identity checks. The user-facing
+`本次用人卡`, `实际贡献卡`, three-source live capability query, Persona fact-source, and
+evidence-gated persistence contracts are present. Six targeted red/green capability contract slices pass,
+and the dispatcher regression is 1/1. Full validation passes: the integration file is 17/17,
+the dispatcher file is 52/52, and the full Node suite is 111/111 with zero failures, skips, or todos;
+project validation, smoke, both Skill quick validations, and diff checks also pass. Independent
+review has not run for v2 T01; no acceptance is claimed.

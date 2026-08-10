@@ -993,6 +993,147 @@ test("BossCoding v2 rejects execution reports until the exact worker is host-bou
   }
 });
 
+test("BossCoding v2 binds a new worker after revision without weakening dispatch identity", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-v2-revision-worker-bind-"));
+  const dispatcher = new FlowStateDispatcher({
+    store: new FlowStateStore({ root: path.join(root, "state") }),
+    adapter: new MockAdapter(),
+    projectId: "demo",
+  });
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-v2-revision-worker-bind",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-v2-revision-worker-bind-plan-v1",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments(),
+        execution_baseline: bossExecutionBaseline(),
+        tasks: [
+          { task_id: "T01", title: "Implement change", objective: "Implement the bounded change.", acceptance_criteria: ["change exists"], expected_evidence: ["diff"] },
+        ],
+      }),
+    });
+    await dispatcher.approvePlan({
+      planSeriesId: "series-v2-revision-worker-bind",
+      planVersion: "v1",
+      approval: {
+        approver: "user",
+        plan_id: "series-v2-revision-worker-bind-plan-v1",
+        plan_version: "v1",
+        decision: "approved",
+        acknowledged_risks: [],
+      },
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-v2-revision-worker-bind",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "plan-session-series-v2-revision-worker-bind",
+      hostAgentType: "Multi-Agent Systems Architect",
+      selectionSource: "approved-role-selection:acy",
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-v2-revision-worker-bind",
+      planVersion: "v1",
+      role: "review",
+      sessionId: "review-session-series-v2-revision-worker-bind",
+      hostAgentType: "Code Reviewer",
+      selectionSource: "approved-role-selection:acy",
+    });
+
+    const first = await dispatcher.dispatchReady({ planSeriesId: "series-v2-revision-worker-bind", planVersion: "v1" });
+    const firstDispatchId = first.dispatches[0].dispatch_id;
+    await dispatcher.bindHostWorker({
+      planSeriesId: "series-v2-revision-worker-bind",
+      planVersion: "v1",
+      taskId: "T01",
+      dispatchId: firstDispatchId,
+      workerSessionId: "worker-v2-revision-1",
+      hostAgentType: "Senior Developer",
+      selectionSource: "approved-role-selection:acy",
+    });
+    await dispatcher.ingestExecutionReport({
+      report_id: "v2-revision-report-1",
+      project_id: "demo",
+      plan_series_id: "series-v2-revision-worker-bind",
+      plan_id: "series-v2-revision-worker-bind-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: firstDispatchId,
+      worker_session_id: "worker-v2-revision-1",
+      status: "returned-to-planning",
+      evidence: ["first diff"],
+    });
+    const correction = await ingestObservedReview(dispatcher, {
+      review_id: "v2-revision-review-1",
+      reviewer_session_id: "review-session-series-v2-revision-worker-bind",
+      report_id: "v2-revision-report-1",
+      plan_series_id: "series-v2-revision-worker-bind",
+      plan_id: "series-v2-revision-worker-bind-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "revision-required",
+      required_changes: ["Add the missing validation."],
+      criteria_results: [{ criterion: "change exists", result: "fail" }],
+      issue_results: [{ issue_id: "missing-validation", status: "open", progress: "none", evidence: ["validation absent"] }],
+    });
+    const secondDispatchId = correction.revision_dispatches[0].dispatch_id;
+
+    await assert.rejects(() => dispatcher.bindHostWorker({
+      planSeriesId: "series-v2-revision-worker-bind",
+      planVersion: "v1",
+      taskId: "T01",
+      dispatchId: firstDispatchId,
+      workerSessionId: "worker-v2-revision-2",
+      hostAgentType: "Senior Developer",
+      selectionSource: "approved-role-selection:acy",
+    }), /active task dispatch/);
+    await dispatcher.bindHostWorker({
+      planSeriesId: "series-v2-revision-worker-bind",
+      planVersion: "v1",
+      taskId: "T01",
+      dispatchId: secondDispatchId,
+      workerSessionId: "worker-v2-revision-2",
+      hostAgentType: "Senior Developer",
+      selectionSource: "approved-role-selection:acy",
+    });
+    await assert.rejects(() => dispatcher.ingestExecutionReport({
+      report_id: "v2-revision-report-from-old-worker",
+      project_id: "demo",
+      plan_series_id: "series-v2-revision-worker-bind",
+      plan_id: "series-v2-revision-worker-bind-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: secondDispatchId,
+      worker_session_id: "worker-v2-revision-1",
+      status: "returned-to-planning",
+    }), /exact host-bound worker/);
+    await dispatcher.ingestExecutionReport({
+      report_id: "v2-revision-report-2",
+      project_id: "demo",
+      plan_series_id: "series-v2-revision-worker-bind",
+      plan_id: "series-v2-revision-worker-bind-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: secondDispatchId,
+      worker_session_id: "worker-v2-revision-2",
+      status: "returned-to-planning",
+      evidence: ["corrected diff"],
+    });
+
+    const state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-v2-revision-worker-bind"].reports["v2-revision-report-1"].dispatch_id, firstDispatchId);
+    assert.equal(state.series["series-v2-revision-worker-bind"].reports["v2-revision-report-1"].worker_session_id, "worker-v2-revision-1");
+    assert.equal(state.series["series-v2-revision-worker-bind"].reports["v2-revision-report-2"].dispatch_id, secondDispatchId);
+    assert.equal(state.series["series-v2-revision-worker-bind"].reports["v2-revision-report-2"].worker_session_id, "worker-v2-revision-2");
+    assert.equal(state.series["series-v2-revision-worker-bind"].reports["v2-revision-report-from-old-worker"], undefined);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("state and queue writes reject linked paths inside their governed roots", async (t) => {
   const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-linked-writes-"));
   t.after(() => rm(root, { recursive: true, force: true }));

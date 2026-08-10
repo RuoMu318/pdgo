@@ -23,6 +23,10 @@ Do not rename a project's unique next step to the current task action.
 
 ## Role selection and one exact approval
 
+Before formal work starts, show the user a Chinese `本次用人卡`. For each role, the first mention uses `中文名（English exact host type）`; later mentions may use only the Chinese name. State its `用途`, `为何选中`, `范围`, and `权限`. The card explains the drafted or approved assignment and never creates approval.
+
+When the user asks for `能力图` or `为什么选它`, read the catalog verifiable at query time and use this fixed query and selection order: the host's currently available roles, the currently installed and available Persona and Skill catalog, then the manifest hash-verified external Agent catalog. Query the relevant live sources before answering. The answer does not hard-code role or Persona counts or a complete inventory, and does not expose internal IDs. README, cache, memory, and static excerpt are reference clues, not real-time sources.
+
 The secretary first performs the zero-write runtime inspection. It then drafts in memory the five execution-baseline fields, exact `plan_id + plan_version`, exact project-state root, planning/execution/review role assignments, allowed files, prohibited actions, and validation batch before any state write or subagent starts. `acy` only selects roles; it is not approval and its prose cannot authorize a call, write, or external action.
 
 Present that complete batch once. One exact user approval covers creation of the isolated project-state root, the declared planning, execution, and review subagents, and the declared implementation and validation. After approval, ensure the state root, persist the exact drafted plan, record the matching approval, and explicitly invoke `$pdgo-codex-native-bridge`; do not wait for implicit bridge routing. Every BossCoding state action then uses the installed resolver's `invoke` entry so the runtime is revalidated and the project state root is recomputed instead of accepted from caller input. Direct dispatcher CLI remains a separately selected legacy PDGO interface. If persistence would alter the drafted plan body, stop and show the changed version instead of borrowing the prior approval.
@@ -74,6 +78,10 @@ Git is a project-level decision, not a per-task ritual. A feature branch is usef
 - `acy` or specialist selectors: help choose a bounded specialist; they do not approve calls or replace PDGO identity and review gates.
 
 ## Closeout
+
+Give the user a Chinese `实际贡献卡`: state the `实际贡献` of each `角色和 Lens` separately. When an entry added no material value, write `没有实质价值` instead of crediting mere participation.
+
+Persist capability learning only when evidence from the current run proves it effective and it is reusable across tasks. Prefer updating an existing knowledge note; do not create empty directories or static capability directories.
 
 Compare:
 

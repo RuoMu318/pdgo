@@ -1562,7 +1562,7 @@ export class FlowStateDispatcher {
       if (dispatch.plan_version !== plan.plan_version || dispatch.task_id !== task.task_id || task.dispatch_id !== dispatch.dispatch_id) {
         throw new Error("host worker binding does not match the active task dispatch");
       }
-      if (series.reports[task.report_id] || dispatch.status === "report-received") {
+      if (series.reports[task.report_id]?.dispatch_id === dispatch.dispatch_id || dispatch.status === "report-received") {
         throw new Error("cannot bind a host worker after its report was received");
       }
       const observedBinding = observedRoleBinding(series, {

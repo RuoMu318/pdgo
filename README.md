@@ -179,6 +179,8 @@ indexes/knowledge-index.json
 
 The dispatcher emits derived `plan-index.json` and `session-index.json` beside its state file. Indexes are discovery aids; source records remain authoritative. Every cross-session read is recorded in the current session.
 
+Capability learning is persisted only when evidence from the current run proves it effective and it is reusable across tasks. Prefer updating an existing knowledge note; do not create empty directories or static capability directories.
+
 ## Scenario-based Skill routing
 
 Startup routing classifies:
@@ -213,7 +215,9 @@ Fourteen workflow baselines are held in a read-only integration archive. The mac
 
 ## Specialist Agent catalog
 
-The locked catalog contains 271 specialist Agent prompts across 18 divisions. Each prompt has evidence-backed metadata for routing, integrity verification, and audit.
+The currently verified catalog provides specialist Agent prompts with evidence-backed metadata for routing, integrity verification, and audit.
+
+When the user asks for `能力图` or `为什么选它`, BossCoding reads the catalog verifiable at query time and uses this fixed query and selection order: the host's currently available roles, the currently installed and available Persona and Skill catalog, then the manifest hash-verified external Agent catalog. It queries the relevant live sources before answering. The explanation does not hard-code role or Persona counts or a complete inventory, and does not expose internal IDs. README, cache, memory, and static excerpt are reference clues, not real-time sources.
 
 Search by the concrete scenario and division, then use the exact `external_agent_id` in the approved dispatch. Only high-confidence entries with structured inputs and outputs can be selected automatically; the remaining entries are `manual-only`. An external Agent cannot approve a plan, close a blocker, change scope, or replace independent review. Department candidate divisions and required Skills are defined in `profiles/pdgo-agent-routing.json`.
 

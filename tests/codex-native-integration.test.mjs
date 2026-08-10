@@ -185,3 +185,193 @@ test("locked external prompts opt out of Windows text conversion", async () => {
     /^integrations\/external-agents\/agency-agents\/prompts\/\*\* -text /m,
   );
 });
+
+test("BossCoding shows a Chinese-first assignment card before formal work starts", async () => {
+  const secretary = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"),
+    "utf8",
+  );
+  const integration = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
+    "utf8",
+  );
+  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
+  const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
+
+  for (const document of [secretary, integration, overlay]) {
+    assert.match(document, /本次用人卡/);
+    assert.match(document, /中文名（English exact host type）/);
+    assert.match(document, /用途/);
+    assert.match(document, /为何选中/);
+    assert.match(document, /范围/);
+    assert.match(document, /权限/);
+  }
+  assert.equal(profile.capability_awareness.startup_card.label, "本次用人卡");
+  assert.equal(profile.capability_awareness.startup_card.display_timing, "before-formal-work-starts");
+  assert.equal(profile.capability_awareness.startup_card.display_action, "show");
+  assert.equal(profile.capability_awareness.startup_card.first_role_name_format, "中文名（English exact host type）");
+  assert.equal(profile.capability_awareness.startup_card.later_role_name_format, "中文名");
+  assert.deepEqual(profile.capability_awareness.startup_card.required_fields, ["用途", "为何选中", "范围", "权限"]);
+});
+
+test("BossCoding closes formal work with an honest contribution card for roles and lenses", async () => {
+  const secretary = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"),
+    "utf8",
+  );
+  const integration = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
+    "utf8",
+  );
+  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
+  const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
+
+  for (const document of [secretary, integration, overlay]) {
+    assert.match(document, /实际贡献卡/);
+    assert.match(document, /角色[和与、]\s*Lens|角色和 Lens/);
+    assert.match(document, /实际贡献/);
+    assert.match(document, /没有实质价值/);
+  }
+  assert.equal(profile.capability_awareness.closeout_card.label, "实际贡献卡");
+  assert.equal(profile.capability_awareness.closeout_card.display_timing, "formal-task-closeout");
+  assert.equal(profile.capability_awareness.closeout_card.display_action, "show");
+  assert.deepEqual(profile.capability_awareness.closeout_card.entry_types, ["角色", "Lens"]);
+  assert.equal(profile.capability_awareness.closeout_card.no_material_value_statement, "没有实质价值");
+});
+
+test("capability explanations query three live sources in order without treating reference text as live state", async () => {
+  const secretary = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"),
+    "utf8",
+  );
+  const integration = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
+    "utf8",
+  );
+  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
+  const english = await readFile(path.join(root, "README.md"), "utf8");
+  const chinese = await readFile(path.join(root, "README.zh-CN.md"), "utf8");
+  const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
+
+  for (const document of [secretary, overlay, chinese]) {
+    assert.match(document, /能力图/);
+    assert.match(document, /为什么选它/);
+    assert.match(document, /当时[^。\n]*(?:实时)?可验证[^。\n]*(?:catalog|目录)/i);
+    assert.match(document, /不硬编码[^。\n]*数量[^。\n]*完整名单/);
+    assert.match(document, /不[^。\n]*内部 ID/);
+    assert.match(document, /宿主[^。\n]*当前实际可用[^。\n]*角色/);
+    assert.match(document, /当前已安装[^。\n]*可用[^。\n]*(?:Persona|人物)[^。\n]*Skill/i);
+    assert.match(document, /manifest[^。\n]*哈希[^。\n]*外部 Agent/i);
+    assert.match(document, /先查询相关来源[^。\n]*再回答/);
+    assert.match(document, /README[^。\n]*缓存[^。\n]*记忆[^。\n]*静态摘录[^。\n]*不能[^。\n]*实时来源/i);
+  }
+  for (const document of [integration, english]) {
+    assert.match(document, /能力图/);
+    assert.match(document, /为什么选它/);
+    assert.match(document, /catalog[^.\n]*verifiable at query time/i);
+    assert.match(document, /does not hard-code[^.\n]*counts[^.\n]*complete (?:inventory|list)/i);
+    assert.match(document, /does not[^.\n]*internal IDs/i);
+    assert.match(document, /host[^.\n]*currently available[^.\n]*roles/i);
+    assert.match(document, /currently installed[^.\n]*available[^.\n]*Persona[^.\n]*Skill/i);
+    assert.match(document, /manifest[^.\n]*hash-verified[^.\n]*external Agent/i);
+    assert.match(document, /quer(?:y|ies)[^.\n]*before answering/i);
+    assert.match(document, /README[^.\n]*cache[^.\n]*memory[^.\n]*static excerpt[^.\n]*(?:not|never)[^.\n]*real-time source/i);
+  }
+  for (const readme of [english, chinese]) {
+    assert.doesNotMatch(readme, /\b271\b|18 divisions|18 个分类/);
+  }
+  assert.deepEqual(profile.capability_awareness.capability_queries.names, ["能力图", "为什么选它"]);
+  assert.equal(profile.capability_awareness.capability_queries.catalog_source, "current-verifiable-catalog");
+  assert.deepEqual(profile.capability_awareness.capability_queries.source_order, [
+    "host-current-actually-available-roles",
+    "currently-installed-and-available-persona-or-skill",
+    "manifest-hash-verified-external-agents",
+  ]);
+  assert.deepEqual(profile.capability_awareness.capability_queries.forbidden_realtime_sources, [
+    "README",
+    "cache",
+    "memory",
+    "static-excerpt",
+  ]);
+  assert.deepEqual(profile.capability_awareness.capability_queries.action_order, [
+    "query-relevant-live-sources-in-source-order",
+    "answer-from-current-query-results",
+  ]);
+  assert.equal(profile.capability_awareness.capability_queries.hardcoded_role_or_persona_counts, false);
+  assert.equal(profile.capability_awareness.capability_queries.hardcoded_complete_role_or_persona_lists, false);
+  assert.equal(profile.capability_awareness.capability_queries.expose_internal_ids, false);
+});
+
+test("capability learning persists only proven reusable value into existing knowledge notes", async () => {
+  const secretary = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"),
+    "utf8",
+  );
+  const integration = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
+    "utf8",
+  );
+  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
+  const english = await readFile(path.join(root, "README.md"), "utf8");
+  const chinese = await readFile(path.join(root, "README.zh-CN.md"), "utf8");
+  const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
+
+  for (const document of [secretary, overlay, chinese]) {
+    assert.match(document, /本轮[^。\n]*证据[^。\n]*有效/);
+    assert.match(document, /跨任务复用/);
+    assert.match(document, /优先更新[^。\n]*既有[^。\n]*知识笔记/);
+    assert.match(document, /不(?:新建|创建)[^。\n]*空目录[^。\n]*静态能力目录/);
+  }
+  for (const document of [integration, english]) {
+    assert.match(document, /evidence from the current run[^.\n]*effective/i);
+    assert.match(document, /reusable across tasks/i);
+    assert.match(document, /prefer updating an existing knowledge note/i);
+    assert.match(document, /do not create empty directories or static capability directories/i);
+  }
+  assert.deepEqual(profile.capability_awareness.persistence.required_conditions, [
+    "current-run-evidence-proves-effective",
+    "reusable-across-tasks",
+  ]);
+  assert.equal(profile.capability_awareness.persistence.preferred_target, "existing-knowledge-note");
+  assert.equal(profile.capability_awareness.persistence.empty_directory_forbidden, true);
+  assert.equal(profile.capability_awareness.persistence.static_capability_directory_forbidden, true);
+});
+
+test("Persona lenses cannot become sources of facts", async () => {
+  const secretary = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"),
+    "utf8",
+  );
+  const integration = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
+    "utf8",
+  );
+  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
+  const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
+
+  for (const document of [secretary, overlay]) {
+    assert.match(document, /人物 Skill[^。\n]*不能作为[^。\n]*事实[^。\n]*来源/);
+  }
+  assert.match(integration, /cannot supply[^.\n]*facts/i);
+  assert.equal(profile.method_lenses.fact_source, false);
+});
+
+test("status documents report capability-awareness validation without claiming acceptance", async () => {
+  const status = await readFile(path.join(root, "STATUS.md"), "utf8");
+  const progress = await readFile(path.join(root, "PROGRESS.md"), "utf8");
+  const currentAction = status.match(/## Current action\n([\s\S]*)$/)?.[1] ?? "";
+  const statusSliceCount = status.match(/(\w+) targeted red\/green(?: capability)? contract slices pass/i)?.[1];
+  const progressSliceCount = progress.match(/through (\w+) targeted red\/green slices/i)?.[1];
+
+  for (const document of [status, progress]) {
+    assert.match(document, /BOSSCODING-CAPABILITY-AWARENESS-20260809-v2/);
+    assert.match(document, /本次用人卡/);
+    assert.match(document, /实际贡献卡/);
+    assert.match(document, /full[\s\S]{0,120}validation[\s\S]{0,120}pass/i);
+  }
+  assert.equal(statusSliceCount?.toLowerCase(), "six");
+  assert.equal(progressSliceCount?.toLowerCase(), statusSliceCount?.toLowerCase());
+  assert.doesNotMatch(currentAction, /no implementation action remains/i);
+  assert.match(currentAction, /targeted[^.\n]*pass/i);
+  assert.match(currentAction, /no acceptance is claimed/i);
+});
