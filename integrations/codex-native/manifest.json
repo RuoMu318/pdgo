@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.1",
+  "integration_id": "pdgo-codex-native",
+  "display_name": "PDGO Codex Native Integration",
+  "skills_root": "integrations/codex-native/skills",
+  "profile": "profiles/bosscoding-codex-consumer.json",
+  "skills": [
+    "bosscoding-secretary",
+    "pdgo-codex-native-bridge"
+  ],
+  "core_pdgo_skill_catalog_unchanged": true,
+  "host_transport": "codex-built-in-subagents",
+  "persistent_daemon_required": false,
+  "dispatcher": "scripts/flowstate-dispatcher.mjs",
+  "runtime_tree": {
+    "algorithm": "sha256-tree-v1",
+    "paths": [
+      "scripts/flowstate-dispatcher.mjs",
+      "scripts/lib/flowstate-dispatcher.mjs",
+      "scripts/lib/external-agent-adapter.mjs",
+      "integrations/codex-native/skills/pdgo-codex-native-bridge/scripts/resolve-cold-start.mjs",
+      "integrations/external-agents/agency-agents/index.json",
+      "integrations/external-agents/agency-agents/metadata-index.json",
+      "integrations/external-agents/agency-agents/prompts"
+    ]
+  },
+  "external_agent_catalog": {
+    "root": "integrations/external-agents/agency-agents",
+    "index": "integrations/external-agents/agency-agents/index.json",
+    "metadata_index": "integrations/external-agents/agency-agents/metadata-index.json",
+    "prompts": "integrations/external-agents/agency-agents/prompts"
+  }
+}

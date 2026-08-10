@@ -28,7 +28,7 @@ changing its content.
 3. Select an Agent only when its role is compatible with the approved task. A name match alone is insufficient.
 4. Add the exact `external_agent_id` and source commit to the approved dispatch.
 5. The external adapter injects the cached upstream prompt into a task-scoped worker session.
-6. The worker returns `EXECUTION_REPORT` after a normal return, or a formal `BLOCKER_REPORT` after an abnormal stop; the planning controller reviews it before any task unlocks.
+6. The worker returns `EXECUTION_REPORT` after a normal return, or a formal `BLOCKER_REPORT` after an abnormal stop; the independent reviewer checks normal evidence, while planning owns blocker disposition.
 
 An external Agent cannot approve a plan, change the approved scope, bypass a blocker, or push external state. A
 `manual-only` entry requires an exact approved `external_agent_id`. Automatic selection requires `auto_route: true`,

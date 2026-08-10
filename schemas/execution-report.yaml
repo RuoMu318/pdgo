@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 message_type: EXECUTION_REPORT | EXECUTION_STOPPED
 trace_id: trace-YYYYMMDD-NNN
 report_id: report-YYYYMMDD-NNN
@@ -9,8 +9,12 @@ plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
 plan_version: v1
 task_id: T01
 session_id: execution-session-id
+worker_session_id: execution-worker-session-id
+worker_identity_verified: false
+identity_format: worker-session-field | worker-in-session-id | legacy-controller-session
 execution_session_id: execution-session-id
 planning_session_id: planning-session-id
+reviewer_session_id: review-session-id
 status: returned-to-planning | blocked | abnormal-stopped
 abnormal_stop: false
 summary: ""

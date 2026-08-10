@@ -7,6 +7,16 @@ series:
     parallel_of: null
     planning_session_id: planning-session-id
     execution_session_id: execution-session-id
+    reviewer_session_id: review-session-id
+    review_delivery_status: connected | adapter-unavailable | review-unavailable
+    platform_session_ids:
+      planning: planning-session-id
+      execution: execution-session-id
+      review: review-session-id
+    host_bound_sessions:
+      planning: planning-session-id
+      execution: execution-session-id
+      review: review-session-id
     current_plan_version: v1
     plans: {}
     dispatches: {}

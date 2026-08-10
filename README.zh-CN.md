@@ -170,6 +170,8 @@ indexes/knowledge-index.json
 
 调度器会在状态文件旁生成 plan-index.json 和 session-index.json。索引只用于发现；方案、会话、报告和总结等源记录才是证据来源。每次跨会话读取都要记录在当前会话中。
 
+能力经验只有同时满足“本轮有证据证明有效”和“可跨任务复用”才持久化。优先更新既有知识笔记；不新建空目录或静态能力目录。
+
 ## 按场景路由 Skill
 
 启动时至少识别：
@@ -202,7 +204,9 @@ inputs, outputs, constraints, risk, mode, approval state
 
 机器审计记录工作流基线的 SHA-256、Git blob 哈希和逻辑段落融合去向，活动路由不显示外部来源名称。
 
-锁定目录按 18 个分类保存 271 个专业 Agent，每个 Agent 都有基于原始提示证据生成的 YAML 说明。只有高置信度且具备结构化输入、输出证据的条目允许自动选择，其余均为 `manual-only`，需要在获批任务中显式填写 `external_agent_id`。Agent 不能批准方案、关闭卡点、改变范围或替代独立验收；部门候选分类和 Skill 要求见 `profiles/pdgo-agent-routing.json`。
+当前可验证目录保存专业 Agent 及其基于原始提示证据生成的说明。只有高置信度且具备结构化输入、输出证据的条目允许自动选择，其余均为 `manual-only`，需要在获批任务中显式填写 `external_agent_id`。Agent 不能批准方案、关闭卡点、改变范围或替代独立验收；部门候选分类和 Skill 要求见 `profiles/pdgo-agent-routing.json`。
+
+用户问“能力图”或“为什么选它”时，BossCoding 先查询当时实时可验证的目录；查询和选择顺序固定为：先查宿主当前实际可用的角色，再查当前已安装且可用的 Persona／人物 Skill，最后查经当前 manifest 哈希校验的外部 Agent；先查询相关来源，再回答。不硬编码角色或 Persona 的数量与完整名单，也不向用户倾倒内部 ID。README、缓存、记忆和静态摘录只能作线索，不能作为实时来源。
 
 ## 运行时和适配器
 
@@ -216,31 +220,46 @@ FlowStateDispatcher 负责状态机；FlowStateStore 持久化方案、任务、
 
 适配器必须返回真实会话 ID，或者明确返回 adapter-unavailable。不得伪造完成。
 
-## 快速开始
+## BossCoding 冷启动
 
-安装或复制项目方法 Skill：
+安装后的 BossCoding 秘书只读取 `<CodexHome>/runtime/bosscoding/runtime.json` 这一份 schema 1.1 描述符。描述符先锁定 manifest；已校验 manifest 再给出完整 `runtime_tree.paths`，覆盖 dispatcher、实际导入库、冷启动 resolver，以及专业角色的索引、元数据索引和提示词树。缺失、越界、路径经过链接或哈希漂移都会停止，不会搜索磁盘猜路径。
+
+陌生项目先只读检查，不创建项目状态。秘书在内存中起草完整批次并取得一次精确批准后，才在 `<CodexHome>/state/bosscoding/projects/<name>-<hash16>` 创建隔离状态。之后每个 BossCoding 状态动作都通过已安装 resolver 的 verified invoke 入口：它重新校验运行时、按项目规范路径重算状态根，并拒绝任意 `--root` 或外部目录覆盖。普通 PDGO 的直接 CLI 仍是单独选择的旧接口，不是老板需要手工操作的流程。
+
+新 BossCoding 计划必须使用完整的 `bosscoding-v2` 三角色契约。`host_agent_type` 由主 Agent 从真实 `spawn_agent.agent_type` 参数记录；`selection_source` 只是获批的选角来源记录，不是 spawn 参数或密码学证明。`permission_mode` 也是治理边界，不等于操作系统沙箱。当前保护目标是防止误配置、普通并发和本地漂移，不声称能隔离已经以同一 Windows 用户身份运行的恶意进程。
+
+dispatcher 明确分开“只能由已安装 resolver 发起的受控调用”和“直接旧 CLI”：直接 CLI 不接受调用者冒充受控入口，也拒绝 BossCoding v2 状态；受控入口则拒绝新建 legacy 计划。状态和队列写入会拒绝隔离目录内部的链接或非规范路径。安装器先原子发布完整锁，再记录每个原目标的类型和摘要；安装期间目标或源码变化就停止，提交后逐项复核，回滚时若发现外部新修改会保留现场而不是静默覆盖。
+
+### 可选的人物 Skill
+
+PDGO 可独立使用，不安装[女娲](https://github.com/alchaincyf/nuwa-skill)也不影响正常任务和 Agency Agents 专业角色选择。Agency Agents 负责提供功能专家，但不替代特定人物视角。
+
+需要创建、更新或审核人物 Skill 时，再从女娲官方仓库单独安装女娲；需要使用某位人物视角时，请单独安装对应的人物 Skill。
+
+## BossCoding 快速开始
+
+在 Codex 里直接说 `秘书：<任务>`、`秘书，按 BossCoding 做：<任务>`，或调用
+`$bosscoding-secretary <任务>`。秘书会定位已验证运行时、起草一个精确批次、取得一次批准，并自动协调
+策划、执行和独立审核。老板不需要运行 dispatcher CLI，也不需要在 Agent 之间搬运 JSON。
+
+## 旧版 PDGO 直接 CLI
+
+直接 CLI 只用于开发者兼容明确声明 `role_contract.version: legacy-v1` 且
+`migration: role-assignments-not-recorded` 的旧计划；它不能创建或操作 BossCoding v2 状态。输入文件必须是
+legacy 专用计划，不能直接使用默认 v2 的 `schemas/plan.yaml`：
 
 ~~~powershell
-Copy-Item -Recurse -Force .\skills\pdgo-route-work `
-  "$env:USERPROFILE\.codex\skills\pdgo-route-work"
+node scripts/flowstate-dispatcher.mjs --action create-plan --input legacy-plan.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action approve --input legacy-approval.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action dispatch --input legacy-dispatch.json --root .flowstate --project demo
 ~~~
 
-创建并批准方案，再通过确定性 CLI 派发：
-
-~~~powershell
-node scripts/flowstate-dispatcher.mjs --action create-plan --input plan.json --root .flowstate --project demo
-node scripts/flowstate-dispatcher.mjs --action approve --input approval.json --root .flowstate --project demo
-node scripts/flowstate-dispatcher.mjs --action dispatch --input dispatch.json --root .flowstate --project demo
-~~~
-
-重启后恢复，或运行持续的本地队列消费者：
+旧版恢复仍需显式调用；`watch` 是选择性的常驻模式，BossCoding 不会启动它：
 
 ~~~powershell
 node scripts/flowstate-dispatcher.mjs --action resume --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action watch --root .flowstate --project demo --interval-ms 1000
 ~~~
-
-watch 是显式选择的常驻模式；需要无人值守时，建议交给服务管理器或 CI 监督。
 
 ## 仓库结构
 
@@ -273,6 +292,13 @@ npm.cmd run validate
 ~~~
 
 测试覆盖 Skill 目录、审批绑定、系列连续性、派发契约、队列幂等、重启恢复、卡点处理、外部角色边界和生成索引。
+
+### BossCoding 来源与署名
+
+本仓库中的 BossCoding 相关集成，是 PDGO 基于 Khazix 的 BossCoding 0.5.1
+所做的独立适配，原项目采用 MIT 许可证。本适配不代表 BossCoding 官方发布、
+合作或背书。完整来源与许可见
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## 状态和许可
 

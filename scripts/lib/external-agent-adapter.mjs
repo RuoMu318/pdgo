@@ -58,6 +58,7 @@ const REQUIRED_DISPATCH_FIELDS = [
   "target_session_id",
   "planning_session_id",
   "execution_session_id",
+  "reviewer_session_id",
   "return_to",
 ];
 
@@ -173,6 +174,9 @@ export class AgencyAgentsAdapter {
     this.catalog = catalog;
     this.baseAdapter = baseAdapter;
     this.hostTransport = hostTransport;
+    this.authenticatedReviewSource = typeof hostTransport?.receiveReviews === "function"
+      ? hostTransport.authenticatedReviewSource === true
+      : baseAdapter.authenticatedReviewSource === true;
   }
 
   async ensureSeriesSessions(input) { return this.baseAdapter.ensureSeriesSessions(input); }
@@ -220,11 +224,19 @@ export class AgencyAgentsAdapter {
   }
 
   async acknowledgeReport(sessionId, reportId) {
+    if (typeof this.hostTransport?.receiveReports === "function") {
+      if (typeof this.hostTransport.acknowledgeReport !== "function") return { acknowledged: false, reason: "host-transport-does-not-support-ack" };
+      return this.hostTransport.acknowledgeReport(sessionId, reportId);
+    }
     if (typeof this.baseAdapter.acknowledgeReport !== "function") return { acknowledged: false, reason: "adapter-does-not-support-ack" };
     return this.baseAdapter.acknowledgeReport(sessionId, reportId);
   }
 
   async acknowledgeReview(sessionId, reviewId) {
+    if (typeof this.hostTransport?.receiveReviews === "function") {
+      if (typeof this.hostTransport.acknowledgeReview !== "function") return { acknowledged: false, reason: "host-transport-does-not-support-ack" };
+      return this.hostTransport.acknowledgeReview(sessionId, reviewId);
+    }
     if (typeof this.baseAdapter.acknowledgeReview !== "function") return { acknowledged: false, reason: "adapter-does-not-support-ack" };
     return this.baseAdapter.acknowledgeReview(sessionId, reviewId);
   }

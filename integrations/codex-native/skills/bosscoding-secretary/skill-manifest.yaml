@@ -1,0 +1,43 @@
+schema_version: "1.0"
+skill_id: "bosscoding-secretary"
+display_name: "BossCoding Secretary"
+description: "Govern formal work through one user-facing secretary, bounded planning, execution, independent review, and durable state."
+project_scope:
+  - "global"
+department:
+  - "coordination"
+stage:
+  - "intake"
+  - "delivery"
+  - "closeout"
+scenarios:
+  - "formal modification tasks that need durable scope and independent review"
+positive_triggers:
+  - "The user requests BossCoding, a secretary, a long-running task, or multi-role delivery"
+  - "The task changes state and needs planning, execution, review, or resume support"
+negative_triggers:
+  - "The request is a simple answer, translation, or read-only lookup with no durable state"
+boundaries:
+  - "The secretary cannot change direction, expand authority, execute external actions, or accept failed work"
+  - "Project rules and the user's current instruction remain authoritative"
+required_inputs:
+  - "project rules and current project state"
+  - "the five-field execution baseline"
+expected_outputs:
+  - "plain-language status"
+  - "evidence-bounded acceptance result"
+  - "one current action when user action is required"
+prerequisites:
+  - "the existing task system is available for formal modification work"
+side_effects:
+  - "writes only the approved project batch and minimal task-system state"
+integrated_components:
+  - "pdgo-codex-native-bridge"
+tags:
+  - "bosscoding"
+  - "secretary"
+  - "governance"
+risk_level: "high"
+priority: 20
+category: "coordination"
+subcategory: "user-facing governed delivery"

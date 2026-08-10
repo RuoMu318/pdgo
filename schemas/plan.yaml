@@ -9,6 +9,57 @@ title: "Human-readable plan title"
 summary: "One sentence that explains the plan."
 goal: "The project goal."
 target_outcome: "The observable result after completion."
+execution_baseline:
+  goal: "The exact goal for this approved work."
+  confirmed_decisions:
+    - decision: "Preserve the source file."
+      source: "user-approved plan v1"
+  allowed_objects:
+    - result.txt
+  forbidden_objects:
+    - input.txt
+  allowed_actions:
+    - create
+  forbidden_actions:
+    - overwrite-source
+  completion_criteria:
+    - result.txt exists with the approved content
+  accepter: independent reviewer
+  current_action: "The one action currently being executed."
+# BossCoding v2 requires every execution_baseline field above to be explicit.
+# confirmed_decisions may be empty only when there is no prior decision to preserve;
+# scope/action bounds and completion_criteria must remain meaningful and non-empty.
+role_contract:
+  version: bosscoding-v2
+# Only migrated pre-v2 plans may instead use:
+# role_contract:
+#   version: legacy-v1
+#   migration: role-assignments-not-recorded
+role_assignments:
+  planning:
+    host_agent_type: Multi-Agent Systems Architect
+    selection_source: approved-role-selection:acy
+    permission_mode: read-only
+  execution:
+    host_agent_type: Senior Developer
+    selection_source: approved-role-selection:acy
+    permission_mode: approved-scope-write
+  review:
+    host_agent_type: Code Reviewer
+    selection_source: approved-role-selection:acy
+    permission_mode: read-only
+# permission_mode is a plan-governance and dispatch boundary, not an OS sandbox.
+# Actual reads and writes remain constrained by Codex permissions, project rules, and user approval.
+method_lenses:
+  - skill_id: munger
+    mode: lens
+    applies_to:
+      - planning
+      - execution
+    explicit_opt_in: false
+    authority: advisory
+    purpose: "Invert the concrete failure modes in this approved task."
+    evidence_cutoff: "2026-07-24"
 modification_scope: []
 excluded_scope: []
 detail_policy: do-not-deepen-without-request
@@ -32,7 +83,8 @@ planning_policy:
     - rollback-change
     - material-scope-change
     - explicit-reapproval-request
-  max_revision_cycles: 2
+  max_revision_cycles: 6
+  no_progress_limit: 2
 search_terms: []
 knowledge_domains: []
 status: awaiting-user-approval | approved | executing | paused-needs-review | completed
@@ -41,10 +93,25 @@ objective: ""
 non_goals: []
 assumptions: []
 dependencies: []
-stages: []
-tasks: []
-acceptance_criteria: []
-expected_evidence: []
+stages:
+  - stage_id: stage-1
+    title: "Create the approved result"
+    order: 1
+    kind: serial
+tasks:
+  - task_id: T01
+    title: "Create result.txt"
+    objective: "Create the approved result without changing input.txt."
+    stage_id: stage-1
+    stage_order: 1
+    acceptance_criteria:
+      - result.txt exists with the approved content
+    expected_evidence:
+      - result.txt content inspection
+acceptance_criteria:
+  - result.txt exists with the approved content
+expected_evidence:
+  - result.txt content inspection
 rollback: []
 allowed_paths: []
 forbidden_actions: []

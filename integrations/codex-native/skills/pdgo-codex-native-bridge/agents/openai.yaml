@@ -1,0 +1,6 @@
+interface:
+  display_name: "PDGO Codex Native Bridge"
+  short_description: "用 Codex 内置子 Agent 驱动 PDGO 的真实派工与独立审核"
+  default_prompt: "Use $pdgo-codex-native-bridge to run this approved PDGO plan with real Codex subagents and recorded host identities."
+policy:
+  allow_implicit_invocation: false

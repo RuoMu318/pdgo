@@ -1,0 +1,183 @@
+{
+  "schema_version": "1.1",
+  "consumer_id": "bosscoding-codex",
+  "integration_manifest": "integrations/codex-native/manifest.json",
+  "secretary_skill": "bosscoding-secretary",
+  "bridge_skill": "pdgo-codex-native-bridge",
+  "task_system": {
+    "type": "existing-obsidian-vault",
+    "role": "cross-project-summary-and-curated-knowledge",
+    "project_files_remain_authoritative": true,
+    "second_task_system_forbidden": true
+  },
+  "host_transport": {
+    "type": "codex-built-in-subagents",
+    "required_operations": [
+      "spawn_agent",
+      "followup_task",
+      "wait_agent"
+    ],
+    "real_host_id_required": true,
+    "cli_model_handoff_forbidden": true,
+    "persistent_daemon_required": false
+  },
+  "runtime_descriptor": {
+    "path": "<CodexHome>/runtime/bosscoding/runtime.json",
+    "required_shape": {
+      "schema_version": "1.1",
+      "integration_id": "pdgo-codex-native",
+      "runtime_root": "absolute-path",
+      "manifest": {
+        "path": "relative-path",
+        "sha256": "sha256-hex"
+      },
+      "dispatcher": {
+        "path": "relative-path",
+        "sha256": "sha256-hex"
+      },
+      "runtime_tree": {
+        "algorithm": "sha256-tree-v1",
+        "paths": "manifest.runtime_tree.paths",
+        "sha256": "sha256-hex"
+      }
+    },
+    "required_runtime_tree_paths": [
+      "scripts/flowstate-dispatcher.mjs",
+      "scripts/lib/flowstate-dispatcher.mjs",
+      "scripts/lib/external-agent-adapter.mjs",
+      "integrations/codex-native/skills/pdgo-codex-native-bridge/scripts/resolve-cold-start.mjs",
+      "integrations/external-agents/agency-agents/index.json",
+      "integrations/external-agents/agency-agents/metadata-index.json",
+      "integrations/external-agents/agency-agents/prompts"
+    ],
+    "runtime_tree_paths_source": "sha256-verified-manifest",
+    "hash_mismatch_action": "block"
+  },
+  "project_state": {
+    "root_template": "<CodexHome>/state/bosscoding/projects/<name>-<hash16>",
+    "project_hash_input": "canonical-project-root",
+    "shared_project_state_forbidden": true
+  },
+  "roles": {
+    "secretary": "root-agent",
+    "planning": "distinct-subagent",
+    "execution": "distinct-subagent",
+    "review": "distinct-read-only-subagent"
+  },
+  "role_selection": {
+    "acy_selects_only": true,
+    "approval_source": "exact-user-approved-plan-version",
+    "host_agent_type_field": "role_assignments.<role>.host_agent_type",
+    "execution_permission_modes": [
+      "read-only",
+      "approved-scope-write"
+    ],
+    "host_binding_observation_fields": [
+      "host_agent_type",
+      "selection_source"
+    ],
+    "host_agent_type_observation_source": "main-agent-recorded-spawn-agent.agent_type",
+    "selection_source_semantics": "approved-role-selection-provenance",
+    "host_binding_is_cryptographic_proof": false,
+    "permission_mode_is_os_sandbox": false,
+    "external_agent_id_field": "tasks[].external_agent_id or stages[].agent_selectors[]",
+    "host_to_external_id_conversion": "forbidden"
+  },
+  "capability_awareness": {
+    "startup_card": {
+      "label": "本次用人卡",
+      "display_timing": "before-formal-work-starts",
+      "display_action": "show",
+      "first_role_name_format": "中文名（English exact host type）",
+      "later_role_name_format": "中文名",
+      "required_fields": [
+        "用途",
+        "为何选中",
+        "范围",
+        "权限"
+      ]
+    },
+    "closeout_card": {
+      "label": "实际贡献卡",
+      "display_timing": "formal-task-closeout",
+      "display_action": "show",
+      "entry_types": [
+        "角色",
+        "Lens"
+      ],
+      "no_material_value_statement": "没有实质价值"
+    },
+    "capability_queries": {
+      "names": [
+        "能力图",
+        "为什么选它"
+      ],
+      "catalog_source": "current-verifiable-catalog",
+      "source_order": [
+        "host-current-actually-available-roles",
+        "currently-installed-and-available-persona-or-skill",
+        "manifest-hash-verified-external-agents"
+      ],
+      "forbidden_realtime_sources": [
+        "README",
+        "cache",
+        "memory",
+        "static-excerpt"
+      ],
+      "action_order": [
+        "query-relevant-live-sources-in-source-order",
+        "answer-from-current-query-results"
+      ],
+      "hardcoded_role_or_persona_counts": false,
+      "hardcoded_complete_role_or_persona_lists": false,
+      "expose_internal_ids": false
+    },
+    "persistence": {
+      "required_conditions": [
+        "current-run-evidence-proves-effective",
+        "reusable-across-tasks"
+      ],
+      "preferred_target": "existing-knowledge-note",
+      "empty_directory_forbidden": true,
+      "static_capability_directory_forbidden": true
+    }
+  },
+  "method_lenses": {
+    "default_mode": "lens",
+    "voice_and_rehearsal_require_explicit_opt_in": true,
+    "authority": "advisory-only",
+    "fact_source": false,
+    "review_target_forbidden": true,
+    "optional_context_fields": [
+      "purpose",
+      "evidence_cutoff"
+    ],
+    "identity_permission_acceptance_source": false
+  },
+  "cold_start_order": [
+    "inspect-runtime-zero-write",
+    "draft-exact-batch-in-memory",
+    "one-user-approval",
+    "ensure-project-state",
+    "create-and-record-approved-plan",
+    "spawn-and-bind-planning",
+    "spawn-and-bind-review",
+    "dispatch-spawn-and-bind-execution"
+  ],
+  "verified_dispatch": {
+    "entry": "installed-resolver-invoke",
+    "recomputes_project_state_root": true,
+    "runtime_catalog_overrides_forbidden": true,
+    "same-user-malicious-process_isolation": false
+  },
+  "policy": {
+    "approval_key": [
+      "plan_id",
+      "plan_version"
+    ],
+    "max_revision_cycles": 6,
+    "no_progress_limit": 2,
+    "direction_change_requires_user": true,
+    "failed_review_cannot_be_overridden_by_secretary": true
+  }
+}

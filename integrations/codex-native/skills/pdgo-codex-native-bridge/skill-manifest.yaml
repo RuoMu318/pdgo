@@ -1,0 +1,45 @@
+schema_version: "1.0"
+skill_id: "pdgo-codex-native-bridge"
+display_name: "PDGO Codex Native Bridge"
+description: "Bind PDGO plans, dispatches, reports, and reviews to real Codex built-in subagent identities."
+project_scope:
+  - "pdgo"
+  - "codex"
+department:
+  - "coordination"
+stage:
+  - "dispatch"
+  - "review"
+scenarios:
+  - "approved PDGO execution through Codex built-in subagents"
+positive_triggers:
+  - "The user requests PDGO, built-in subagents, or a real planning-execution-review loop"
+negative_triggers:
+  - "Built-in subagent tools or exact user approval are unavailable"
+boundaries:
+  - "Never fabricate host ids or substitute local CLI model handoffs"
+  - "The bridge cannot approve a plan or accept its own execution"
+required_inputs:
+  - "approved plan_id and plan_version"
+  - "PDGO state root"
+  - "real host subagent ids"
+expected_outputs:
+  - "bound host identities"
+  - "execution report"
+  - "independent review decision"
+  - "auditable stop or acceptance state"
+prerequisites:
+  - "Codex built-in subagent tools are callable"
+side_effects:
+  - "starts only the approved bounded subagents and updates PDGO state"
+integrated_components:
+  - "FlowStateDispatcher"
+  - "Codex collaboration tools"
+tags:
+  - "pdgo"
+  - "codex"
+  - "subagents"
+risk_level: "high"
+priority: 20
+category: "integration"
+subcategory: "host transport"
