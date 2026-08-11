@@ -4,6 +4,47 @@
   "integration_manifest": "integrations/codex-native/manifest.json",
   "secretary_skill": "bosscoding-secretary",
   "bridge_skill": "pdgo-codex-native-bridge",
+  "routing": {
+    "modes": [
+      "lightweight",
+      "standard",
+      "high_assurance"
+    ],
+    "route_before_mode_side_effects": true,
+    "lightweight": {
+      "required_zero_costs": [
+        "extra_model_calls",
+        "subagents",
+        "state_writes",
+        "pdgo_new_approval_rounds",
+        "formal_plan_generations",
+        "governance_prompt_loads",
+        "role_process_loads"
+      ]
+    },
+    "standard": {
+      "execution": "current-agent-with-proportionate-self-check",
+      "required_zero_costs": [
+        "pdgo_new_approval_rounds",
+        "governance_prompt_loads"
+      ]
+    },
+    "high_assurance": {
+      "full_secretary_governance": true
+    }
+  },
+  "cold_start": {
+    "scope": "high-assurance-or-explicit-secretary",
+    "lightweight_and_standard_load_secretary": false
+  },
+  "benchmark": {
+    "arms": [
+      "native_codex",
+      "fixed_superpowers",
+      "full_pdgo",
+      "routed_pdgo"
+    ]
+  },
   "task_system": {
     "type": "existing-obsidian-vault",
     "role": "cross-project-summary-and-curated-knowledge",

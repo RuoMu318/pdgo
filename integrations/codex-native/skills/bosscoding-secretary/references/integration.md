@@ -1,5 +1,7 @@
 # Secretary integration
 
+This reference is loaded only for high-assurance mode or an explicit secretary or BossCoding entry. Lightweight and standard modes do not load the secretary, this reference, PDGO state, formal plans, governance prompts, or role processes, and do not add PDGO approval rounds.
+
 ## Authority order
 
 Apply the active system/developer instructions, the nearest project `AGENTS.md`, the user's current instruction, the approved plan version, and the Skill method without allowing a lower layer to expand a higher layer's authority.

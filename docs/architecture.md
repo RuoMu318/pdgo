@@ -51,11 +51,16 @@ PDGO
 
 ## 2. Core layer
 
-The core layer is always active. It performs startup classification, memory lookup, Skill routing, mode checks,
-approval checks, task state transitions, failure handling, and audit linking.
+Only the bounded three-mode bootstrap is always active. It routes the request before model extensions, subagents,
+PDGO state writes, formal plans, governance prompts, or role processes can run.
 
-The core layer must not contain product-specific instructions. It may enforce universal boundaries but delegates
-domain decisions to project profiles and scoped Skills.
+- Lightweight work stays in the current Agent and has zero PDGO governance side effects.
+- Standard work stays in the current Agent with a proportionate self-check, zero governance-prompt loads, and zero new PDGO approval rounds.
+- High-assurance work, or an explicit secretary/BossCoding entry, loads the full secretary governance layer.
+
+The full core then performs memory lookup, Skill routing, approval checks, task state transitions, failure handling,
+and audit linking for high-assurance work. It must not contain product-specific instructions and delegates domain
+decisions to project profiles and scoped Skills.
 
 ## 3. Department layer
 

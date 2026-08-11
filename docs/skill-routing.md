@@ -1,8 +1,17 @@
 # PDGO startup routing
 
+## Three-mode bootstrap
+
+Route every request before model extensions, subagents, PDGO state writes, formal plans, governance prompts, or role
+processes. Lightweight work runs directly in the current Agent with the seven zero-cost constraints. Standard work
+runs in the current Agent with a proportionate self-check, no governance-prompt loads, and no new PDGO approval
+rounds. High-assurance work, and explicit secretary or BossCoding
+invocations, load the full routing and governance contract below.
+
 ## Required classification
 
-Every project task starts with this record before a domain Skill or artifact is touched:
+High-assurance work starts with this full record before a domain Skill or artifact is touched. Lightweight and
+standard work classify only enough to select the mode and do not create a PDGO record:
 
 ```yaml
 project: identify from cwd, repository, or user statement
@@ -32,13 +41,13 @@ Skills without exposing source branding in the route.
 
 ## Routing order
 
-1. Load global guidance, the nearest project `AGENTS.md`, and the project profile.
-2. Search plan, knowledge, and session indexes before opening historical content.
-3. Classify the concrete scenario and select one primary active Skill.
-4. Apply hard filters: project scope, negative triggers, department, stage, prerequisites, permissions, and mode.
-5. Rank remaining candidates by scenario and input/output fit, project specificity, risk coverage, and explicit user choice.
-6. Record selected and rejected Skills with the reason for each decision.
-7. Route Agency Agent candidates through `profiles/pdgo-agent-routing.json` and their evidence metadata.
+1. Apply active higher-level guidance and the nearest project `AGENTS.md`.
+2. Select lightweight, standard, or high-assurance before mode-specific side effects.
+3. For lightweight or standard work, execute in the current Agent and stop this routing sequence.
+4. For high-assurance or an explicit secretary/BossCoding entry, load the project profile and secretary contract.
+5. Search plan, knowledge, and session indexes before opening historical content.
+6. Classify the concrete scenario, apply hard filters, and select one primary active Skill.
+7. Record selected and rejected Skills; route external Agent candidates through their profile and evidence metadata.
 8. Stop with `skill-unresolved` when no candidate satisfies the hard filters.
 
 ## Agent routing

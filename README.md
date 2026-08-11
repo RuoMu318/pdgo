@@ -233,9 +233,20 @@ Search by the concrete scenario and division, then use the exact `external_agent
 
 Adapters must return real session identifiers or an explicit `adapter-unavailable` status. The Codex-native integration lives under `integrations/codex-native/`; its Skill calls built-in subagent tools, then binds the real returned IDs. Node never fabricates or launches a Codex subagent.
 
+### Three-mode bootstrap
+
+The Codex-native source now routes each request before loading mode-specific side effects. Lightweight work stays in
+the current Agent with zero extra model calls, subagents, PDGO state writes, new PDGO approval rounds, formal plans,
+governance prompts, or role processes. Standard work uses the current Agent with a proportionate self-check, without
+governance-prompt loads or new PDGO approval rounds.
+High-assurance work, or an explicit secretary/BossCoding entry, loads the full secretary workflow.
+
+This is a source candidate only. It has not been installed globally and no paid Token, latency, or quality benchmark
+has been run, so no real cost saving is claimed.
+
 ### BossCoding cold start
 
-The installed BossCoding secretary resolves one schema-1.1 descriptor at `<CodexHome>/runtime/bosscoding/runtime.json`. The descriptor contains `schema_version`, `integration_id`, `runtime_root`, nested `manifest` and `dispatcher` objects, and mandatory `runtime_tree`. The descriptor pins the manifest; that hashed manifest is the single source for the complete runtime path list, including the dispatcher, its imported libraries, the cold-start resolver, and the configured specialist index, metadata index, and prompt tree. A missing descriptor, path escape, integration mismatch, incomplete tree, or hash mismatch is a blocker rather than permission to search the disk or use an unverified runtime.
+When high assurance or an explicit secretary/BossCoding entry is selected, the installed secretary resolves one schema-1.1 descriptor at `<CodexHome>/runtime/bosscoding/runtime.json`. The descriptor contains `schema_version`, `integration_id`, `runtime_root`, nested `manifest` and `dispatcher` objects, and mandatory `runtime_tree`. The descriptor pins the manifest; that hashed manifest is the single source for the complete runtime path list, including the dispatcher, its imported libraries, the cold-start resolver, and the configured specialist index, metadata index, and prompt tree. A missing descriptor, path escape, integration mismatch, incomplete tree, or hash mismatch is a blocker rather than permission to search the disk or use an unverified runtime.
 
 Each consuming project uses isolated state at `<CodexHome>/state/bosscoding/projects/<name>-<hash16>`, where the suffix is derived from the canonical project root. The secretary and bridge resolve these paths themselves. A BossCoding user is not asked to run the CLI or move dispatch JSON between Agents.
 
@@ -320,5 +331,8 @@ as an official BossCoding release, collaboration, or endorsement. See
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Status and license
+
+The three-mode routing implementation is currently a locally validated source candidate. It is not globally installed,
+and real Token, latency, and quality benchmarks remain pending.
 
 PDGO is an MIT-licensed reference implementation of the FlowState method. The repository is intentionally platform-neutral; a platform adapter is required for any conversation or background capability that the local file system cannot provide.

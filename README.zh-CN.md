@@ -220,9 +220,17 @@ FlowStateDispatcher 负责状态机；FlowStateStore 持久化方案、任务、
 
 适配器必须返回真实会话 ID，或者明确返回 adapter-unavailable。不得伪造完成。
 
+## 三模式启动分流
+
+Codex-native 源码现在会先分流，再加载各模式的副作用。轻量模式由当前 Agent 直接完成，额外模型调用、
+子 Agent、PDGO 状态写入、新增 PDGO 批准、正式计划、治理提示和角色流程均为零；标准模式由当前 Agent
+执行并做相称自检，不加载治理提示，也不新增 PDGO 批准；高保障模式或用户显式调用秘书／BossCoding 时，才加载完整秘书流程。
+
+当前只是源码候选，尚未全局安装，也没有运行付费 Token、耗时或质量基准，因此不宣称真实节省。
+
 ## BossCoding 冷启动
 
-安装后的 BossCoding 秘书只读取 `<CodexHome>/runtime/bosscoding/runtime.json` 这一份 schema 1.1 描述符。描述符先锁定 manifest；已校验 manifest 再给出完整 `runtime_tree.paths`，覆盖 dispatcher、实际导入库、冷启动 resolver，以及专业角色的索引、元数据索引和提示词树。缺失、越界、路径经过链接或哈希漂移都会停止，不会搜索磁盘猜路径。
+进入高保障模式或用户显式调用秘书／BossCoding 后，安装的秘书只读取 `<CodexHome>/runtime/bosscoding/runtime.json` 这一份 schema 1.1 描述符。描述符先锁定 manifest；已校验 manifest 再给出完整 `runtime_tree.paths`，覆盖 dispatcher、实际导入库、冷启动 resolver，以及专业角色的索引、元数据索引和提示词树。缺失、越界、路径经过链接或哈希漂移都会停止，不会搜索磁盘猜路径。
 
 陌生项目先只读检查，不创建项目状态。秘书在内存中起草完整批次并取得一次精确批准后，才在 `<CodexHome>/state/bosscoding/projects/<name>-<hash16>` 创建隔离状态。之后每个 BossCoding 状态动作都通过已安装 resolver 的 verified invoke 入口：它重新校验运行时、按项目规范路径重算状态根，并拒绝任意 `--root` 或外部目录覆盖。普通 PDGO 的直接 CLI 仍是单独选择的旧接口，不是老板需要手工操作的流程。
 
@@ -301,5 +309,7 @@ npm.cmd run validate
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## 状态和许可
+
+三模式分流当前是已完成本地源码验证的候选版本，尚未全局安装；真实 Token、耗时和质量基准仍待执行。
 
 PDGO 是 FlowState 方法的 MIT 许可参考实现。仓库保持平台中立；任何文件系统无法提供的会话或后台能力，都必须通过平台适配器接入。

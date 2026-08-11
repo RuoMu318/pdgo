@@ -17,7 +17,7 @@ test("Codex-native integration keeps its two Skills outside the locked ten-Skill
     const skill = await readFile(path.join(skillRoot, "SKILL.md"), "utf8");
     const openai = await readFile(path.join(skillRoot, "agents", "openai.yaml"), "utf8");
     const integration = await readFile(path.join(skillRoot, "references", "integration.md"), "utf8");
-    assert.match(skill, new RegExp(`^---\\nname: ${entry.skill_id}\\n`, "m"));
+    assert.match(skill, new RegExp(`^---\\r?\\nname: ${entry.skill_id}\\r?\\n`, "m"));
     assert.match(openai, new RegExp(`\\$${entry.skill_id.replaceAll("-", "\\-")}`));
     assert.ok(integration.length > 100);
   }
@@ -161,13 +161,33 @@ test("manifest is the single runtime-tree path contract used by installer and re
   assert.match(resolver, /manifest\.runtime_tree\.paths/);
 });
 
-test("global BossCoding overlay is marker-free source content for idempotent installer replacement", async () => {
+test("global BossCoding overlay is a bounded three-mode bootstrap", async () => {
   const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
   assert.doesNotMatch(overlay, /<!-- (BEGIN|END) BOSSCODING-PDGO OVERLAY -->/);
-  assert.match(overlay, /\$pdgo-codex-native-bridge/);
-  assert.match(overlay, /acy[^\n]*不是批准/);
-  assert.match(overlay, /人物 Skill[^\n]*不能[^\n]*验收/);
-  assert.match(overlay, /一次批准[^\n]*策划[^\n]*执行[^\n]*独立审核/);
+  assert.ok(Buffer.byteLength(overlay, "utf8") <= 3500);
+  assert.match(overlay, /轻量模式/);
+  assert.match(overlay, /标准模式/);
+  assert.match(overlay, /高保障模式/);
+  assert.match(overlay, /分流[^。\n]*先于[^。\n]*(?:副作用|写入|调用)/);
+  for (const zeroCost of [
+    "extra_model_calls",
+    "subagents",
+    "state_writes",
+    "pdgo_new_approval_rounds",
+    "formal_plan_generations",
+    "governance_prompt_loads",
+    "role_process_loads",
+  ]) {
+    assert.match(overlay, new RegExp(`${zeroCost}\\s*=\\s*0`));
+  }
+  assert.match(overlay, /轻量模式[^\n]*不加载[^\n]*秘书/);
+  assert.match(overlay, /标准模式[^\n]*(?:当前|单一)[^\n]*Agent[^\n]*(?:自检|检查)/i);
+  assert.match(overlay, /标准模式[^\n]*不加载[^\n]*治理提示/);
+  assert.match(overlay, /标准模式[^\n]*不新增[^\n]*PDGO 批准/);
+  assert.match(overlay, /标准模式[^\n]*上级指令[^\n]*项目安全规则[^\n]*用户当次授权[^\n]*仍有效/);
+  assert.match(overlay, /高保障模式[^\n]*\$bosscoding-secretary/);
+  assert.match(overlay, /外部动作[^\n]*(?:明确|精确)[^\n]*(?:确认|批准)/);
+  assert.doesNotMatch(overlay, /本次用人卡|实际贡献卡|runtime_tree|role_assignments|pdgo-codex-native-bridge/);
 });
 
 test("execution report schema preserves the controller session field and adds a versioned worker identity", async () => {
@@ -195,10 +215,9 @@ test("BossCoding shows a Chinese-first assignment card before formal work starts
     path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
     "utf8",
   );
-  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
   const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
 
-  for (const document of [secretary, integration, overlay]) {
+  for (const document of [secretary, integration]) {
     assert.match(document, /本次用人卡/);
     assert.match(document, /中文名（English exact host type）/);
     assert.match(document, /用途/);
@@ -223,10 +242,9 @@ test("BossCoding closes formal work with an honest contribution card for roles a
     path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
     "utf8",
   );
-  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
   const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
 
-  for (const document of [secretary, integration, overlay]) {
+  for (const document of [secretary, integration]) {
     assert.match(document, /实际贡献卡/);
     assert.match(document, /角色[和与、]\s*Lens|角色和 Lens/);
     assert.match(document, /实际贡献/);
@@ -248,12 +266,11 @@ test("capability explanations query three live sources in order without treating
     path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
     "utf8",
   );
-  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
   const english = await readFile(path.join(root, "README.md"), "utf8");
   const chinese = await readFile(path.join(root, "README.zh-CN.md"), "utf8");
   const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
 
-  for (const document of [secretary, overlay, chinese]) {
+  for (const document of [secretary, chinese]) {
     assert.match(document, /能力图/);
     assert.match(document, /为什么选它/);
     assert.match(document, /当时[^。\n]*(?:实时)?可验证[^。\n]*(?:catalog|目录)/i);
@@ -311,12 +328,11 @@ test("capability learning persists only proven reusable value into existing know
     path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
     "utf8",
   );
-  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
   const english = await readFile(path.join(root, "README.md"), "utf8");
   const chinese = await readFile(path.join(root, "README.zh-CN.md"), "utf8");
   const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
 
-  for (const document of [secretary, overlay, chinese]) {
+  for (const document of [secretary, chinese]) {
     assert.match(document, /本轮[^。\n]*证据[^。\n]*有效/);
     assert.match(document, /跨任务复用/);
     assert.match(document, /优先更新[^。\n]*既有[^。\n]*知识笔记/);
@@ -346,20 +362,60 @@ test("Persona lenses cannot become sources of facts", async () => {
     path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
     "utf8",
   );
-  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
   const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
 
-  for (const document of [secretary, overlay]) {
+  for (const document of [secretary]) {
     assert.match(document, /人物 Skill[^。\n]*不能作为[^。\n]*事实[^。\n]*来源/);
   }
   assert.match(integration, /cannot supply[^.\n]*facts/i);
   assert.equal(profile.method_lenses.fact_source, false);
 });
 
+test("three-mode routing defers full BossCoding governance until high assurance", async () => {
+  const secretary = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"),
+    "utf8",
+  );
+  const integration = await readFile(
+    path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"),
+    "utf8",
+  );
+  const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
+
+  assert.match(secretary, /高保障模式[^。\n]*(?:显式|明确)[^。\n]*(?:秘书|BossCoding)/);
+  assert.match(secretary, /轻量模式[^。\n]*标准模式[^。\n]*不触发/);
+  assert.match(integration, /loaded only for high-assurance mode or an explicit [^.\n]*(?:secretary|BossCoding)[^.\n]*entry/i);
+  assert.deepEqual(profile.routing.modes, ["lightweight", "standard", "high_assurance"]);
+  assert.equal(profile.routing.route_before_mode_side_effects, true);
+  assert.deepEqual(profile.routing.lightweight.required_zero_costs, [
+    "extra_model_calls",
+    "subagents",
+    "state_writes",
+    "pdgo_new_approval_rounds",
+    "formal_plan_generations",
+    "governance_prompt_loads",
+    "role_process_loads",
+  ]);
+  assert.equal(profile.routing.standard.execution, "current-agent-with-proportionate-self-check");
+  assert.deepEqual(profile.routing.standard.required_zero_costs, [
+    "pdgo_new_approval_rounds",
+    "governance_prompt_loads",
+  ]);
+  assert.equal(profile.routing.high_assurance.full_secretary_governance, true);
+  assert.equal(profile.cold_start.scope, "high-assurance-or-explicit-secretary");
+  assert.equal(profile.cold_start.lightweight_and_standard_load_secretary, false);
+  assert.deepEqual(profile.benchmark.arms, [
+    "native_codex",
+    "fixed_superpowers",
+    "full_pdgo",
+    "routed_pdgo",
+  ]);
+});
+
 test("status documents report capability-awareness validation without claiming acceptance", async () => {
   const status = await readFile(path.join(root, "STATUS.md"), "utf8");
   const progress = await readFile(path.join(root, "PROGRESS.md"), "utf8");
-  const currentAction = status.match(/## Current action\n([\s\S]*)$/)?.[1] ?? "";
+  const currentAction = status.match(/## Current action\r?\n([\s\S]*)$/)?.[1] ?? "";
   const statusSliceCount = status.match(/(\w+) targeted red\/green(?: capability)? contract slices pass/i)?.[1];
   const progressSliceCount = progress.match(/through (\w+) targeted red\/green slices/i)?.[1];
 
