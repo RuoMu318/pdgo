@@ -8,10 +8,13 @@ runs in the current Agent with a proportionate self-check, no governance-prompt 
 rounds. High-assurance work, and explicit secretary or BossCoding
 invocations, load the full routing and governance contract below.
 
-The executable classifier applies the high-assurance risk gate before workload depth. A permission change is standard
-only when it is exactly one local application, current-session only, reversible, explicitly requested now, and every
-administrator, account, network, secrets, wildcard, third-party, long-lived, and irreversible risk is explicitly false.
-Missing fields or any risk fail closed to high assurance. This exception does not remove host or OS permission prompts.
+The executable classifier applies the high-assurance risk gate before workload depth. Lightweight and standard require
+a structured `current_request_boundary`: its action must belong to the closed ordinary-action set and match the local
+action; its file targets must match after normalization and remain inside the approved absolute local root. Traversal,
+out-of-root paths, broad targets, forbidden actions, contradictions, missing fields, or any risk fail closed. Both modes
+report `authorization_source=explicit-current-user-request` and `pdgo_new_approval_rounds=0`; only work depth differs.
+This source-level boundary is not live host attestation, which remains unimplemented for ordinary routing, and it does
+not remove host or OS permission prompts.
 
 ## Required classification
 

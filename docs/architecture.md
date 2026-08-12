@@ -58,14 +58,23 @@ PDGO state writes, formal plans, governance prompts, or role processes can run.
 - Standard work stays in the current Agent with a proportionate self-check, zero governance-prompt loads, and zero new PDGO approval rounds.
 - High-assurance work, or an explicit secretary/BossCoding entry, loads the full secretary governance layer.
 
+Lightweight and standard share one authorization gate before work-depth selection. They require a structured
+`current_request_boundary` whose closed-set action and file targets match the local action. Targets are normalized and
+contained within an approved absolute local root; traversal, out-of-root paths, broad targets, forbidden actions,
+contradictions, missing evidence, or any declared risk fail closed. Both modes emit
+`authorization_source=explicit-current-user-request` and `pdgo_new_approval_rounds=0`. This source-level boundary is
+not live host attestation, which remains unimplemented for ordinary routing.
+
 The full core then performs memory lookup, Skill routing, approval checks, task state transitions, failure handling,
 and audit linking for high-assurance work. It must not contain product-specific instructions and delegates domain
 decisions to project profiles and scoped Skills.
 
 The dispatcher also supports an optional fail-closed authorization policy. It hashes only the immutable approved
 boundary with stable JSON plus SHA-256 and accepts host attestation only from an injected transport or adapter. When
-enabled, the same envelope must survive plan, approval, dispatch, report, and review; missing, expired, mismatched,
-version-drifted, scope-drifted, or role-drifted artifacts stop. Legacy plans without the policy remain compatible.
+enabled, the same envelope must survive plan, approval, dispatch, report, and review; unchanged internal artifacts do
+not create item-by-item approval rounds. A material target, object, action, risk, third-party effect, authorization
+boundary, or acceptance change requires a new exact approval. Missing, expired, mismatched, version-drifted,
+scope-drifted, or role-drifted artifacts stop. Legacy plans without the policy remain compatible.
 
 ## 3. Department layer
 

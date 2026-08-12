@@ -241,12 +241,18 @@ governance prompts, or role processes. Standard work uses the current Agent with
 governance-prompt loads or new PDGO approval rounds.
 High-assurance work, or an explicit secretary/BossCoding entry, loads the full secretary workflow.
 
-The executable risk gate runs before workload depth. A temporary permission change reaches standard mode only for
-exactly one local application, the current session, a reversible action explicitly requested now, and explicit false
-values for administrator, account, network, secrets, wildcard, third-party, long-lived, and irreversible risks.
+The executable risk gate runs before workload depth. Lightweight and standard require a structured
+`current_request_boundary` with source, action, targets, and an approved absolute local root. The action must be in the
+closed ordinary-action set and match the local action; file targets are normalized, must match the request, and must
+stay inside that root. Traversal, out-of-root paths, broad targets, publish/delete/format actions, contradictions,
+missing fields, and any declared risk fail closed to high assurance. Both report
+`authorization_source=explicit-current-user-request` and `pdgo_new_approval_rounds=0`; only work depth differs. This
+source-level contract is not live host attestation; live host attestation for ordinary routing remains unimplemented.
 High-assurance plans may also enable an optional authorization envelope: a trusted injected host adapter attests one
 SHA-256 digest over the immutable approved boundary, and the same envelope must survive dispatch, report, and review.
-Self-reported verification and plain FileQueue messages are not host attestation.
+Self-reported verification and plain FileQueue messages are not host attestation. The one approved batch reuses that
+authorization across its unchanged internal plan, binding, dispatch, report, and review records; a material target,
+object, action, risk, third-party effect, authorization-boundary, or acceptance change requires a new exact approval.
 
 This is a source candidate only. It has not been installed globally and no paid Token, latency, or quality benchmark
 has been run, so no real cost saving is claimed.
@@ -259,7 +265,7 @@ Each consuming project uses isolated state at `<CodexHome>/state/bosscoding/proj
 
 Cold start is deliberately ordered so inspection cannot become an unapproved write: resolve and verify the runtime with zero writes; draft the exact baseline, IDs, roles, file/test batch, and state root in memory; obtain one approval covering state creation and all three roles; then ensure state, persist and approve the exact plan, and spawn/bind planning, review, and execution. New BossCoding plans use the complete `bosscoding-v2` role contract. `host_agent_type` is recorded from the real `spawn_agent.agent_type` argument; `selection_source` is the approved role-selection record, not a spawn argument or cryptographic proof. The installed resolver's verified invoke entry rechecks the descriptor, recomputes the project state root, and forbids arbitrary root or catalog overrides before every BossCoding state action. Direct dispatcher CLI remains a separately opted-in legacy PDGO interface. These checks protect against mistakes and ordinary local drift; they do not claim isolation from a malicious process already running as the same OS user.
 
-The dispatcher separates resolver-owned verified BossCoding invocation from the direct legacy CLI: the direct CLI rejects caller-supplied interface claims and BossCoding v2 state, while resolver-owned creation rejects legacy plans. State and queue writers reject linked or non-canonical paths inside the isolated state tree. The installer publishes a complete ownership record atomically, snapshots every existing target before staging, refuses concurrent target or source drift, verifies committed targets, and preserves externally modified files instead of deleting them during rollback.
+The dispatcher separates resolver-owned verified BossCoding invocation from the direct legacy CLI: the direct CLI rejects caller-supplied interface claims and BossCoding v2 state, while resolver-owned creation rejects legacy plans. State and queue writers reject linked or non-canonical paths inside the isolated state tree. The installer publishes a complete ownership record atomically, snapshots every existing target before staging, refuses concurrent target or source drift, verifies committed targets, and preserves externally modified files instead of deleting them during rollback. For an existing CodexHome, it strips the managed overlay and checks the older unmanaged absolute write-approval rule before creating a directory or installation lock, then rechecks inside the lock before any target change. Normal whitespace and line-ending variation are accepted. This is a narrow known-rule detector, not a claim to understand arbitrary natural-language policy.
 
 Users can invoke the combined flow directly: `秘书，用 Agency Agents 选合适专家完成 <任务>，并用 $munger 的 Lens 检查可避免的失败。` Agency Agents selects functional roles, while `$munger` is only an advisory method lens. `$nuwa-skill` is reserved for creating, updating, or auditing Persona Skills; ordinary work invokes the installed Persona Skill itself. Optional lens `purpose` and `evidence_cutoff` survive into the execution dispatch without gaining authority.
 

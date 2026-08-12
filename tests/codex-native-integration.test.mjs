@@ -417,7 +417,7 @@ test("three-mode routing defers full BossCoding governance until high assurance"
   ]);
 });
 
-test("Codex-native contracts describe risk-first bounded permission routing and trusted authorization reuse", async () => {
+test("Codex-native contracts describe risk-first bounded local routing and trusted authorization reuse", async () => {
   const schemaNames = ["plan.yaml", "user-plan-approval.yaml", "dispatch.yaml", "execution-report.yaml", "review-decision.yaml"];
   const schemas = await Promise.all(schemaNames.map((name) => readFile(path.join(root, "schemas", name), "utf8")));
   for (const [index, schema] of schemas.entries()) {
@@ -431,19 +431,28 @@ test("Codex-native contracts describe risk-first bounded permission routing and 
 
   const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
   const secretary = await readFile(path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"), "utf8");
+  const secretaryIntegration = await readFile(path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"), "utf8");
   const bridge = await readFile(path.join(root, "integrations", "codex-native", "skills", "pdgo-codex-native-bridge", "SKILL.md"), "utf8");
   const dispatchRuntime = await readFile(path.join(root, "docs", "dispatch-runtime.md"), "utf8");
   const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
 
   for (const document of [overlay, secretary]) {
-    assert.match(document, /单一应用|单应用/);
-    assert.match(document, /当前会话/);
+    assert.match(document, /动作/);
+    assert.match(document, /目标/);
+    assert.match(document, /无通配|不含通配/);
     assert.match(document, /可撤销/);
     assert.match(document, /账号|账户/);
+    assert.match(document, /全局/);
     assert.match(document, /网络/);
     assert.match(document, /密钥|秘密/);
-    assert.match(document, /通配/);
+    assert.match(document, /生产/);
     assert.match(document, /第三方/);
+    assert.match(document, /破坏/);
+    assert.match(document, /不可逆/);
+    assert.match(document, /敏感/);
+    assert.match(document, /管理员/);
+    assert.match(document, /current_request_boundary/);
+    assert.match(document, /不构成实时宿主证明/);
   }
   for (const document of [secretary, bridge, dispatchRuntime]) {
     assert.match(document, /authorization envelope|授权包络|授权信封/i);
@@ -451,15 +460,28 @@ test("Codex-native contracts describe risk-first bounded permission routing and 
     assert.match(document, /自报|self-report/i);
     assert.match(document, /(?:同一|same)[^。\n]*(?:摘要|digest)/i);
   }
-  assert.deepEqual(profile.routing.bounded_permission_exception, {
-    applications: "exactly-one",
+  assert.match(secretaryIntegration, /internal plan[^.\n]*binding[^.\n]*report[^.\n]*review[^.\n]*do not trigger item-by-item approval/i);
+  assert.match(secretaryIntegration, /new exact approval only when target, object, action, risk, third-party effect, authorization boundary, or acceptance changes materially/i);
+  assert.equal(profile.routing.lightweight.authorization_source, "explicit-current-user-request");
+  assert.equal(profile.routing.standard.authorization_source, "explicit-current-user-request");
+  assert.deepEqual(profile.routing.bounded_local_action, {
+    ordinary_actions: ["analyze", "create", "diagnose", "edit", "explain", "fix", "read", "review", "rewrite", "test", "translate"],
+    current_request_boundary: {
+      source: "current-user-request",
+      action: "must-match-local-action",
+      targets: "must-match-local-action-targets",
+      approved_local_root: "absolute-non-filesystem-root",
+      file_target_validation: "normalized-and-contained-within-approved-local-root",
+      live_host_attestation_implemented: false,
+    },
     location: "local",
-    duration: "current-session",
     reversible: true,
-    explicit_current_request: true,
-    forbidden_risks: ["administrator", "account", "network", "secrets", "wildcard", "third_party", "long_lived", "irreversible"],
-    mode: "standard",
+    explicit_current_request_boolean_is_authority: false,
+    forbidden_risks: ["wildcard", "administrator", "account", "global", "network", "secrets", "production", "third_party", "destructive", "irreversible", "sensitive_data"],
+    otherwise: "high-assurance-or-fail-closed",
   });
+  assert.equal(profile.authorization.unchanged_internal_artifacts_require_new_approval, false);
+  assert.deepEqual(profile.authorization.reapproval_triggers, ["target", "object", "action", "risk", "third_party_effect", "authorization_boundary", "acceptance"]);
   assert.equal(profile.authorization.policy_optional, true);
   assert.equal(profile.authorization.attestation_source, "injected-host-transport-or-adapter");
   assert.equal(profile.authorization.self_report_trusted, false);

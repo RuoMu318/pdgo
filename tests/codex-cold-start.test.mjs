@@ -460,6 +460,66 @@ test("dispatcher finds the bundled external Agent catalog from an unrelated cwd 
   assert.equal(await exists(path.join(unrelated, ".flowstate")), false);
 });
 
+test("installer refuses the known unmanaged absolute write-approval rule before changing any target", async (t) => {
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-policy-conflict-"));
+  t.after(() => rm(tempRoot, { recursive: true, force: true }));
+  const codexHome = path.join(tempRoot, "codex-home");
+  const fixture = await makeInstallerSource(tempRoot);
+  const secretaryTarget = path.join(codexHome, "skills", "bosscoding-secretary");
+  const bridgeTarget = path.join(codexHome, "skills", "pdgo-codex-native-bridge");
+  const agentsPath = path.join(codexHome, "AGENTS.md");
+  const conflictingAgents = [
+    "# User policy",
+    "",
+    "每个新任务默认只读。",
+    "任何文件",
+    "写入 （包括临时文件和会产生文件的验证命令）、",
+    "子 Agent ／ 新对话、Git 分支 ／ 暂存 ／ 提交 ／ 合并，",
+    "以及系统或外部状态变更，",
+    "都要先展示精确批次、影响和验证方式并取得批准。",
+    "",
+  ].join("\r\n");
+  await mkdir(secretaryTarget, { recursive: true });
+  await writeFile(path.join(secretaryTarget, "old.txt"), "old-secretary", "utf8");
+  await writeFile(agentsPath, conflictingAgents, "utf8");
+
+  const installing = startNode(fixture.sourceInstaller, ["--codex-home", codexHome], tempRoot, {
+    BOSSCODING_INSTALL_TESTING: "1",
+    BOSSCODING_INSTALL_HOLD_AFTER_LOCK_MS: "1200",
+  });
+  const lockObserved = waitForPath(path.join(codexHome, ".bosscoding-install.lock", "owner.json"), 800)
+    .then(() => true, () => false);
+  const failed = await installing.result;
+  assert.notEqual(failed.status, 0);
+  assert.match(failed.stderr, /known legacy absolute write-approval rule.*unmanaged global AGENTS/i);
+  assert.equal(await lockObserved, false, "policy conflict must fail before the installation lock ever appears");
+  assert.equal(await readFile(agentsPath, "utf8"), conflictingAgents);
+  assert.equal(await readFile(path.join(secretaryTarget, "old.txt"), "utf8"), "old-secretary");
+  assert.equal(await exists(bridgeTarget), false);
+  assert.equal(await exists(path.join(codexHome, "runtime", "bosscoding", "runtime.json")), false);
+
+  const managedHome = path.join(tempRoot, "managed-home");
+  const managedAgentsPath = path.join(managedHome, "AGENTS.md");
+  await mkdir(managedHome, { recursive: true });
+  await writeFile(managedAgentsPath, [
+    "# User policy",
+    "",
+    "keep-before",
+    "",
+    "<!-- BEGIN BOSSCODING-PDGO OVERLAY -->",
+    conflictingAgents,
+    "<!-- END BOSSCODING-PDGO OVERLAY -->",
+    "",
+    "keep-after",
+    "",
+  ].join("\n"), "utf8");
+  expectSuccess(runNode(fixture.sourceInstaller, ["--codex-home", managedHome], tempRoot));
+  const managedAfter = await readFile(managedAgentsPath, "utf8");
+  assert.match(managedAfter, /keep-before/);
+  assert.match(managedAfter, /keep-after/);
+  assert.doesNotMatch(managedAfter, /任何文件写入/);
+});
+
 test("Codex-native installer preserves legacy BossCoding text, installs one managed block, and emits descriptor 1.1", async (t) => {
   const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-native-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));

@@ -185,6 +185,87 @@ const HIGH_ASSURANCE_RISK_KEYS = [
   "critical_ambiguity",
 ];
 
+const BOUNDED_LOCAL_ACTION_RISK_KEYS = [
+  "wildcard",
+  "administrator",
+  "account",
+  "global",
+  "network",
+  "secrets",
+  "production",
+  "third_party",
+  "destructive",
+  "irreversible",
+  "sensitive_data",
+];
+
+const ORDINARY_MODE_ACTIONS = new Set([
+  "analyze",
+  "create",
+  "diagnose",
+  "edit",
+  "explain",
+  "fix",
+  "read",
+  "review",
+  "rewrite",
+  "test",
+  "translate",
+]);
+
+function isExactLiteral(value) {
+  const literal = typeof value === "string" ? value.trim() : "";
+  return literal !== "" && !["*", "?", "[", "]", "{", "}"].some((marker) => literal.includes(marker));
+}
+
+function hasParentTraversal(value) {
+  return String(value).split(/[\\/]+/).some((part) => part === "..");
+}
+
+function pathApiForAbsolute(value) {
+  if (path.posix.isAbsolute(value)) return path.posix;
+  if (/^[A-Za-z]:[\\/]/.test(value) || /^\\\\[^\\]+\\[^\\]+/.test(value)) return path.win32;
+  return null;
+}
+
+function normalizedLocalTarget(root, target) {
+  if (!isExactLiteral(target) || hasParentTraversal(target) || /^[A-Za-z]:[^\\/]/.test(target)) return null;
+  const broad = target.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+  if (/^(all|all files?|every(?:thing| file)?|entire (?:workspace|repository|repo|directory|folder)|whole (?:workspace|repository|repo|directory|folder))$/.test(broad)) return null;
+  const rootApi = pathApiForAbsolute(root);
+  if (!rootApi) return null;
+  const targetApi = pathApiForAbsolute(target);
+  if (targetApi && targetApi !== rootApi) return null;
+  const normalizedRoot = rootApi.resolve(root);
+  const normalizedTarget = targetApi ? targetApi.resolve(target) : rootApi.resolve(normalizedRoot, target);
+  const relative = rootApi.relative(normalizedRoot, normalizedTarget);
+  if (relative === "" || rootApi.isAbsolute(relative) || relative === ".." || relative.startsWith(`..${rootApi.sep}`)) return null;
+  return rootApi === path.win32 ? normalizedTarget.toLowerCase() : normalizedTarget;
+}
+
+function boundCurrentRequest(input, localAction) {
+  const boundary = input.current_request_boundary;
+  if (!boundary || boundary.source !== "current-user-request") return null;
+  const action = typeof boundary.action === "string" ? boundary.action.trim() : "";
+  const localActionName = typeof localAction.action === "string" ? localAction.action.trim() : "";
+  if (!ORDINARY_MODE_ACTIONS.has(action) || localActionName !== action) return null;
+  if (!isExactLiteral(boundary.approved_local_root) || hasParentTraversal(boundary.approved_local_root)) return null;
+  const rootApi = pathApiForAbsolute(boundary.approved_local_root);
+  if (!rootApi) return null;
+  const normalizedRoot = rootApi.resolve(boundary.approved_local_root);
+  if (normalizedRoot === rootApi.parse(normalizedRoot).root) return null;
+  if (!Array.isArray(boundary.targets)
+    || !Array.isArray(localAction.targets)
+    || boundary.targets.length === 0
+    || boundary.targets.length !== localAction.targets.length) return null;
+  const requestedTargets = boundary.targets.map((target) => normalizedLocalTarget(normalizedRoot, target));
+  const actionTargets = localAction.targets.map((target) => normalizedLocalTarget(normalizedRoot, target));
+  if (requestedTargets.some((target) => target === null)
+    || actionTargets.some((target) => target === null)
+    || stableJson(requestedTargets) !== stableJson(actionTargets)) return null;
+  return { action, targets: actionTargets, approved_local_root: normalizedRoot };
+}
+
 export function classifyBossCodingRoute(input = {}) {
   const risk = input.risk ?? {};
   const completeRiskProfile = HIGH_ASSURANCE_RISK_KEYS.every((key) => typeof risk[key] === "boolean");
@@ -203,55 +284,18 @@ export function classifyBossCodingRoute(input = {}) {
       reason: highRisk,
     };
   }
-  if (typeof input.permission_change !== "boolean"
-    || (input.permission_change === false && input.permission !== undefined && input.permission !== null)) {
+  const localAction = input.local_action ?? {};
+  const currentRequest = boundCurrentRequest(input, localAction);
+  const boundedLocalAction = currentRequest !== null
+    && localAction.location === "local"
+    && localAction.reversible === true
+    && localAction.explicit_current_request !== false
+    && BOUNDED_LOCAL_ACTION_RISK_KEYS.every((key) => localAction[key] === false);
+  if (!boundedLocalAction) {
     return {
       mode: "high_assurance",
-      decision_stage: "permission-gate",
-      reason: "permission-change-missing-invalid-or-contradictory",
-    };
-  }
-  if (input.permission_change === true) {
-    const permission = input.permission ?? {};
-    const application = typeof permission.applications?.[0] === "string" ? permission.applications[0].trim() : "";
-    const bounded = Array.isArray(permission.applications)
-      && permission.applications.length === 1
-      && typeof permission.applications[0] === "string"
-      && application !== ""
-      && !["*", "?", "[", "]", "{", "}"].some((marker) => application.includes(marker))
-      && permission.location === "local"
-      && permission.duration === "current-session"
-      && permission.reversible === true
-      && permission.explicit_current_request === true
-      && [
-        "administrator",
-        "account",
-        "network",
-        "secrets",
-        "wildcard",
-        "third_party",
-        "long_lived",
-        "irreversible",
-      ].every((key) => permission[key] === false);
-    if (!bounded) {
-      return {
-        mode: "high_assurance",
-        decision_stage: "permission-gate",
-        reason: "permission-boundary-incomplete-or-risky",
-      };
-    }
-    return {
-      mode: "standard",
-      decision_stage: "permission-gate",
-      reason: "bounded-current-session-single-app-permission",
-      execution: "current-agent-with-proportionate-self-check",
-      extra_model_calls: 0,
-      subagents: 0,
-      state_writes: 0,
-      pdgo_new_approval_rounds: 0,
-      formal_plan_generations: 0,
-      governance_prompt_loads: 0,
-      role_process_loads: 0,
+      decision_stage: "authorization-gate",
+      reason: "bounded-local-action-missing-incomplete-or-risky",
     };
   }
   if (!new Set(["lightweight", "standard"]).has(input.workload)) {
@@ -266,6 +310,7 @@ export function classifyBossCodingRoute(input = {}) {
     mode: lightweight ? "lightweight" : "standard",
     decision_stage: "workload",
     execution: lightweight ? "current-agent-direct" : "current-agent-with-proportionate-self-check",
+    authorization_source: "explicit-current-user-request",
     extra_model_calls: 0,
     subagents: 0,
     state_writes: 0,

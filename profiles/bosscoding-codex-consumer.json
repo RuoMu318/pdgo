@@ -12,6 +12,7 @@
     ],
     "route_before_mode_side_effects": true,
     "lightweight": {
+      "authorization_source": "explicit-current-user-request",
       "required_zero_costs": [
         "extra_model_calls",
         "subagents",
@@ -24,6 +25,7 @@
     },
     "standard": {
       "execution": "current-agent-with-proportionate-self-check",
+      "authorization_source": "explicit-current-user-request",
       "required_zero_costs": [
         "extra_model_calls",
         "subagents",
@@ -34,23 +36,45 @@
         "role_process_loads"
       ]
     },
-    "bounded_permission_exception": {
-      "applications": "exactly-one",
+    "bounded_local_action": {
+      "ordinary_actions": [
+        "analyze",
+        "create",
+        "diagnose",
+        "edit",
+        "explain",
+        "fix",
+        "read",
+        "review",
+        "rewrite",
+        "test",
+        "translate"
+      ],
+      "current_request_boundary": {
+        "source": "current-user-request",
+        "action": "must-match-local-action",
+        "targets": "must-match-local-action-targets",
+        "approved_local_root": "absolute-non-filesystem-root",
+        "file_target_validation": "normalized-and-contained-within-approved-local-root",
+        "live_host_attestation_implemented": false
+      },
       "location": "local",
-      "duration": "current-session",
       "reversible": true,
-      "explicit_current_request": true,
+      "explicit_current_request_boolean_is_authority": false,
       "forbidden_risks": [
+        "wildcard",
         "administrator",
         "account",
+        "global",
         "network",
         "secrets",
-        "wildcard",
+        "production",
         "third_party",
-        "long_lived",
-        "irreversible"
+        "destructive",
+        "irreversible",
+        "sensitive_data"
       ],
-      "mode": "standard"
+      "otherwise": "high-assurance-or-fail-closed"
     },
     "high_assurance": {
       "full_secretary_governance": true
@@ -76,6 +100,16 @@
       "plan-version-drift",
       "scope-drift",
       "role-drift"
+    ],
+    "unchanged_internal_artifacts_require_new_approval": false,
+    "reapproval_triggers": [
+      "target",
+      "object",
+      "action",
+      "risk",
+      "third_party_effect",
+      "authorization_boundary",
+      "acceptance"
     ],
     "legacy_without_policy_supported": true,
     "host_or_os_permission_prompts_removed": false

@@ -377,6 +377,27 @@ function installOverlay(existing, source) {
   return insertBlock(existing, existing.length, block).replace(/\n\n$/, "\n");
 }
 
+function unmanagedAgentsText(existing) {
+  const beginCount = existing.split(OVERLAY_BEGIN).length - 1;
+  const endCount = existing.split(OVERLAY_END).length - 1;
+  if (beginCount !== endCount || beginCount > 1) {
+    throw new Error("global AGENTS overlay boundaries are incomplete or duplicated");
+  }
+  if (beginCount === 0) return existing;
+  const start = existing.indexOf(OVERLAY_BEGIN);
+  const endMarker = existing.indexOf(OVERLAY_END, start);
+  if (endMarker < start) throw new Error("global AGENTS overlay boundaries are out of order");
+  return `${existing.slice(0, start)}${existing.slice(endMarker + OVERLAY_END.length)}`;
+}
+
+function assertNoKnownLegacyApprovalConflict(existing) {
+  const unmanaged = unmanagedAgentsText(existing).replace(/\s+/g, "");
+  const knownLegacyRule = /任何文件写入[（(]包括临时文件和会产生文件的验证命令[）)]、子Agent[／/]新对话、Git分支[／/]暂存[／/]提交[／/]合并，以及系统或外部状态变更，都要先展示精确批次、影响和验证方式并取得批准/;
+  if (knownLegacyRule.test(unmanaged)) {
+    throw new Error("known legacy absolute write-approval rule found in unmanaged global AGENTS text");
+  }
+}
+
 function allowedTargets(codexHome) {
   return new Set([
     ...SKILLS.map((skill) => normalized(path.join(codexHome, "skills", skill))),
@@ -572,6 +593,7 @@ async function preflight(sourceRoot, codexHome) {
 
   const agentsPath = path.join(codexHome, "AGENTS.md");
   const existingAgents = await readExistingFile(agentsPath, "global AGENTS target") ?? "";
+  assertNoKnownLegacyApprovalConflict(existingAgents);
   const desiredAgents = installOverlay(existingAgents, source.overlay);
   const descriptorPath = path.join(codexHome, "runtime", "bosscoding", "runtime.json");
   const descriptor = {
@@ -823,7 +845,13 @@ async function main() {
     throw new Error("CodexHome cannot traverse a symbolic link, junction, reparse point, or non-canonical path");
   }
 
-  if (!await exists(codexHome)) {
+  const codexHomeExists = await exists(codexHome);
+  if (codexHomeExists) {
+    const existingAgents = await readExistingFile(path.join(codexHome, "AGENTS.md"), "global AGENTS target") ?? "";
+    assertNoKnownLegacyApprovalConflict(existingAgents);
+  }
+
+  if (!codexHomeExists) {
     const parent = await nearestExistingAncestor(codexHome);
     const parentCanonical = await realpath(parent);
     const relative = path.relative(parent, codexHome);
@@ -847,6 +875,9 @@ async function main() {
       if (!Number.isFinite(holdAfterLockMs) || holdAfterLockMs < 0) throw new Error("invalid installer lock hold setting");
       if (holdAfterLockMs > 0) await delay(holdAfterLockMs);
     }
+
+    const existingAgents = await readExistingFile(path.join(codexHome, "AGENTS.md"), "global AGENTS target") ?? "";
+    assertNoKnownLegacyApprovalConflict(existingAgents);
 
     const recovered = await recoverInterruptedTransactions(codexHome);
     if (recovered > 0) console.error(`Recovered interrupted installation batch(es): ${recovered}`);
