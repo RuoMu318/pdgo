@@ -11,6 +11,26 @@ task_id: T01
 reviewer_session_id: review-session-id
 observed_source_session_id: review-session-id
 source_verified: true
+# Echo the exact review-request envelope when the approved plan enables authorization_policy.required.
+authorization_envelope:
+  schema_version: "1.0"
+  plan_series_id: PROJECT-YYYYMMDD-NNN
+  plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+  plan_version: v1
+  approval_id: approval-YYYYMMDD-NNN
+  boundary_digest: sha256-hex
+  approval_boundary:
+    approval_id: approval-YYYYMMDD-NNN
+    approver: user
+    decision: approved
+    approved_scope: []
+    acknowledged_risks: []
+    conditions: []
+  expires_at: "YYYY-MM-DDThh:mm:ssZ"
+  attestation:
+    proof_id: host-proof-id
+    transport: trusted-host-adapter
+    attested_at: "YYYY-MM-DDThh:mm:ssZ"
 decision: accepted | revision-required | blocked | failed | continue | await-user
 # accepted requires one passing criteria_result for every requested acceptance
 # criterion, explicit passing evidence_checked entries for BossCoding v2, and no

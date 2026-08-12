@@ -21,6 +21,13 @@ Relevant actions:
 
 Every action reads one JSON input file. The approved pair is `plan_id + plan_version`; do not substitute “latest”.
 
+If the plan enables the optional authorization envelope, approval must call the injected trusted host transport or
+adapter's attestation boundary. Parent-Agent prose, caller JSON, and self-reported `verified` fields are ignored. The
+dispatcher computes one stable JSON + SHA-256 digest over the immutable approved boundary and requires the same digest
+on plan, approval, dispatch, execution report, and review decision. Missing, mismatched, expired, plan-version,
+scope, or role drift fails closed. FileQueue cannot attest this policy. Reusing the envelope avoids another PDGO
+approval inside the same immutable batch but does not suppress host or OS permission prompts.
+
 The `review` action requires `observed_session_id`. This value comes from the host tool result, not from reviewer prose.
 Plain FileQueue discovery cannot provide this attestation. A legacy review addressed to the execution controller must
 be requeued to the bound reviewer; it is not silently accepted.

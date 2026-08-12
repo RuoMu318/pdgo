@@ -50,6 +50,32 @@ role_assignments:
     permission_mode: read-only
 # permission_mode is a plan-governance and dispatch boundary, not an OS sandbox.
 # Actual reads and writes remain constrained by Codex permissions, project rules, and user approval.
+# Optional. Existing plans without this policy remain compatible.
+authorization_policy:
+  required: true
+  attestation_source: host-transport
+  fail_closed: true
+# Created by the dispatcher only after a trusted injected transport/adapter attests
+# the immutable approved boundary. Caller-supplied verified fields are not trusted.
+authorization_envelope:
+  schema_version: "1.0"
+  plan_series_id: PROJECT-YYYYMMDD-NNN
+  plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+  plan_version: v1
+  approval_id: approval-YYYYMMDD-NNN
+  boundary_digest: sha256-hex
+  approval_boundary:
+    approval_id: approval-YYYYMMDD-NNN
+    approver: user
+    decision: approved
+    approved_scope: []
+    acknowledged_risks: []
+    conditions: []
+  expires_at: "YYYY-MM-DDThh:mm:ssZ"
+  attestation:
+    proof_id: host-proof-id
+    transport: trusted-host-adapter
+    attested_at: "YYYY-MM-DDThh:mm:ssZ"
 method_lenses:
   - skill_id: munger
     mode: lens

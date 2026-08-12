@@ -62,6 +62,11 @@ The full core then performs memory lookup, Skill routing, approval checks, task 
 and audit linking for high-assurance work. It must not contain product-specific instructions and delegates domain
 decisions to project profiles and scoped Skills.
 
+The dispatcher also supports an optional fail-closed authorization policy. It hashes only the immutable approved
+boundary with stable JSON plus SHA-256 and accepts host attestation only from an injected transport or adapter. When
+enabled, the same envelope must survive plan, approval, dispatch, report, and review; missing, expired, mismatched,
+version-drifted, scope-drifted, or role-drifted artifacts stop. Legacy plans without the policy remain compatible.
+
 ## 3. Department layer
 
 ### Planning department

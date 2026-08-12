@@ -8,6 +8,11 @@ runs in the current Agent with a proportionate self-check, no governance-prompt 
 rounds. High-assurance work, and explicit secretary or BossCoding
 invocations, load the full routing and governance contract below.
 
+The executable classifier applies the high-assurance risk gate before workload depth. A permission change is standard
+only when it is exactly one local application, current-session only, reversible, explicitly requested now, and every
+administrator, account, network, secrets, wildcard, third-party, long-lived, and irreversible risk is explicitly false.
+Missing fields or any risk fail closed to high assurance. This exception does not remove host or OS permission prompts.
+
 ## Required classification
 
 High-assurance work starts with this full record before a domain Skill or artifact is touched. Lightweight and

@@ -39,6 +39,29 @@ class MockAdapter {
   }
 }
 
+class AttestedAdapter extends MockAdapter {
+  constructor({ clock, mutateAttestation = null } = {}) {
+    super();
+    this.clock = clock;
+    this.mutateAttestation = mutateAttestation;
+    this.attestationCalls = [];
+  }
+
+  async attestAuthorization(request) {
+    this.attestationCalls.push(request);
+    const attestation = {
+      proof_id: "trusted-proof-1",
+      transport: "injected-test-adapter",
+      boundary_digest: request.boundary_digest,
+      plan_id: request.plan_id,
+      plan_version: request.plan_version,
+      attested_at: new Date(this.clock()).toISOString(),
+      expires_at: "2026-08-11T02:00:00.000Z",
+    };
+    return this.mutateAttestation ? this.mutateAttestation(attestation, request) : attestation;
+  }
+}
+
 class ConnectedQueueAdapter extends FileQueueAdapter {
   constructor(options) {
     super(options);
@@ -124,6 +147,359 @@ async function fixture() {
 async function ingestObservedReview(dispatcher, review, observedSessionId = review.reviewer_session_id) {
   return dispatcher.ingestPlanningReview(review, { observedSessionId, sourceVerified: true });
 }
+
+test("one trusted approval envelope survives a fully host-bound BossCoding v2 batch unchanged", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-"));
+  const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
+  const adapter = new AttestedAdapter({ clock });
+  const dispatcher = new FlowStateDispatcher({
+    store: new FlowStateStore({ root: path.join(root, "state") }),
+    adapter,
+    projectId: "demo",
+    clock,
+    id: (prefix) => `${prefix}-${++adapter.sequence}`,
+  });
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-authorization",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-authorization-plan-v1",
+        risks: [],
+        role_contract: { version: "bosscoding-v2" },
+        role_assignments: bossRoleAssignments({
+          execution: { host_agent_type: "Minimal Change Engineer", selection_source: "approved-role-selection:secretary", permission_mode: "approved-scope-write" },
+        }),
+        execution_baseline: bossExecutionBaseline(),
+        authorization_policy: { required: true },
+      }),
+    });
+    const approval = await dispatcher.approvePlan({
+      planSeriesId: "series-authorization",
+      planVersion: "v1",
+      approval: {
+        approval_id: "approval-authorization-v1",
+        approver: "user",
+        plan_id: "series-authorization-plan-v1",
+        plan_version: "v1",
+        decision: "approved",
+        acknowledged_risks: [],
+      },
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-authorization",
+      planVersion: "v1",
+      role: "planning",
+      sessionId: "plan-session-series-authorization",
+      hostAgentType: "Multi-Agent Systems Architect",
+      selectionSource: "approved-role-selection:acy",
+    });
+    await dispatcher.bindHostSession({
+      planSeriesId: "series-authorization",
+      planVersion: "v1",
+      role: "review",
+      sessionId: "review-session-series-authorization",
+      hostAgentType: "Code Reviewer",
+      selectionSource: "approved-role-selection:acy",
+    });
+    assert.equal(adapter.attestationCalls.length, 1);
+    assert.match(approval.authorization_envelope.boundary_digest, /^[a-f0-9]{64}$/);
+
+    const afterApproval = await dispatcher.store.load("demo");
+    const approvedPlan = afterApproval.series["series-authorization"].plans.v1;
+    assert.deepEqual(approvedPlan.authorization_envelope, approval.authorization_envelope);
+    assert.deepEqual(approvedPlan.approval.authorization_envelope, approval.authorization_envelope);
+
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: "series-authorization", planVersion: "v1" });
+    const dispatch = dispatched.dispatches[0];
+    assert.deepEqual(dispatch.authorization_envelope, approval.authorization_envelope);
+    await dispatcher.bindHostWorker({
+      planSeriesId: "series-authorization",
+      planVersion: "v1",
+      taskId: "T01",
+      dispatchId: dispatch.dispatch_id,
+      workerSessionId: "authorization-execution-worker",
+      hostAgentType: "Minimal Change Engineer",
+      selectionSource: "approved-role-selection:secretary",
+    });
+
+    await dispatcher.ingestExecutionReport({
+      report_id: "authorization-report-1",
+      project_id: "demo",
+      plan_series_id: "series-authorization",
+      plan_id: "series-authorization-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: dispatch.dispatch_id,
+      worker_session_id: "authorization-execution-worker",
+      status: "returned-to-planning",
+      authorization_envelope: approval.authorization_envelope,
+    });
+    const reviewRequest = adapter.messages.find((message) => message.message_type === "REVIEW_REQUEST" && message.report_id === "authorization-report-1");
+    assert.deepEqual(reviewRequest.authorization_envelope, approval.authorization_envelope);
+    const reviewed = await ingestObservedReview(dispatcher, {
+      review_id: "authorization-review-1",
+      reviewer_session_id: "review-session-series-authorization",
+      report_id: "authorization-report-1",
+      plan_series_id: "series-authorization",
+      plan_id: "series-authorization-plan-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "accepted",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: [{ evidence: "diff", result: "pass" }],
+      authorization_envelope: approval.authorization_envelope,
+    });
+    assert.equal(reviewed.next_dispatches.length, 1);
+    assert.equal(reviewed.next_dispatches[0].task_id, "T02");
+    assert.deepEqual(reviewed.next_dispatches[0].authorization_envelope, approval.authorization_envelope);
+
+    const finalState = await dispatcher.store.load("demo");
+    const series = finalState.series["series-authorization"];
+    assert.deepEqual(series.reports["authorization-report-1"].authorization_envelope, approval.authorization_envelope);
+    assert.deepEqual(series.reviews["authorization-review-1"].authorization_envelope, approval.authorization_envelope);
+    assert.equal(adapter.attestationCalls.length, 1);
+    assert.equal(finalState.events.filter((event) => event.type === "USER_PLAN_APPROVED").length, 1);
+    assert.equal(new Set([
+      approvedPlan.authorization_envelope.boundary_digest,
+      dispatch.authorization_envelope.boundary_digest,
+      reviewRequest.authorization_envelope.boundary_digest,
+      series.reports["authorization-report-1"].authorization_envelope.boundary_digest,
+      series.reviews["authorization-review-1"].authorization_envelope.boundary_digest,
+      reviewed.next_dispatches[0].authorization_envelope.boundary_digest,
+    ]).size, 1);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("authorization attestation fails closed for unavailable, forged, mismatched, expired, or wrong-version proof", async () => {
+  const cases = [
+    {
+      name: "FileQueue adapter has no authenticated proof channel",
+      adapter: (root, clock) => new FileQueueAdapter({ root: path.join(root, "queue"), clock }),
+      approvalExtra: {},
+      error: /attestation.*unavailable|host transport adapter/i,
+    },
+    {
+      name: "self-reported verified JSON is not host proof",
+      adapter: () => new MockAdapter(),
+      approvalExtra: { authorization_envelope: { verified: true }, host_attestation: { verified: true }, verified: true },
+      error: /attestation.*unavailable|host transport adapter/i,
+    },
+    {
+      name: "digest mismatch",
+      adapter: (_root, clock) => new AttestedAdapter({ clock, mutateAttestation: (proof) => ({ ...proof, boundary_digest: "0".repeat(64) }) }),
+      approvalExtra: {},
+      error: /boundary digest does not match/i,
+    },
+    {
+      name: "expired proof",
+      adapter: (_root, clock) => new AttestedAdapter({ clock, mutateAttestation: (proof) => ({ ...proof, expires_at: "2026-08-11T00:59:59.000Z" }) }),
+      approvalExtra: {},
+      error: /expired|invalid expiry/i,
+    },
+    {
+      name: "wrong plan version",
+      adapter: (_root, clock) => new AttestedAdapter({ clock, mutateAttestation: (proof) => ({ ...proof, plan_version: "v2" }) }),
+      approvalExtra: {},
+      error: /plan id or version does not match/i,
+    },
+  ];
+
+  for (const entry of cases) {
+    const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-negative-"));
+    const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
+    const adapter = entry.adapter(root, clock);
+    const dispatcher = new FlowStateDispatcher({
+      store: new FlowStateStore({ root: path.join(root, "state") }),
+      adapter,
+      projectId: "demo",
+      clock,
+    });
+    try {
+      await dispatcher.createPlan({
+        planSeriesId: `series-${entry.name.replace(/\W+/g, "-").toLowerCase()}`,
+        planVersion: "v1",
+        plan: makePlan({ plan_id: `plan-${entry.name.replace(/\W+/g, "-").toLowerCase()}`, risks: [], authorization_policy: { required: true } }),
+      });
+      const seriesId = `series-${entry.name.replace(/\W+/g, "-").toLowerCase()}`;
+      const planId = `plan-${entry.name.replace(/\W+/g, "-").toLowerCase()}`;
+      await assert.rejects(() => dispatcher.approvePlan({
+        planSeriesId: seriesId,
+        planVersion: "v1",
+        approval: {
+          approval_id: `approval-${entry.name.replace(/\W+/g, "-").toLowerCase()}`,
+          approver: "user",
+          plan_id: planId,
+          plan_version: "v1",
+          decision: "approved",
+          acknowledged_risks: [],
+          ...entry.approvalExtra,
+        },
+      }), entry.error, entry.name);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }
+});
+
+test("authorization envelope rejects missing, mismatched, and expired report or review artifacts", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-artifacts-"));
+  let now = Date.parse("2026-08-11T01:00:00.000Z");
+  const clock = () => now;
+  const adapter = new AttestedAdapter({ clock });
+  const dispatcher = new FlowStateDispatcher({
+    store: new FlowStateStore({ root: path.join(root, "state") }),
+    adapter,
+    projectId: "demo",
+    clock,
+  });
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-artifacts", planVersion: "v1", plan: makePlan({ plan_id: "plan-artifacts-v1", risks: [], authorization_policy: { required: true } }) });
+    const approval = await dispatcher.approvePlan({ planSeriesId: "series-artifacts", planVersion: "v1", approval: { approval_id: "approval-artifacts", approver: "user", plan_id: "plan-artifacts-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: "series-artifacts", planVersion: "v1" });
+    const dispatch = dispatched.dispatches[0];
+    const report = {
+      report_id: "artifact-report-1",
+      project_id: "demo",
+      plan_series_id: "series-artifacts",
+      plan_id: "plan-artifacts-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: dispatch.dispatch_id,
+      status: "returned-to-planning",
+    };
+    await assert.rejects(() => dispatcher.ingestExecutionReport(report), /authorization envelope is missing/i);
+    await assert.rejects(() => dispatcher.ingestExecutionReport({ ...report, authorization_envelope: { ...approval.authorization_envelope, boundary_digest: "f".repeat(64) } }), /does not match the approved envelope/i);
+    await dispatcher.ingestExecutionReport({ ...report, authorization_envelope: approval.authorization_envelope });
+
+    const review = {
+      review_id: "artifact-review-1",
+      reviewer_session_id: "review-session-series-artifacts",
+      report_id: "artifact-report-1",
+      plan_series_id: "series-artifacts",
+      plan_id: "plan-artifacts-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "accepted",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: [{ evidence: "diff", result: "pass" }],
+    };
+    await assert.rejects(() => ingestObservedReview(dispatcher, review), /authorization envelope is missing/i);
+    await assert.rejects(() => ingestObservedReview(dispatcher, { ...review, authorization_envelope: { ...approval.authorization_envelope, plan_version: "v2" } }), /does not match the approved envelope|plan id or version/i);
+    now = Date.parse("2026-08-11T02:00:00.000Z");
+    await assert.rejects(() => ingestObservedReview(dispatcher, { ...review, authorization_envelope: approval.authorization_envelope }), /expired/i);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("authorization digest detects plan-version, scope, and role drift before dispatch", async () => {
+  for (const [name, mutate] of [
+    ["plan version", (plan) => { plan.plan_version = "v2"; }],
+    ["scope", (plan) => { plan.allowed_paths.push("outside-approved-scope.txt"); }],
+    ["role", (plan) => { plan.role_assignments.execution = { host_agent_type: "Different Worker", selection_source: "unapproved", permission_mode: "approved-scope-write" }; }],
+  ]) {
+    const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-drift-"));
+    const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
+    const adapter = new AttestedAdapter({ clock });
+    const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
+    const seriesId = `series-drift-${name.replace(/\s+/g, "-")}`;
+    try {
+      await dispatcher.createPlan({ planSeriesId: seriesId, planVersion: "v1", plan: makePlan({ plan_id: `${seriesId}-v1`, risks: [], authorization_policy: { required: true } }) });
+      await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approval_id: `approval-${seriesId}`, approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+      await dispatcher.store.transaction("demo", async (state) => mutate(state.series[seriesId].plans.v1));
+      await assert.rejects(() => dispatcher.dispatchReady({ planSeriesId: seriesId, planVersion: "v1" }), /authorization.*(?:version|digest|scope|roles|match)/i, name);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }
+});
+
+test("authorization digest covers static dispatch selectors, lenses, stages, and concurrency", async () => {
+  for (const [name, mutate] of [
+    ["task external agent id", (plan) => { plan.tasks[0].external_agent_id = "external-agent-2"; }],
+    ["task external agent query", (plan) => { plan.tasks[0].external_agent_query = "different-query"; }],
+    ["task external agent division", (plan) => { plan.tasks[0].external_agent_division = "different-division"; }],
+    ["stage required skills", (plan) => { plan.stages[0].required_skills.push("different-skill"); }],
+    ["stage agent selectors", (plan) => { plan.stages[0].agent_selectors.push({ external_agent_id: "different-agent" }); }],
+    ["method lenses", (plan) => { plan.method_lenses.push({ skill_id: "munger", mode: "lens", applies_to: ["execution"], authority: "advisory" }); }],
+    ["serial parallel policy", (plan) => { plan.serial_parallel_policy = "parallel"; }],
+    ["max parallel", (plan) => { plan.max_parallel = 2; }],
+    ["planning policy", (plan) => { plan.planning_policy.max_revision_cycles += 1; }],
+  ]) {
+    const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-static-drift-"));
+    const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
+    const adapter = new AttestedAdapter({ clock });
+    const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
+    const seriesId = `series-static-drift-${name.replace(/\s+/g, "-")}`;
+    try {
+      await dispatcher.createPlan({ planSeriesId: seriesId, planVersion: "v1", plan: makePlan({ plan_id: `${seriesId}-v1`, risks: [], authorization_policy: { required: true } }) });
+      await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approval_id: `approval-${seriesId}`, approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+      await dispatcher.store.transaction("demo", async (state) => mutate(state.series[seriesId].plans.v1));
+      await assert.rejects(() => dispatcher.dispatchReady({ planSeriesId: seriesId, planVersion: "v1" }), /authorization.*(?:digest|scope|roles|match)/i, name);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }
+});
+
+test("an authorized report can surface a new risk for review before reapproval", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-new-risk-"));
+  const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
+  const adapter = new AttestedAdapter({ clock });
+  const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-authorization-risk", planVersion: "v1", plan: makePlan({ plan_id: "plan-authorization-risk-v1", risks: [], authorization_policy: { required: true } }) });
+    const approval = await dispatcher.approvePlan({ planSeriesId: "series-authorization-risk", planVersion: "v1", approval: { approval_id: "approval-authorization-risk", approver: "user", plan_id: "plan-authorization-risk-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const dispatch = (await dispatcher.dispatchReady({ planSeriesId: "series-authorization-risk", planVersion: "v1" })).dispatches[0];
+    await dispatcher.ingestExecutionReport({
+      report_id: "authorization-risk-report-1",
+      project_id: "demo",
+      plan_series_id: "series-authorization-risk",
+      plan_id: "plan-authorization-risk-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: dispatch.dispatch_id,
+      status: "returned-to-planning",
+      new_risks: [{ risk_id: "R99", severity: "low", impact: "requires planning review" }],
+      authorization_envelope: approval.authorization_envelope,
+    });
+    const reviewed = await ingestObservedReview(dispatcher, {
+      review_id: "authorization-risk-review-1",
+      reviewer_session_id: "review-session-series-authorization-risk",
+      report_id: "authorization-risk-report-1",
+      plan_series_id: "series-authorization-risk",
+      plan_id: "plan-authorization-risk-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      decision: "accepted",
+      criteria_results: [{ criterion: "change exists", result: "pass" }],
+      evidence_checked: [{ evidence: "diff", result: "pass" }],
+      authorization_envelope: approval.authorization_envelope,
+    });
+    assert.equal(reviewed.auto_dispatch_ready, false);
+    const state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-authorization-risk"].plans.v1.status, "awaiting-user-approval");
+    assert.equal(adapter.attestationCalls.length, 1);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("legacy plans without an authorization policy remain compatible", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-legacy-authorization", planVersion: "v1", plan: makePlan({ plan_id: "series-legacy-authorization-v1", risks: [] }) });
+    const approval = await dispatcher.approvePlan({ planSeriesId: "series-legacy-authorization", planVersion: "v1", approval: { approver: "user", plan_id: "series-legacy-authorization-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    assert.equal(approval.authorization_envelope, undefined);
+    const dispatched = await dispatcher.dispatchReady({ planSeriesId: "series-legacy-authorization", planVersion: "v1" });
+    assert.equal(dispatched.dispatches[0].authorization_envelope, undefined);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test("extension reuses series sessions while parallel creates new sessions", async () => {
   const { root, adapter, dispatcher } = await fixture();
@@ -1705,7 +2081,10 @@ test("BossCoding v2 cannot complete with empty gates, unchecked evidence, or omi
 });
 
 test("parallel BossCoding reviews refresh the last request before final plan acceptance", async () => {
-  const { root, adapter, dispatcher } = await fixture();
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorized-parallel-refresh-"));
+  const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
+  const adapter = new AttestedAdapter({ clock });
+  const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
   try {
     const seriesId = "series-v2-parallel-final-review";
     await dispatcher.createPlan({
@@ -1717,6 +2096,7 @@ test("parallel BossCoding reviews refresh the last request before final plan acc
         role_contract: { version: "bosscoding-v2" },
         role_assignments: bossRoleAssignments(),
         execution_baseline: bossExecutionBaseline({ completion_criteria: ["all outputs exist"] }),
+        authorization_policy: { required: true },
         serial_parallel_policy: "parallel",
         max_parallel: 2,
         tasks: [
@@ -1725,7 +2105,7 @@ test("parallel BossCoding reviews refresh the last request before final plan acc
         ],
       }),
     });
-    await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const approval = await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approval_id: `approval-${seriesId}`, approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
     await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "planning", sessionId: `plan-session-${seriesId}`, hostAgentType: "Multi-Agent Systems Architect", selectionSource: "approved-role-selection:acy" });
     await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "review", sessionId: `review-session-${seriesId}`, hostAgentType: "Code Reviewer", selectionSource: "approved-role-selection:acy" });
     const dispatched = await dispatcher.dispatchReady({ planSeriesId: seriesId, planVersion: "v1" });
@@ -1744,6 +2124,7 @@ test("parallel BossCoding reviews refresh the last request before final plan acc
         worker_session_id: workerSessionId,
         status: "returned-to-planning",
         evidence: [`${dispatch.task_id} diff`],
+        authorization_envelope: approval.authorization_envelope,
       });
     }
     const initialRequests = adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.plan_series_id === seriesId);
@@ -1762,6 +2143,7 @@ test("parallel BossCoding reviews refresh the last request before final plan acc
       decision: "accepted",
       criteria_results: firstRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
       evidence_checked: firstRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+      authorization_envelope: firstRequest.authorization_envelope,
     });
     assert.equal(firstAccepted.plan_completed, false);
 
@@ -1778,6 +2160,7 @@ test("parallel BossCoding reviews refresh the last request before final plan acc
       criteria_results: staleSecondRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
       evidence_checked: staleSecondRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
       new_blockers: [{ blocker_id: "B-resolved-observation", status: "resolved", reason: "Observed and already resolved." }],
+      authorization_envelope: staleSecondRequest.authorization_envelope,
     });
     assert.equal(refresh.decision, "review-refresh-required");
     assert.equal(refresh.plan_completed, false);
@@ -1785,6 +2168,7 @@ test("parallel BossCoding reviews refresh the last request before final plan acc
     const refreshedRequest = adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.task_id === "T02").at(-1);
     assert.equal(refreshedRequest.final_acceptance, true);
     assert.deepEqual(refreshedRequest.acceptance_criteria, ["two exists", "all outputs exist"]);
+    assert.deepEqual(refreshedRequest.authorization_envelope, approval.authorization_envelope);
     const completed = await ingestObservedReview(dispatcher, {
       review_id: "parallel-review-T02-final",
       reviewer_session_id: `review-session-${seriesId}`,
@@ -1796,6 +2180,7 @@ test("parallel BossCoding reviews refresh the last request before final plan acc
       decision: "accepted",
       criteria_results: refreshedRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
       evidence_checked: refreshedRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+      authorization_envelope: refreshedRequest.authorization_envelope,
     });
     assert.equal(completed.plan_completed, true);
   } finally {
@@ -1804,7 +2189,10 @@ test("parallel BossCoding reviews refresh the last request before final plan acc
 });
 
 test("parallel stale acceptance with a new risk waits for reapproval before final review", async () => {
-  const { root, adapter, dispatcher } = await fixture();
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorized-parallel-reapproval-refresh-"));
+  const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
+  const adapter = new AttestedAdapter({ clock });
+  const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
   try {
     const seriesId = "series-v2-parallel-risk-final-review";
     await dispatcher.createPlan({
@@ -1816,6 +2204,7 @@ test("parallel stale acceptance with a new risk waits for reapproval before fina
         role_contract: { version: "bosscoding-v2" },
         role_assignments: bossRoleAssignments(),
         execution_baseline: bossExecutionBaseline({ completion_criteria: ["all outputs exist"] }),
+        authorization_policy: { required: true },
         serial_parallel_policy: "parallel",
         max_parallel: 2,
         tasks: [
@@ -1824,14 +2213,14 @@ test("parallel stale acceptance with a new risk waits for reapproval before fina
         ],
       }),
     });
-    await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const firstApproval = await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approval_id: `approval-${seriesId}-initial`, approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
     await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "planning", sessionId: `plan-session-${seriesId}`, hostAgentType: "Multi-Agent Systems Architect", selectionSource: "approved-role-selection:acy" });
     await dispatcher.bindHostSession({ planSeriesId: seriesId, planVersion: "v1", role: "review", sessionId: `review-session-${seriesId}`, hostAgentType: "Code Reviewer", selectionSource: "approved-role-selection:acy" });
     const dispatched = await dispatcher.dispatchReady({ planSeriesId: seriesId, planVersion: "v1" });
     for (const dispatch of dispatched.dispatches) {
       const workerSessionId = `risk-worker-${dispatch.task_id}`;
       await dispatcher.bindHostWorker({ planSeriesId: seriesId, planVersion: "v1", taskId: dispatch.task_id, dispatchId: dispatch.dispatch_id, workerSessionId, hostAgentType: "Senior Developer", selectionSource: "approved-role-selection:acy" });
-      await dispatcher.ingestExecutionReport({ report_id: `risk-report-${dispatch.task_id}`, project_id: "demo", plan_series_id: seriesId, plan_id: `${seriesId}-v1`, plan_version: "v1", task_id: dispatch.task_id, dispatch_id: dispatch.dispatch_id, worker_session_id: workerSessionId, status: "returned-to-planning" });
+      await dispatcher.ingestExecutionReport({ report_id: `risk-report-${dispatch.task_id}`, project_id: "demo", plan_series_id: seriesId, plan_id: `${seriesId}-v1`, plan_version: "v1", task_id: dispatch.task_id, dispatch_id: dispatch.dispatch_id, worker_session_id: workerSessionId, status: "returned-to-planning", authorization_envelope: firstApproval.authorization_envelope });
     }
     const initialRequests = adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.plan_series_id === seriesId);
     const firstRequest = initialRequests.find((request) => request.task_id === "T01");
@@ -1846,6 +2235,7 @@ test("parallel stale acceptance with a new risk waits for reapproval before fina
       decision: "accepted",
       criteria_results: firstRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
       evidence_checked: firstRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+      authorization_envelope: firstRequest.authorization_envelope,
     });
     const staleSecondRequest = initialRequests.find((request) => request.task_id === "T02");
     const pending = await ingestObservedReview(dispatcher, {
@@ -1860,6 +2250,7 @@ test("parallel stale acceptance with a new risk waits for reapproval before fina
       criteria_results: staleSecondRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
       evidence_checked: staleSecondRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
       new_risks: [{ risk_id: "R-late", severity: "medium", impact: "Requires explicit acknowledgement." }],
+      authorization_envelope: staleSecondRequest.authorization_envelope,
     });
     assert.equal(pending.decision, "review-refresh-required");
     assert.equal(pending.approval_required, true);
@@ -1868,10 +2259,12 @@ test("parallel stale acceptance with a new risk waits for reapproval before fina
     assert.equal(state.series[seriesId].plans.v1.approval, null);
     assert.equal(adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.task_id === "T02").length, 1);
 
-    const approved = await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: ["R-late"] } });
+    const approved = await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approval_id: `approval-${seriesId}-refresh`, approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: ["R-late"] } });
     assert.equal(approved.final_review_requests_sent, 1);
     const finalRequest = adapter.messages.filter((message) => message.message_type === "REVIEW_REQUEST" && message.task_id === "T02").at(-1);
     assert.equal(finalRequest.final_acceptance, true);
+    assert.deepEqual(finalRequest.authorization_envelope, approved.authorization_envelope);
+    assert.notEqual(finalRequest.authorization_envelope.boundary_digest, firstApproval.authorization_envelope.boundary_digest);
     const completed = await ingestObservedReview(dispatcher, {
       review_id: "risk-parallel-review-T02-final",
       reviewer_session_id: `review-session-${seriesId}`,
@@ -1883,6 +2276,7 @@ test("parallel stale acceptance with a new risk waits for reapproval before fina
       decision: "accepted",
       criteria_results: finalRequest.acceptance_criteria.map((criterion) => ({ criterion, result: "pass" })),
       evidence_checked: finalRequest.expected_evidence.map((evidence) => ({ evidence, result: "pass" })),
+      authorization_envelope: finalRequest.authorization_envelope,
     });
     assert.equal(completed.plan_completed, true);
     state = await dispatcher.store.load("demo");

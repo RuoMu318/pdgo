@@ -25,13 +25,60 @@
     "standard": {
       "execution": "current-agent-with-proportionate-self-check",
       "required_zero_costs": [
+        "extra_model_calls",
+        "subagents",
+        "state_writes",
         "pdgo_new_approval_rounds",
-        "governance_prompt_loads"
+        "formal_plan_generations",
+        "governance_prompt_loads",
+        "role_process_loads"
       ]
+    },
+    "bounded_permission_exception": {
+      "applications": "exactly-one",
+      "location": "local",
+      "duration": "current-session",
+      "reversible": true,
+      "explicit_current_request": true,
+      "forbidden_risks": [
+        "administrator",
+        "account",
+        "network",
+        "secrets",
+        "wildcard",
+        "third_party",
+        "long_lived",
+        "irreversible"
+      ],
+      "mode": "standard"
     },
     "high_assurance": {
       "full_secretary_governance": true
     }
+  },
+  "authorization": {
+    "policy_optional": true,
+    "attestation_source": "injected-host-transport-or-adapter",
+    "self_report_trusted": false,
+    "digest_algorithm": "sha256-over-stable-json",
+    "digest_scope": "immutable-approved-boundary-only",
+    "propagation": [
+      "plan",
+      "approval",
+      "dispatch",
+      "execution-report",
+      "review-decision"
+    ],
+    "fail_closed_on": [
+      "missing",
+      "mismatch",
+      "expired",
+      "plan-version-drift",
+      "scope-drift",
+      "role-drift"
+    ],
+    "legacy_without_policy_supported": true,
+    "host_or_os_permission_prompts_removed": false
   },
   "cold_start": {
     "scope": "high-assurance-or-explicit-secretary",

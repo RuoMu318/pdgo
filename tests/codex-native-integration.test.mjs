@@ -92,8 +92,8 @@ test("plan and dispatch contracts separate host role assignments from advisory m
 test("public BossCoding quick start uses the secretary and isolates direct CLI as legacy-only", async () => {
   const english = await readFile(path.join(root, "README.md"), "utf8");
   const chinese = await readFile(path.join(root, "README.zh-CN.md"), "utf8");
-  const englishQuickStart = english.match(/## BossCoding quick start\n([\s\S]*?)(?=\n## )/)?.[1] ?? "";
-  const chineseQuickStart = chinese.match(/## BossCoding 快速开始\n([\s\S]*?)(?=\n## )/)?.[1] ?? "";
+  const englishQuickStart = english.match(/## BossCoding quick start\r?\n([\s\S]*?)(?=\r?\n## )/)?.[1] ?? "";
+  const chineseQuickStart = chinese.match(/## BossCoding 快速开始\r?\n([\s\S]*?)(?=\r?\n## )/)?.[1] ?? "";
   assert.match(englishQuickStart, /秘书(?:，按 BossCoding 做)?：<任务>/);
   assert.match(chineseQuickStart, /秘书(?:，按 BossCoding 做)?：<任务>/);
   assert.doesNotMatch(englishQuickStart, /皇帝模式|Emperor mode/i);
@@ -398,8 +398,13 @@ test("three-mode routing defers full BossCoding governance until high assurance"
   ]);
   assert.equal(profile.routing.standard.execution, "current-agent-with-proportionate-self-check");
   assert.deepEqual(profile.routing.standard.required_zero_costs, [
+    "extra_model_calls",
+    "subagents",
+    "state_writes",
     "pdgo_new_approval_rounds",
+    "formal_plan_generations",
     "governance_prompt_loads",
+    "role_process_loads",
   ]);
   assert.equal(profile.routing.high_assurance.full_secretary_governance, true);
   assert.equal(profile.cold_start.scope, "high-assurance-or-explicit-secretary");
@@ -410,6 +415,55 @@ test("three-mode routing defers full BossCoding governance until high assurance"
     "full_pdgo",
     "routed_pdgo",
   ]);
+});
+
+test("Codex-native contracts describe risk-first bounded permission routing and trusted authorization reuse", async () => {
+  const schemaNames = ["plan.yaml", "user-plan-approval.yaml", "dispatch.yaml", "execution-report.yaml", "review-decision.yaml"];
+  const schemas = await Promise.all(schemaNames.map((name) => readFile(path.join(root, "schemas", name), "utf8")));
+  for (const [index, schema] of schemas.entries()) {
+    assert.match(schema, /authorization_envelope:/, schemaNames[index]);
+    assert.match(schema, /boundary_digest:/, schemaNames[index]);
+    assert.match(schema, /expires_at:/, schemaNames[index]);
+  }
+  assert.match(schemas[0], /authorization_policy:/);
+  assert.match(schemas[0], /attestation_source:\s*host-transport/);
+  assert.match(schemas[0], /fail_closed:\s*true/);
+
+  const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
+  const secretary = await readFile(path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"), "utf8");
+  const bridge = await readFile(path.join(root, "integrations", "codex-native", "skills", "pdgo-codex-native-bridge", "SKILL.md"), "utf8");
+  const dispatchRuntime = await readFile(path.join(root, "docs", "dispatch-runtime.md"), "utf8");
+  const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
+
+  for (const document of [overlay, secretary]) {
+    assert.match(document, /单一应用|单应用/);
+    assert.match(document, /当前会话/);
+    assert.match(document, /可撤销/);
+    assert.match(document, /账号|账户/);
+    assert.match(document, /网络/);
+    assert.match(document, /密钥|秘密/);
+    assert.match(document, /通配/);
+    assert.match(document, /第三方/);
+  }
+  for (const document of [secretary, bridge, dispatchRuntime]) {
+    assert.match(document, /authorization envelope|授权包络|授权信封/i);
+    assert.match(document, /(?:宿主|host)[^。\n]*(?:transport|adapter|传输|适配器)/i);
+    assert.match(document, /自报|self-report/i);
+    assert.match(document, /(?:同一|same)[^。\n]*(?:摘要|digest)/i);
+  }
+  assert.deepEqual(profile.routing.bounded_permission_exception, {
+    applications: "exactly-one",
+    location: "local",
+    duration: "current-session",
+    reversible: true,
+    explicit_current_request: true,
+    forbidden_risks: ["administrator", "account", "network", "secrets", "wildcard", "third_party", "long_lived", "irreversible"],
+    mode: "standard",
+  });
+  assert.equal(profile.authorization.policy_optional, true);
+  assert.equal(profile.authorization.attestation_source, "injected-host-transport-or-adapter");
+  assert.equal(profile.authorization.self_report_trusted, false);
+  assert.equal(profile.authorization.legacy_without_policy_supported, true);
 });
 
 test("status documents report capability-awareness validation without claiming acceptance", async () => {

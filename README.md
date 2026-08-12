@@ -241,6 +241,13 @@ governance prompts, or role processes. Standard work uses the current Agent with
 governance-prompt loads or new PDGO approval rounds.
 High-assurance work, or an explicit secretary/BossCoding entry, loads the full secretary workflow.
 
+The executable risk gate runs before workload depth. A temporary permission change reaches standard mode only for
+exactly one local application, the current session, a reversible action explicitly requested now, and explicit false
+values for administrator, account, network, secrets, wildcard, third-party, long-lived, and irreversible risks.
+High-assurance plans may also enable an optional authorization envelope: a trusted injected host adapter attests one
+SHA-256 digest over the immutable approved boundary, and the same envelope must survive dispatch, report, and review.
+Self-reported verification and plain FileQueue messages are not host attestation.
+
 This is a source candidate only. It has not been installed globally and no paid Token, latency, or quality benchmark
 has been run, so no real cost saving is claimed.
 

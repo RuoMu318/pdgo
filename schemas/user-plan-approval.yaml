@@ -15,3 +15,24 @@ decision: approved
 approver: user
 timestamp: "YYYY-MM-DDThh:mm:ssZ"
 comments: ""
+# Output-only when the matching plan enables authorization_policy.required.
+# The dispatcher discards caller-supplied envelopes and self-reported verified fields.
+authorization_envelope:
+  schema_version: "1.0"
+  plan_series_id: PROJECT-YYYYMMDD-NNN
+  plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+  plan_version: v1
+  approval_id: approval-YYYYMMDD-NNN
+  boundary_digest: sha256-hex
+  approval_boundary:
+    approval_id: approval-YYYYMMDD-NNN
+    approver: user
+    decision: approved
+    approved_scope: []
+    acknowledged_risks: []
+    conditions: []
+  expires_at: "YYYY-MM-DDThh:mm:ssZ"
+  attestation:
+    proof_id: host-proof-id
+    transport: trusted-host-adapter
+    attested_at: "YYYY-MM-DDThh:mm:ssZ"

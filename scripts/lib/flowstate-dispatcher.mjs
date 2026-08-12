@@ -63,6 +63,219 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
+function sha256(value) {
+  return createHash("sha256").update(stableJson(value), "utf8").digest("hex");
+}
+
+function normalizeAuthorizationPolicy(value) {
+  if (value === undefined || value === null) return null;
+  return {
+    required: value.required === true,
+    attestation_source: String(value.attestation_source ?? "host-transport"),
+    fail_closed: value.fail_closed !== false,
+  };
+}
+
+function authorizationApprovalBoundary(approval) {
+  return {
+    approval_id: String(approval?.approval_id ?? ""),
+    approver: String(approval?.approver ?? ""),
+    decision: String(approval?.decision ?? ""),
+    approved_scope: clone(asArray(approval?.approved_scope)),
+    acknowledged_risks: clone(asArray(approval?.acknowledged_risks)),
+    resolved_blockers: clone(asArray(approval?.resolved_blockers)),
+    accepted_assumptions: clone(asArray(approval?.accepted_assumptions)),
+    accepted_residual_risks: clone(asArray(approval?.accepted_residual_risks)),
+    conditions: clone(asArray(approval?.conditions)),
+    exception_approvals: clone(asArray(approval?.exception_approvals)),
+  };
+}
+
+function authorizationTaskBoundary(task) {
+  return {
+    task_id: task.task_id,
+    title: task.title,
+    objective: task.objective,
+    stage_id: task.stage_id,
+    stage_order: task.stage_order,
+    stage_kind: task.stage_kind,
+    dependencies: clone(task.dependencies),
+    required_skills: clone(task.required_skills),
+    external_agent_id: clone(task.external_agent_id),
+    external_agent_query: clone(task.external_agent_query),
+    external_agent_division: clone(task.external_agent_division),
+    allowed_paths: clone(task.allowed_paths),
+    forbidden_actions: clone(task.forbidden_actions),
+    acceptance_criteria: clone(task.acceptance_criteria),
+    expected_evidence: clone(task.expected_evidence),
+    risk_profile: clone(task.risk_profile),
+    stop_conditions: clone(task.stop_conditions),
+  };
+}
+
+function authorizationStageBoundary(stage) {
+  return {
+    stage_id: stage.stage_id,
+    title: stage.title,
+    order: stage.order,
+    kind: stage.kind,
+    required_skills: clone(stage.required_skills),
+    agent_selectors: clone(stage.agent_selectors),
+    acceptance_criteria: clone(stage.acceptance_criteria),
+  };
+}
+
+function authorizationBoundary(plan, approval) {
+  return {
+    plan_series_id: plan.plan_series_id,
+    plan_id: plan.plan_id,
+    plan_version: plan.plan_version,
+    project_id: plan.project_id,
+    title: plan.title,
+    summary: plan.summary,
+    objective: plan.objective,
+    goal: plan.goal,
+    target_outcome: plan.target_outcome,
+    execution_baseline: clone(plan.execution_baseline),
+    role_contract: clone(plan.role_contract),
+    role_assignments: clone(plan.role_assignments),
+    method_lenses: clone(plan.method_lenses),
+    planning_policy: clone(plan.planning_policy),
+    modification_scope: clone(plan.modification_scope),
+    excluded_scope: clone(plan.excluded_scope),
+    non_goals: clone(plan.non_goals),
+    stages: plan.stages.map(authorizationStageBoundary),
+    tasks: plan.tasks.map(authorizationTaskBoundary),
+    acceptance_criteria: clone(plan.acceptance_criteria),
+    expected_evidence: clone(plan.expected_evidence),
+    rollback: clone(plan.rollback),
+    allowed_paths: clone(plan.allowed_paths),
+    forbidden_actions: clone(plan.forbidden_actions),
+    serial_parallel_policy: plan.serial_parallel_policy,
+    max_parallel: plan.max_parallel,
+    authorization_policy: clone(plan.authorization_policy),
+    approval: authorizationApprovalBoundary(approval),
+  };
+}
+
+function assertAuthorizationEnvelope(plan, suppliedEnvelope, clock) {
+  if (plan.authorization_policy?.required !== true) return null;
+  const envelope = plan.authorization_envelope;
+  if (!envelope) throw new Error("authorization envelope is required");
+  if (!suppliedEnvelope) throw new Error("authorization envelope is missing");
+  if (stableJson(suppliedEnvelope) !== stableJson(envelope)) throw new Error("authorization envelope does not match the approved envelope");
+  if (envelope.plan_id !== plan.plan_id || envelope.plan_version !== plan.plan_version) {
+    throw new Error("authorization envelope plan id or version does not match");
+  }
+  const expectedDigest = sha256(authorizationBoundary(plan, envelope.approval_boundary));
+  if (envelope.boundary_digest !== expectedDigest) throw new Error("authorization boundary digest does not match the current approved scope and roles");
+  const expiresAt = Date.parse(envelope.expires_at);
+  if (!Number.isFinite(expiresAt) || expiresAt <= clock()) throw new Error("authorization envelope is expired or has an invalid expiry");
+  return envelope;
+}
+
+const HIGH_ASSURANCE_RISK_KEYS = [
+  "external_action",
+  "production",
+  "sensitive_data",
+  "destructive",
+  "difficult_to_reverse",
+  "cross_session",
+  "independent_review",
+  "critical_ambiguity",
+];
+
+export function classifyBossCodingRoute(input = {}) {
+  const risk = input.risk ?? {};
+  const completeRiskProfile = HIGH_ASSURANCE_RISK_KEYS.every((key) => typeof risk[key] === "boolean");
+  if (input.explicit_secretary === true || !completeRiskProfile) {
+    return {
+      mode: "high_assurance",
+      decision_stage: "risk-gate",
+      reason: input.explicit_secretary === true ? "explicit-secretary-entry" : "risk-profile-incomplete",
+    };
+  }
+  const highRisk = HIGH_ASSURANCE_RISK_KEYS.find((key) => risk[key] === true);
+  if (highRisk) {
+    return {
+      mode: "high_assurance",
+      decision_stage: "risk-gate",
+      reason: highRisk,
+    };
+  }
+  if (typeof input.permission_change !== "boolean"
+    || (input.permission_change === false && input.permission !== undefined && input.permission !== null)) {
+    return {
+      mode: "high_assurance",
+      decision_stage: "permission-gate",
+      reason: "permission-change-missing-invalid-or-contradictory",
+    };
+  }
+  if (input.permission_change === true) {
+    const permission = input.permission ?? {};
+    const application = typeof permission.applications?.[0] === "string" ? permission.applications[0].trim() : "";
+    const bounded = Array.isArray(permission.applications)
+      && permission.applications.length === 1
+      && typeof permission.applications[0] === "string"
+      && application !== ""
+      && !["*", "?", "[", "]", "{", "}"].some((marker) => application.includes(marker))
+      && permission.location === "local"
+      && permission.duration === "current-session"
+      && permission.reversible === true
+      && permission.explicit_current_request === true
+      && [
+        "administrator",
+        "account",
+        "network",
+        "secrets",
+        "wildcard",
+        "third_party",
+        "long_lived",
+        "irreversible",
+      ].every((key) => permission[key] === false);
+    if (!bounded) {
+      return {
+        mode: "high_assurance",
+        decision_stage: "permission-gate",
+        reason: "permission-boundary-incomplete-or-risky",
+      };
+    }
+    return {
+      mode: "standard",
+      decision_stage: "permission-gate",
+      reason: "bounded-current-session-single-app-permission",
+      execution: "current-agent-with-proportionate-self-check",
+      extra_model_calls: 0,
+      subagents: 0,
+      state_writes: 0,
+      pdgo_new_approval_rounds: 0,
+      formal_plan_generations: 0,
+      governance_prompt_loads: 0,
+      role_process_loads: 0,
+    };
+  }
+  if (!new Set(["lightweight", "standard"]).has(input.workload)) {
+    return {
+      mode: "high_assurance",
+      decision_stage: "workload",
+      reason: "workload-depth-missing-or-unknown",
+    };
+  }
+  const lightweight = input.workload === "lightweight";
+  return {
+    mode: lightweight ? "lightweight" : "standard",
+    decision_stage: "workload",
+    execution: lightweight ? "current-agent-direct" : "current-agent-with-proportionate-self-check",
+    extra_model_calls: 0,
+    subagents: 0,
+    state_writes: 0,
+    pdgo_new_approval_rounds: 0,
+    formal_plan_generations: 0,
+    governance_prompt_loads: 0,
+    role_process_loads: 0,
+  };
+}
+
 function statusOf(item) {
   return String(item?.status ?? "").toLowerCase();
 }
@@ -810,6 +1023,8 @@ function normalizePlan(input, seriesId, version) {
     rollback: asArray(plan.rollback),
     allowed_paths: asArray(plan.allowed_paths ?? plan.allowedPaths),
     forbidden_actions: asArray(plan.forbidden_actions ?? plan.forbiddenActions),
+    authorization_policy: normalizeAuthorizationPolicy(plan.authorization_policy ?? plan.authorizationPolicy),
+    authorization_envelope: null,
     risks,
     blockers,
     questions_decisions: asArray(plan.questions_decisions ?? plan.questionsDecisions),
@@ -1642,6 +1857,46 @@ export class FlowStateDispatcher {
     });
   }
 
+  async createAuthorizationEnvelope(plan, approval) {
+    if (plan.authorization_policy?.required !== true) return null;
+    if (plan.authorization_policy.fail_closed !== true || plan.authorization_policy.attestation_source !== "host-transport") {
+      throw new Error("required authorization policy must fail closed and use host-transport attestation");
+    }
+    if (typeof this.adapter.attestAuthorization !== "function") {
+      throw new Error("required authorization attestation is unavailable from the injected host transport adapter");
+    }
+    const boundaryDigest = sha256(authorizationBoundary(plan, approval));
+    const proof = await this.adapter.attestAuthorization({
+      plan_series_id: plan.plan_series_id,
+      plan_id: plan.plan_id,
+      plan_version: plan.plan_version,
+      approval_id: String(approval.approval_id ?? ""),
+      boundary_digest: boundaryDigest,
+    });
+    if (!proof || typeof proof !== "object") throw new Error("host transport did not return authorization attestation");
+    if (proof.boundary_digest !== boundaryDigest) throw new Error("authorization attestation boundary digest does not match");
+    if (proof.plan_id !== plan.plan_id || proof.plan_version !== plan.plan_version) {
+      throw new Error("authorization attestation plan id or version does not match");
+    }
+    const expiresAt = Date.parse(proof.expires_at);
+    if (!Number.isFinite(expiresAt) || expiresAt <= this.clock()) throw new Error("authorization attestation is expired or has an invalid expiry");
+    return {
+      schema_version: "1.0",
+      plan_series_id: plan.plan_series_id,
+      plan_id: plan.plan_id,
+      plan_version: plan.plan_version,
+      approval_id: String(approval.approval_id ?? ""),
+      boundary_digest: boundaryDigest,
+      approval_boundary: authorizationApprovalBoundary(approval),
+      expires_at: new Date(expiresAt).toISOString(),
+      attestation: {
+        proof_id: String(required(proof.proof_id, "authorization attestation proof_id")),
+        transport: String(required(proof.transport, "authorization attestation transport")),
+        attested_at: String(required(proof.attested_at, "authorization attestation attested_at")),
+      },
+    };
+  }
+
   async approvePlan({ planSeriesId, planVersion, approval } = {}) {
     return this.store.transaction(this.projectId, async (state) => {
       const series = state.series[required(planSeriesId, "planSeriesId")];
@@ -1666,19 +1921,30 @@ export class FlowStateDispatcher {
         throw new Error("all conditional approval conditions must be machine-checkable and satisfied");
       }
 
+      const authorizationEnvelope = await this.createAuthorizationEnvelope(plan, approval);
+      const storedApproval = clone(approval);
+      delete storedApproval.authorization_envelope;
+      delete storedApproval.host_attestation;
+      delete storedApproval.attestation;
+      delete storedApproval.verified;
       plan.approval = {
-        ...clone(approval),
+        ...storedApproval,
         plan_id: plan.plan_id,
         plan_version: version,
         approved_at: nowIso(this.clock),
+        ...(authorizationEnvelope ? { authorization_envelope: authorizationEnvelope } : {}),
       };
+      plan.authorization_envelope = authorizationEnvelope;
       plan.status = "approved";
       activateReadyTasks(plan);
       series.status = "approved";
       let finalReviewRequestsSent = 0;
       for (const [reportId, message] of Object.entries(series.pending_final_reviews ?? {})) {
         if (message.plan_id !== plan.plan_id || message.plan_version !== version) continue;
-        const delivery = await this.adapter.send(message);
+        const authorizedMessage = authorizationEnvelope
+          ? { ...clone(message), authorization_envelope: clone(authorizationEnvelope) }
+          : message;
+        const delivery = await this.adapter.send(authorizedMessage);
         delete series.pending_final_reviews[reportId];
         finalReviewRequestsSent += 1;
         this.event(state, "FINAL_REVIEW_REQUEST_SENT_AFTER_APPROVAL", {
@@ -1686,12 +1952,12 @@ export class FlowStateDispatcher {
           plan_version: version,
           report_id: reportId,
           review_request_id: message.review_request_id,
-          message_id: delivery?.message_id ?? message.message_id,
+          message_id: delivery?.message_id ?? authorizedMessage.message_id,
         });
       }
       series.updated_at = nowIso(this.clock);
       this.event(state, "USER_PLAN_APPROVED", { plan_series_id: planSeriesId, plan_version: version, decision: approval.decision });
-      return clone({ plan_series_id: planSeriesId, plan_version: version, ready_tasks: plan.tasks.filter((task) => task.status === "ready").map((task) => task.task_id), final_review_requests_sent: finalReviewRequestsSent });
+      return clone({ plan_series_id: planSeriesId, plan_version: version, ready_tasks: plan.tasks.filter((task) => task.status === "ready").map((task) => task.task_id), final_review_requests_sent: finalReviewRequestsSent, ...(authorizationEnvelope ? { authorization_envelope: authorizationEnvelope } : {}) });
     });
   }
 
@@ -1706,6 +1972,7 @@ export class FlowStateDispatcher {
       if (!plan.approval || plan.approval.plan_id !== plan.plan_id || plan.approval.plan_version !== version) {
         throw new Error("plan is missing exact user approval for this plan id and version");
       }
+      assertAuthorizationEnvelope(plan, plan.approval.authorization_envelope, this.clock);
       if (plan.role_contract?.version === "bosscoding-v2") {
         for (const role of ["planning", "review"]) {
           const assignment = plan.role_assignments[role];
@@ -1804,6 +2071,7 @@ export class FlowStateDispatcher {
           role_assignment_hash: roleAssignmentHash(plan.role_assignments.execution),
           method_lenses: clone(executionMethodLenses(plan, task)),
           execution_baseline: clone(plan.execution_baseline),
+          ...(plan.authorization_envelope ? { authorization_envelope: clone(plan.authorization_envelope) } : {}),
           allowed_paths: task.allowed_paths,
           forbidden_actions: task.forbidden_actions,
           dependencies: task.dependencies,
@@ -1902,6 +2170,7 @@ export class FlowStateDispatcher {
       if (dispatch.task_id !== report.task_id) throw new Error("execution report task_id does not match the dispatch");
       if (dispatch.plan_version !== String(report.plan_version)) throw new Error("execution report plan_version does not match the dispatch");
       if (dispatch.plan_id !== plan.plan_id) throw new Error("dispatch plan_id does not match the plan");
+      assertAuthorizationEnvelope(plan, report.authorization_envelope, this.clock);
       if (
         report.session_id
         && report.worker_session_id
@@ -2031,6 +2300,7 @@ export class FlowStateDispatcher {
         summary: String(report.summary ?? ""),
         recommended_next_action: blockingReport ? (requiresUser ? "planning-review-then-user-escalation" : "planning-review-then-resume") : String(report.recommended_next_action ?? "independent-review"),
         report: stored,
+        ...(plan.authorization_envelope ? { authorization_envelope: clone(plan.authorization_envelope) } : {}),
         review_required: true,
       };
       this.event(state, "EXECUTION_REPORT_RECEIVED", { plan_series_id: report.plan_series_id, plan_version: report.plan_version, task_id: report.task_id, dispatch_id: report.dispatch_id, blocker_count: normalizedBlockers.length, high_risk: highRisk, abnormal_stop: abnormalStop });
@@ -2083,6 +2353,7 @@ export class FlowStateDispatcher {
       const task = plan?.tasks.find((item) => item.task_id === review.task_id);
       if (!series || !plan || !task) throw new Error("review identifiers do not match a known task");
       if (review.plan_id && review.plan_id !== plan.plan_id) throw new Error("review plan_id does not match");
+      assertAuthorizationEnvelope(plan, review.authorization_envelope, this.clock);
       if (review.report_id && task.report_id && review.report_id !== task.report_id) throw new Error("review report_id does not match the task report");
       if (review.review_id && series.reviews[review.review_id]) return { duplicate: true, review_id: review.review_id };
       const reviewId = required(review.review_id ?? this.id("review"), "review_id");
@@ -2160,6 +2431,9 @@ export class FlowStateDispatcher {
           summary: String(taskReport?.summary ?? ""),
           recommended_next_action: "independent-final-review",
           report: clone(taskReport ?? {}),
+          ...(!approvalRequired && plan.authorization_envelope
+            ? { authorization_envelope: clone(plan.authorization_envelope) }
+            : {}),
           prior_review_findings: {
             new_risks: clone(preliminaryRisks),
             new_blockers: clone(preliminaryBlockers),

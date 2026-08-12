@@ -38,6 +38,7 @@ description: 用 Codex 内置子 Agent 驱动 PDGO 的真实策划、执行和�
 2. 主 Agent 根据项目状态和 `acy` 方法在内存中起草五项执行基准、精确 `plan_id + plan_version`、项目状态目录、三个角色、文件和验证批次；`acy` 的角色建议本身不是批准。
 3. 秘书展示完整批次。用户一次批准覆盖创建状态目录、写入精确计划与批准、planning/execution/review 子 Agent、实施和验证。
 4. 获批后才确保状态目录存在，持久化刚才展示的 plan，并记录精确匹配的批准；任何实质变化都必须升版并重新批准。
+   若 plan 启用 authorization envelope（授权包络），只有注入的可信宿主 transport／adapter 能返回证明；父 Agent 文本、消息 JSON 或自报 `verified` 不能充当证明。稳定 JSON + SHA-256 只摘要不可变批准边界。
 5. 获批后调用 planning 子 Agent 验证或细化已批准计划，再用 `bind-host-session` 绑定 planning 的真实 ID。`host_agent_type` 由主 Agent 从实际 `spawn_agent.agent_type` 参数记录；`selection_source` 原样来自获批计划中的角色选择记录，不是 spawn 参数。没有实质变化时继续；目标、范围、权限、验收者、外部动作、重大风险、角色或 Persona 模式实质变化时升版并重新批准。
 6. 创建独立 review 子 Agent，保存真实 ID，并用同样的宿主观察字段绑定 `review` 角色。
 7. PDGO 生成 `PLAN_DISPATCH` 后，按获批的 execution `host_agent_type` 调用 execution 子 Agent；把完整 dispatch 原样交给它。
@@ -46,6 +47,8 @@ description: 用 Codex 内置子 Agent 驱动 PDGO 的真实策划、执行和�
 10. 将 PDGO 生成的 `REVIEW_REQUEST` 和只读候选交给已绑定 review Agent；等待其 `REVIEW_DECISION`。人物 Lens、Voice 或 Rehearsal 不能充当这一审核身份。
 11. 把宿主观察到的 review Agent ID 作为 `observed_session_id` 写入 review 动作。消息正文自报的 ID 不算证据。
 12. `accepted` 才解锁依赖；`revision-required` 生成原范围内修正；`blocked` 或 `failed` 停下。结束时由秘书核对执行基准、实际改动、审核结果和持久状态。
+
+启用包络时，plan、approval、每个 dispatch、execution report 和 review decision 必须保留同一摘要；执行和审核只回传收到的原包络。缺失、不匹配、过期以及 plan/version、范围或角色漂移一律 fail closed。原批准批次内的后续派工和原范围修正复用该包络，不新增 PDGO 批准；宿主或操作系统自己的权限提示不在此复用范围内。FileQueue 无认证证明能力，不能用于启用该策略的批准。
 
 以上所有 BossCoding 状态动作都通过已安装解析器的 `invoke` 入口执行。该入口必须重新校验运行时、按真实项目路径重算状态根，并拒绝调用方传入 `--root`、旧 cwd 默认值或外部角色目录覆盖。直接调用 dispatcher CLI 只属于明确选择的旧版 PDGO 接口，不能作为 BossCoding 的省事旁路。
 
