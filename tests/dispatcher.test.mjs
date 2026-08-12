@@ -604,6 +604,37 @@ test("explicit approval reuse keeps one real user approval only for an unchanged
   }
 });
 
+test("approval reuse rejects stage, planning, and concurrency drift", async () => {
+  for (const [name, overrides] of [
+    ["stages", { stages: [{ stage_id: "stage-1", title: "Changed stage", order: 1, kind: "serial", agent_selectors: [{ external_agent_id: "different-agent" }] }] }],
+    ["planning-policy", { planning_policy: { max_revision_cycles: 7 } }],
+    ["serial-parallel-policy", { serial_parallel_policy: "parallel" }],
+    ["max-parallel", { max_parallel: 2 }],
+  ]) {
+    const { root, dispatcher } = await fixture();
+    const seriesId = `series-approval-reuse-${name}`;
+    try {
+      const sharedPlan = makePlan({
+        plan_id: `${seriesId}-v1`,
+        risks: [],
+        allowed_paths: ["result.txt"],
+        forbidden_actions: ["push"],
+        tasks: [{ task_id: "T01", title: "Implement", objective: "Implement the bounded result.", acceptance_criteria: ["done"], expected_evidence: ["diff"] }],
+      });
+      await dispatcher.createPlan({ planSeriesId: seriesId, planVersion: "v1", plan: sharedPlan });
+      await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval: { approval_id: `approval-${name}`, approver: "user", plan_id: `${seriesId}-v1`, plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+      await dispatcher.createPlan({ planSeriesId: seriesId, planVersion: "v2", relation: "extension", plan: { ...sharedPlan, ...overrides, plan_id: `${seriesId}-v2` } });
+      await assert.rejects(() => dispatcher.approvePlan({
+        planSeriesId: seriesId,
+        planVersion: "v2",
+        approval_reuse: { approval_id: `approval-${name}`, source_plan_id: `${seriesId}-v1`, source_plan_version: "v1" },
+      }), /approval reuse cannot expand or change the approved boundary/, name);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }
+});
+
 test("resource policy is normalized on the plan and propagated unchanged to dispatch", async () => {
   const { root, dispatcher } = await fixture();
   const resourcePolicy = {

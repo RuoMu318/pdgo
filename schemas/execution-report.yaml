@@ -44,11 +44,9 @@ tests: []
 evidence: []
 assumptions: []
 deviations: []
-new_risks:
-  - risk_id: R01
-    severity: low | medium | high | critical
-    impact: "Observable impact requiring planning review."
-# Every new_risks item is validated before the report or any state transition is recorded.
+new_risks: []
+# Each optional item requires risk_id, severity (low | medium | high | critical), and impact.
+# Every item is validated before the report or any state transition is recorded.
 new_blockers: []
 blocker_contract:
   required_when: status is blocked, abnormal_stop is true, or message_type is EXECUTION_STOPPED
