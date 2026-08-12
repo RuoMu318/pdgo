@@ -1220,6 +1220,17 @@ function syncStageStatuses(plan) {
   }
 }
 
+function isResolvedUndispatchedTransportBlock(plan, task) {
+  if (task.status !== "blocked"
+    || task.dispatch_id !== null
+    || task.report_id !== null
+    || asArray(task.revision_history).length > 0
+    || !String(task.last_error ?? "").startsWith("automatic transport unavailable:")) return false;
+  if (plan.blockers.some(blockerIsOpen)) return false;
+  const blocker = plan.blockers.find((item) => item.blocker_id === `transport-${task.task_id}`);
+  return blocker?.status === "resolved" && blocker.dependency === "live Agent transport";
+}
+
 function activateReadyTasks(plan) {
   const order = currentStageOrder(plan);
   if (order === null) {
@@ -1227,7 +1238,8 @@ function activateReadyTasks(plan) {
     return null;
   }
   for (const task of plan.tasks) {
-    if (task.status !== "pending" || task.stage_order !== order) continue;
+    const eligible = task.status === "pending" || isResolvedUndispatchedTransportBlock(plan, task);
+    if (!eligible || task.stage_order !== order) continue;
     if (task.dependencies.every((dependency) => plan.tasks.find((item) => item.task_id === dependency)?.status === "accepted")) {
       task.status = "ready";
     }

@@ -89,6 +89,24 @@ class ConnectedQueueAdapter extends FileQueueAdapter {
   }
 }
 
+class SelectiveTransportAdapter extends ConnectedQueueAdapter {
+  constructor(options) {
+    super(options);
+    this.unavailableTaskIds = new Set(options.unavailableTaskIds ?? []);
+  }
+
+  async ensureWorkerSession({ seriesId, taskId }) {
+    if (this.unavailableTaskIds.has(taskId)) {
+      return {
+        worker_session_id: `local-execution-worker-${seriesId}-${taskId}`,
+        platform_session_id: null,
+        delivery_status: "adapter-unavailable",
+      };
+    }
+    return super.ensureWorkerSession({ seriesId, taskId });
+  }
+}
+
 function makePlan(overrides = {}) {
   return {
     role_contract: {
@@ -2695,6 +2713,197 @@ test("automatic dispatch pauses instead of treating a file queue as a live Agent
     const state = await dispatcher.store.load("demo");
     assert.equal(state.series["series-transport"].status, "waiting-on-planning");
     assert.equal(state.series["series-transport"].plans.v1.blockers.find((blocker) => blocker.blocker_id === "transport-T01").status, "blocked");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("reapproval restores a never-dispatched task after its transport blocker is resolved", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-resolved-transport-reapproval-"));
+  const seriesId = "series-resolved-transport-reapproval";
+  const approval = {
+    approver: "user",
+    plan_id: `${seriesId}-plan-v1`,
+    plan_version: "v1",
+    decision: "approved",
+    acknowledged_risks: [],
+  };
+  try {
+    const adapter = new SelectiveTransportAdapter({
+      root: path.join(root, "queue"),
+      unavailableTaskIds: ["T02A"],
+    });
+    const dispatcher = new FlowStateDispatcher({
+      store: new FlowStateStore({ root: path.join(root, "state") }),
+      adapter,
+      projectId: "demo",
+    });
+    await dispatcher.createPlan({
+      planSeriesId: seriesId,
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: `${seriesId}-plan-v1`,
+        risks: [],
+        serial_parallel_policy: "parallel",
+        max_parallel: 2,
+        tasks: [
+          { task_id: "T01A", title: "First A", objective: "Complete first A.", acceptance_criteria: ["first A exists"], expected_evidence: ["first A evidence"] },
+          { task_id: "T01B", title: "First B", objective: "Complete first B.", acceptance_criteria: ["first B exists"], expected_evidence: ["first B evidence"] },
+          { task_id: "T02A", title: "Second A", objective: "Complete second A.", dependencies: ["T01A"], acceptance_criteria: ["second A exists"], expected_evidence: ["second A evidence"] },
+          { task_id: "T02B", title: "Second B", objective: "Complete second B.", dependencies: ["T01B"], acceptance_criteria: ["second B exists"], expected_evidence: ["second B evidence"] },
+        ],
+      }),
+    });
+    await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval });
+    const initial = await dispatcher.dispatchReady({ planSeriesId: seriesId, planVersion: "v1" });
+    assert.deepEqual(initial.dispatches.map((dispatch) => dispatch.task_id).sort(), ["T01A", "T01B"]);
+    for (const dispatch of initial.dispatches) {
+      await dispatcher.ingestExecutionReport({
+        report_id: `report-${dispatch.task_id}`,
+        project_id: "demo",
+        plan_series_id: seriesId,
+        plan_id: `${seriesId}-plan-v1`,
+        plan_version: "v1",
+        task_id: dispatch.task_id,
+        dispatch_id: dispatch.dispatch_id,
+        status: "returned-to-planning",
+        evidence: [`first ${dispatch.task_id.at(-1)} evidence`],
+      });
+    }
+
+    for (const taskId of ["T01A", "T01B"]) {
+      await ingestObservedReview(dispatcher, {
+        review_id: `review-${taskId}`,
+        reviewer_session_id: `connected-review-${seriesId}`,
+        report_id: `report-${taskId}`,
+        plan_series_id: seriesId,
+        plan_id: `${seriesId}-plan-v1`,
+        plan_version: "v1",
+        task_id: taskId,
+        decision: "accepted",
+        criteria_results: [{ criterion: `first ${taskId.at(-1)} exists`, result: "pass" }],
+        evidence_checked: [`first ${taskId.at(-1)} evidence`],
+      });
+    }
+
+    let state = await dispatcher.store.load("demo");
+    let plan = state.series[seriesId].plans.v1;
+    let task = plan.tasks.find((candidate) => candidate.task_id === "T02A");
+    assert.equal(task.status, "blocked");
+    assert.equal(task.dispatch_id, null);
+    assert.equal(plan.approval, null);
+    assert.equal(plan.blockers.find((blocker) => blocker.blocker_id === "transport-T02A").status, "blocked");
+
+    await dispatcher.resolveBlocker({
+      planSeriesId: seriesId,
+      planVersion: "v1",
+      blockerId: "transport-T02A",
+      resolution: "The live transport is available again.",
+    });
+    await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval });
+
+    state = await dispatcher.store.load("demo");
+    plan = state.series[seriesId].plans.v1;
+    task = plan.tasks.find((candidate) => candidate.task_id === "T02A");
+    assert.equal(plan.blockers.find((blocker) => blocker.blocker_id === "transport-T02A").status, "resolved");
+    assert.equal(task.dispatch_id, null);
+    assert.equal(task.status, "ready");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("reapproval does not unlock a task that was blocked after dispatch", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-dispatched-block-reapproval-"));
+  const seriesId = "series-dispatched-block-reapproval";
+  const approval = {
+    approver: "user",
+    plan_id: `${seriesId}-plan-v1`,
+    plan_version: "v1",
+    decision: "approved",
+    acknowledged_risks: [],
+  };
+  try {
+    const adapter = new ConnectedQueueAdapter({ root: path.join(root, "queue") });
+    const dispatcher = new FlowStateDispatcher({
+      store: new FlowStateStore({ root: path.join(root, "state") }),
+      adapter,
+      projectId: "demo",
+    });
+    await dispatcher.createPlan({
+      planSeriesId: seriesId,
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: `${seriesId}-plan-v1`,
+        risks: [],
+        serial_parallel_policy: "parallel",
+        max_parallel: 2,
+        tasks: [
+          { task_id: "T01F", title: "Failing task", objective: "Exercise a real execution blocker.", acceptance_criteria: ["failure resolved"], expected_evidence: ["failure evidence"] },
+          { task_id: "T01B", title: "Accepted peer", objective: "Complete the peer task.", acceptance_criteria: ["peer exists"], expected_evidence: ["peer evidence"] },
+        ],
+      }),
+    });
+    await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval });
+    const initial = await dispatcher.dispatchReady({ planSeriesId: seriesId, planVersion: "v1" });
+    const failedDispatch = initial.dispatches.find((dispatch) => dispatch.task_id === "T01F");
+    const peerDispatch = initial.dispatches.find((dispatch) => dispatch.task_id === "T01B");
+    await dispatcher.ingestExecutionReport({
+      report_id: "report-T01F",
+      project_id: "demo",
+      plan_series_id: seriesId,
+      plan_id: `${seriesId}-plan-v1`,
+      plan_version: "v1",
+      task_id: "T01F",
+      dispatch_id: failedDispatch.dispatch_id,
+      status: "blocked",
+      new_blockers: [{
+        blocker_id: "B-real-execution",
+        dependency: "missing execution prerequisite",
+        reason: "The dispatched task cannot produce its required output.",
+        impact: "The task cannot continue safely.",
+        recommended_solution: "Restore the prerequisite before retrying.",
+        requires_user: false,
+      }],
+    });
+    await dispatcher.ingestExecutionReport({
+      report_id: "report-T01B",
+      project_id: "demo",
+      plan_series_id: seriesId,
+      plan_id: `${seriesId}-plan-v1`,
+      plan_version: "v1",
+      task_id: "T01B",
+      dispatch_id: peerDispatch.dispatch_id,
+      status: "returned-to-planning",
+      evidence: ["peer evidence"],
+    });
+    await ingestObservedReview(dispatcher, {
+      review_id: "review-T01B",
+      reviewer_session_id: `connected-review-${seriesId}`,
+      report_id: "report-T01B",
+      plan_series_id: seriesId,
+      plan_id: `${seriesId}-plan-v1`,
+      plan_version: "v1",
+      task_id: "T01B",
+      decision: "accepted",
+      criteria_results: [{ criterion: "peer exists", result: "pass" }],
+      evidence_checked: ["peer evidence"],
+    });
+
+    let state = await dispatcher.store.load("demo");
+    assert.equal(state.series[seriesId].plans.v1.approval, null);
+    await dispatcher.resolveBlocker({
+      planSeriesId: seriesId,
+      planVersion: "v1",
+      blockerId: "B-real-execution",
+      resolution: "The prerequisite is now available, but the dispatched task still requires an explicit retry path.",
+    });
+    await dispatcher.approvePlan({ planSeriesId: seriesId, planVersion: "v1", approval });
+
+    state = await dispatcher.store.load("demo");
+    const task = state.series[seriesId].plans.v1.tasks.find((candidate) => candidate.task_id === "T01F");
+    assert.notEqual(task.dispatch_id, null);
+    assert.equal(task.status, "blocked");
   } finally {
     await rm(root, { recursive: true, force: true });
   }
