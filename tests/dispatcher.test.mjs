@@ -501,6 +501,134 @@ test("legacy plans without an authorization policy remain compatible", async () 
   }
 });
 
+test("plan scope is inherited by tasks and task scope can only narrow while prohibitions can only grow", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-scope-inheritance",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-scope-inheritance-v1",
+        risks: [],
+        allowed_paths: ["src/a.mjs", "src/b.mjs"],
+        forbidden_actions: ["push", "publish"],
+        tasks: [
+          { task_id: "T01", title: "Inherited", objective: "Use inherited scope.", acceptance_criteria: ["done"], expected_evidence: ["diff"] },
+          { task_id: "T02", title: "Narrowed", objective: "Use one path.", allowed_paths: ["src/a.mjs"], forbidden_actions: ["install"], acceptance_criteria: ["done"], expected_evidence: ["diff"] },
+        ],
+      }),
+    });
+    const state = await dispatcher.store.load("demo");
+    const [inherited, narrowed] = state.series["series-scope-inheritance"].plans.v1.tasks;
+    assert.deepEqual(inherited.allowed_paths, ["src/a.mjs", "src/b.mjs"]);
+    assert.deepEqual(inherited.forbidden_actions, ["push", "publish"]);
+    assert.deepEqual(narrowed.allowed_paths, ["src/a.mjs"]);
+    assert.deepEqual(narrowed.forbidden_actions, ["push", "publish", "install"]);
+
+    await assert.rejects(() => dispatcher.createPlan({
+      planSeriesId: "series-scope-expansion",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "series-scope-expansion-v1",
+        risks: [],
+        allowed_paths: ["src/a.mjs"],
+        tasks: [{ task_id: "T01", title: "Expand", objective: "Expand scope.", allowed_paths: ["src/b.mjs"], acceptance_criteria: ["done"], expected_evidence: ["diff"] }],
+      }),
+    }), /tasks\[0\]\.allowed_paths can only narrow plan\.allowed_paths/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("malformed execution report risks fail before any report, event, message, approval, or status mutation", async () => {
+  const { root, adapter, dispatcher } = await fixture();
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-malformed-risk", planVersion: "v1", plan: makePlan({ plan_id: "series-malformed-risk-v1", risks: [] }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-malformed-risk", planVersion: "v1", approval: { approval_id: "approval-malformed-risk", approver: "user", plan_id: "series-malformed-risk-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const dispatch = (await dispatcher.dispatchReady({ planSeriesId: "series-malformed-risk", planVersion: "v1" })).dispatches[0];
+    const before = await dispatcher.store.load("demo");
+    const messageCount = adapter.messages.length;
+
+    await assert.rejects(() => dispatcher.ingestExecutionReport({
+      report_id: "malformed-risk-report",
+      project_id: "demo",
+      plan_series_id: "series-malformed-risk",
+      plan_id: "series-malformed-risk-v1",
+      plan_version: "v1",
+      task_id: "T01",
+      dispatch_id: dispatch.dispatch_id,
+      status: "returned-to-planning",
+      new_risks: [{ risk_id: "R99", severity: "unknown", impact: "" }],
+    }), /new_risks\[0\]/);
+
+    assert.deepEqual(await dispatcher.store.load("demo"), before);
+    assert.equal(adapter.messages.length, messageCount);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("explicit approval reuse keeps one real user approval only for an unchanged same-series boundary", async () => {
+  const { root, dispatcher } = await fixture();
+  try {
+    const sharedPlan = makePlan({ plan_id: "series-approval-reuse-v1", risks: [], allowed_paths: ["result.txt"], forbidden_actions: ["push"] });
+    await dispatcher.createPlan({ planSeriesId: "series-approval-reuse", planVersion: "v1", plan: sharedPlan });
+    await dispatcher.approvePlan({ planSeriesId: "series-approval-reuse", planVersion: "v1", approval: { approval_id: "approval-reuse-source", approver: "user", plan_id: "series-approval-reuse-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    await dispatcher.createPlan({ planSeriesId: "series-approval-reuse", planVersion: "v2", relation: "extension", plan: { ...sharedPlan, plan_id: "series-approval-reuse-v2" } });
+    await dispatcher.approvePlan({
+      planSeriesId: "series-approval-reuse",
+      planVersion: "v2",
+      approval_reuse: { approval_id: "approval-reuse-source", source_plan_id: "series-approval-reuse-v1", source_plan_version: "v1" },
+    });
+    let state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-approval-reuse"].plans.v2.approval.approval_id, "approval-reuse-source");
+    assert.equal(state.events.filter((event) => event.type === "USER_PLAN_APPROVED").length, 1);
+    assert.equal(state.events.filter((event) => event.type === "APPROVAL_REUSED").length, 1);
+
+    await dispatcher.createPlan({
+      planSeriesId: "series-approval-reuse",
+      planVersion: "v3",
+      relation: "extension",
+      plan: { ...sharedPlan, plan_id: "series-approval-reuse-v3", allowed_paths: ["result.txt", "outside.txt"] },
+    });
+    await assert.rejects(() => dispatcher.approvePlan({
+      planSeriesId: "series-approval-reuse",
+      planVersion: "v3",
+      approval_reuse: { approval_id: "approval-reuse-source", source_plan_id: "series-approval-reuse-v1", source_plan_version: "v1" },
+    }), /approval reuse cannot expand or change the approved boundary/);
+    state = await dispatcher.store.load("demo");
+    assert.equal(state.series["series-approval-reuse"].plans.v3.approval, null);
+    assert.equal(state.events.filter((event) => event.type === "APPROVAL_REUSED").length, 1);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("resource policy is normalized on the plan and propagated unchanged to dispatch", async () => {
+  const { root, dispatcher } = await fixture();
+  const resourcePolicy = {
+    context: "clean",
+    reasoning: { source: "user-approved-or-host-default", effort: "medium" },
+    planning: { max_agents: 1, followup_tasks: 0 },
+    execution: { max_agents: 2, followup_tasks: 1 },
+    review: { max_agents: 2, followup_tasks: 1 },
+    evidence: "compact",
+    failure: "stop-and-report",
+    host_enforced: false,
+    savings_proven: false,
+  };
+  try {
+    await dispatcher.createPlan({ planSeriesId: "series-resource-policy", planVersion: "v1", plan: makePlan({ plan_id: "series-resource-policy-v1", risks: [], resource_policy: resourcePolicy }) });
+    await dispatcher.approvePlan({ planSeriesId: "series-resource-policy", planVersion: "v1", approval: { approval_id: "approval-resource-policy", approver: "user", plan_id: "series-resource-policy-v1", plan_version: "v1", decision: "approved", acknowledged_risks: [] } });
+    const dispatch = (await dispatcher.dispatchReady({ planSeriesId: "series-resource-policy", planVersion: "v1" })).dispatches[0];
+    const state = await dispatcher.store.load("demo");
+    assert.deepEqual(state.series["series-resource-policy"].plans.v1.resource_policy, resourcePolicy);
+    assert.deepEqual(dispatch.resource_policy, resourcePolicy);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("extension reuses series sessions while parallel creates new sessions", async () => {
   const { root, adapter, dispatcher } = await fixture();
   try {

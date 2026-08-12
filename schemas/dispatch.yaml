@@ -53,6 +53,24 @@ execution_baseline:
     - result.txt exists with the approved content
   accepter: independent reviewer
   current_action: "The one approved current action."
+resource_policy:
+  context: clean
+  reasoning:
+    source: user-approved-or-host-default
+    effort: medium
+  planning:
+    max_agents: 1
+    followup_tasks: 0
+  execution:
+    max_agents: 2
+    followup_tasks: 1
+  review:
+    max_agents: 2
+    followup_tasks: 1
+  evidence: compact
+  failure: stop-and-report
+  host_enforced: false
+  savings_proven: false
 # Required only when the approved plan enables authorization_policy.required.
 authorization_envelope:
   schema_version: "1.0"

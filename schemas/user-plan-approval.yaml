@@ -15,6 +15,12 @@ decision: approved
 approver: user
 timestamp: "YYYY-MM-DDThh:mm:ssZ"
 comments: ""
+# Alternative to a new USER_PLAN_APPROVAL. The dispatcher accepts this only for a
+# stored real user approval in the same series with an unchanged governed boundary.
+approval_reuse:
+  approval_id: approval-YYYYMMDD-NNN
+  source_plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+  source_plan_version: v1
 # Output-only when the matching plan enables authorization_policy.required.
 # The dispatcher discards caller-supplied envelopes and self-reported verified fields.
 authorization_envelope:

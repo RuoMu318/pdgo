@@ -326,3 +326,14 @@ success as reviewer acceptance.
 When a host has no repository or project profile, it may use an explicit unscoped project ID for read-only planning.
 One visible Codex window cannot prove independent review. Acceptance remains unavailable until a concrete scope,
 approval, and distinct bound reviewer exist.
+
+## Resource and approval reuse policy
+
+`resource_policy` is copied unchanged from plan to dispatch: clean context; reasoning from
+`user-approved-or-host-default` with effort `medium`; planning `max_agents: 1 / followup_tasks: 0`; execution and
+review `max_agents: 2 / followup_tasks: 1`; compact evidence; `stop-and-report`; `host_enforced: false`; and
+`savings_proven: false`. Explicit `approval_reuse` accepts only a stored real user approval in the same series with no
+target, object, action, risk, role, acceptance, or path drift. Fresh approval records `USER_PLAN_APPROVED` with
+`approval_id`; reuse records only `APPROVAL_REUSED`. Malformed `new_risks` fail before any state or message change.
+
+181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。

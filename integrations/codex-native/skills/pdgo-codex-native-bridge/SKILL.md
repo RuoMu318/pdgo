@@ -5,6 +5,10 @@ description: 用 Codex 内置子 Agent 驱动 PDGO 的真实策划、执行和�
 
 # PDGO Codex Native Bridge
 
+Preserve `resource_policy` exactly: clean context; `user-approved-or-host-default` reasoning at effort `medium`;
+planning 1/0, execution 2/1, review 2/1 `max_agents/followup_tasks`; compact evidence; `stop-and-report`;
+`host_enforced: false`; `savings_proven: false`. 181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。
+
 ## 目的
 
 把 PDGO 的治理状态机连接到 Codex 当前任务可用的内置协作工具。PDGO 负责计划版本、批准、状态、身份约束、修正和恢复；本 Skill 负责真正调用 `spawn_agent`、`followup_task`、`wait_agent` 并登记真实返回 ID。

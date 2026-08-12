@@ -76,6 +76,35 @@ function normalizeAuthorizationPolicy(value) {
   };
 }
 
+function normalizeResourcePolicy(value) {
+  if (value === undefined || value === null) return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("resource_policy must be an object");
+  const result = {
+    context: String(required(value.context, "resource_policy.context")),
+    reasoning: {
+      source: String(required(value.reasoning?.source, "resource_policy.reasoning.source")),
+      effort: String(required(value.reasoning?.effort, "resource_policy.reasoning.effort")),
+    },
+    planning: { max_agents: Number(value.planning?.max_agents), followup_tasks: Number(value.planning?.followup_tasks) },
+    execution: { max_agents: Number(value.execution?.max_agents), followup_tasks: Number(value.execution?.followup_tasks) },
+    review: { max_agents: Number(value.review?.max_agents), followup_tasks: Number(value.review?.followup_tasks) },
+    evidence: String(required(value.evidence, "resource_policy.evidence")),
+    failure: String(required(value.failure, "resource_policy.failure")),
+    host_enforced: value.host_enforced,
+    savings_proven: value.savings_proven,
+  };
+  for (const role of ["planning", "execution", "review"]) {
+    for (const field of ["max_agents", "followup_tasks"]) {
+      if (!Number.isInteger(result[role][field]) || result[role][field] < 0) {
+        throw new Error(`resource_policy.${role}.${field} must be a non-negative integer`);
+      }
+    }
+  }
+  if (typeof result.host_enforced !== "boolean") throw new Error("resource_policy.host_enforced must be boolean");
+  if (typeof result.savings_proven !== "boolean") throw new Error("resource_policy.savings_proven must be boolean");
+  return result;
+}
+
 function authorizationApprovalBoundary(approval) {
   return {
     approval_id: String(approval?.approval_id ?? ""),
@@ -154,7 +183,33 @@ function authorizationBoundary(plan, approval) {
     serial_parallel_policy: plan.serial_parallel_policy,
     max_parallel: plan.max_parallel,
     authorization_policy: clone(plan.authorization_policy),
+    resource_policy: clone(plan.resource_policy),
     approval: authorizationApprovalBoundary(approval),
+  };
+}
+
+function approvalReuseBoundary(plan) {
+  return {
+    project_id: plan.project_id,
+    objective: plan.objective,
+    goal: plan.goal,
+    target_outcome: plan.target_outcome,
+    execution_baseline: clone(plan.execution_baseline),
+    role_contract: clone(plan.role_contract),
+    role_assignments: clone(plan.role_assignments),
+    method_lenses: clone(plan.method_lenses),
+    modification_scope: clone(plan.modification_scope),
+    excluded_scope: clone(plan.excluded_scope),
+    non_goals: clone(plan.non_goals),
+    tasks: plan.tasks.map(authorizationTaskBoundary),
+    acceptance_criteria: clone(plan.acceptance_criteria),
+    expected_evidence: clone(plan.expected_evidence),
+    rollback: clone(plan.rollback),
+    allowed_paths: clone(plan.allowed_paths),
+    forbidden_actions: clone(plan.forbidden_actions),
+    risks: clone(plan.risks),
+    authorization_policy: clone(plan.authorization_policy),
+    resource_policy: clone(plan.resource_policy),
   };
 }
 
@@ -362,6 +417,19 @@ function normalizeReportedBlocker(blocker, index, report, fallbackIndex = index)
   };
 }
 
+function normalizeReportedRisks(value) {
+  return asArray(value).map((risk, index) => {
+    if (!risk || typeof risk !== "object" || Array.isArray(risk)) throw new Error(`new_risks[${index}] must be an object`);
+    const id = String(required(risk.risk_id ?? risk.id, `new_risks[${index}].risk_id`));
+    const severity = String(required(risk.severity ?? risk.level, `new_risks[${index}].severity`)).toLowerCase();
+    if (!new Set(["low", "medium", "high", "critical"]).has(severity)) {
+      throw new Error(`new_risks[${index}].severity must be low, medium, high, or critical`);
+    }
+    const impact = String(required(risk.impact, `new_risks[${index}].impact`));
+    return { ...clone(risk), risk_id: id, severity, impact, status: String(risk.status ?? "open") };
+  });
+}
+
 function safeQueueSegment(value, name) {
   const segment = String(required(value, name));
   if (segment === "." || segment === ".." || segment !== path.basename(segment) || segment.includes("..")) {
@@ -539,9 +607,18 @@ function normalizeStage(stage, index) {
   };
 }
 
-function normalizeTask(task, index) {
+function normalizeTask(task, index, { planAllowedPaths = null, planForbiddenActions = [] } = {}) {
   const taskId = String(task.task_id ?? task.id ?? `T${String(index + 1).padStart(2, "0")}`);
   const stageOrder = Math.max(1, Number(task.stage_order ?? task.stageOrder ?? 1) || 1);
+  const taskAllowedPaths = asArray(task.allowed_paths ?? task.allowedPaths).map(String);
+  const explicitTaskPaths = Object.prototype.hasOwnProperty.call(task, "allowed_paths")
+    || Object.prototype.hasOwnProperty.call(task, "allowedPaths");
+  if (planAllowedPaths !== null && explicitTaskPaths) {
+    const allowed = new Set(planAllowedPaths);
+    if (taskAllowedPaths.some((item) => !allowed.has(item))) {
+      throw new Error(`tasks[${index}].allowed_paths can only narrow plan.allowed_paths`);
+    }
+  }
   return {
     task_id: taskId,
     title: required(task.title ?? task.objective, `tasks[${index}].title`),
@@ -551,8 +628,8 @@ function normalizeTask(task, index) {
     stage_order: stageOrder,
     stage_kind: stageKind(task.stage_kind ?? task.stageKind),
     dependencies: asArray(task.dependencies ?? task.depends_on).map(String),
-    allowed_paths: asArray(task.allowed_paths ?? task.allowedPaths).map(String),
-    forbidden_actions: asArray(task.forbidden_actions ?? task.forbiddenActions).map(String),
+    allowed_paths: planAllowedPaths !== null && !explicitTaskPaths ? clone(planAllowedPaths) : taskAllowedPaths,
+    forbidden_actions: [...new Set([...planForbiddenActions, ...asArray(task.forbidden_actions ?? task.forbiddenActions).map(String)])],
     required_skills: asArray(task.required_skills ?? task.requiredSkills).map(String),
     external_agent_id: task.external_agent_id ?? task.externalAgentId ?? null,
     external_agent_query: task.external_agent_query ?? task.externalAgentQuery ?? null,
@@ -994,7 +1071,14 @@ function normalizePlan(input, seriesId, version) {
   const roleAssignments = normalizeRoleAssignments(plan.role_assignments ?? plan.roleAssignments);
   const roleContract = normalizeRoleContract(plan.role_contract ?? plan.roleContract, roleAssignments);
   assertExplicitBossExecutionBaseline(plan, roleContract);
-  const tasks = asArray(plan.tasks).map(normalizeTask);
+  const hasPlanAllowedPaths = Object.prototype.hasOwnProperty.call(plan, "allowed_paths")
+    || Object.prototype.hasOwnProperty.call(plan, "allowedPaths");
+  const planAllowedPaths = asArray(plan.allowed_paths ?? plan.allowedPaths).map(String);
+  const planForbiddenActions = asArray(plan.forbidden_actions ?? plan.forbiddenActions).map(String);
+  const tasks = asArray(plan.tasks).map((task, index) => normalizeTask(task, index, {
+    planAllowedPaths: hasPlanAllowedPaths ? planAllowedPaths : null,
+    planForbiddenActions,
+  }));
   assertBossTaskAcceptance(tasks, roleContract);
   const methodLenses = normalizeMethodLenses(plan.method_lenses ?? plan.methodLenses, tasks);
   if (roleAssignments.execution?.permission_mode === "read-only" && tasks.some((task) => task.allowed_paths.length > 0)) {
@@ -1066,9 +1150,10 @@ function normalizePlan(input, seriesId, version) {
     acceptance_criteria: asArray(plan.acceptance_criteria ?? plan.acceptanceCriteria),
     expected_evidence: asArray(plan.expected_evidence ?? plan.expectedEvidence),
     rollback: asArray(plan.rollback),
-    allowed_paths: asArray(plan.allowed_paths ?? plan.allowedPaths),
-    forbidden_actions: asArray(plan.forbidden_actions ?? plan.forbiddenActions),
+    allowed_paths: planAllowedPaths,
+    forbidden_actions: planForbiddenActions,
     authorization_policy: normalizeAuthorizationPolicy(plan.authorization_policy ?? plan.authorizationPolicy),
+    resource_policy: normalizeResourcePolicy(plan.resource_policy ?? plan.resourcePolicy),
     authorization_envelope: null,
     risks,
     blockers,
@@ -1942,32 +2027,58 @@ export class FlowStateDispatcher {
     };
   }
 
-  async approvePlan({ planSeriesId, planVersion, approval } = {}) {
+  async approvePlan({ planSeriesId, planVersion, approval, approval_reuse: approvalReuse } = {}) {
     return this.store.transaction(this.projectId, async (state) => {
       const series = state.series[required(planSeriesId, "planSeriesId")];
       const version = String(planVersion ?? series?.current_plan_version);
       const plan = series?.plans[version];
       if (!series || !plan) throw new Error(`Plan not found: ${planSeriesId}/${version}`);
-      if (approval?.approver !== "user") throw new Error("approval.approver must be user");
-      if (approval?.plan_version !== version) throw new Error("approval.plan_version must exactly match the plan version");
-      if (required(approval?.plan_id, "approval.plan_id") !== plan.plan_id) throw new Error("approval.plan_id does not match the plan");
-      if (!new Set(["approved", "approved-with-conditions"]).has(approval?.decision)) {
+      if (approval && approvalReuse) throw new Error("provide approval or approval_reuse, not both");
+      let effectiveApproval = approval;
+      let reusedFrom = null;
+      if (approvalReuse) {
+        const sourceVersion = String(required(approvalReuse.source_plan_version, "approval_reuse.source_plan_version"));
+        const sourcePlan = series.plans[sourceVersion];
+        if (!sourcePlan || sourcePlan.plan_id !== required(approvalReuse.source_plan_id, "approval_reuse.source_plan_id")) {
+          throw new Error("approval_reuse must reference a plan in the same series");
+        }
+        const sourceApproval = sourcePlan.approval;
+        if (!sourceApproval || sourceApproval.approver !== "user"
+          || sourceApproval.approval_id !== required(approvalReuse.approval_id, "approval_reuse.approval_id")) {
+          throw new Error("approval_reuse must reference a real stored user approval");
+        }
+        if (stableJson(approvalReuseBoundary(sourcePlan)) !== stableJson(approvalReuseBoundary(plan))) {
+          throw new Error("approval reuse cannot expand or change the approved boundary");
+        }
+        reusedFrom = { plan_id: sourcePlan.plan_id, plan_version: sourceVersion };
+        effectiveApproval = {
+          ...clone(sourceApproval),
+          plan_id: plan.plan_id,
+          plan_version: version,
+        };
+        delete effectiveApproval.authorization_envelope;
+        delete effectiveApproval.approved_at;
+      }
+      if (effectiveApproval?.approver !== "user") throw new Error("approval.approver must be user");
+      if (effectiveApproval?.plan_version !== version) throw new Error("approval.plan_version must exactly match the plan version");
+      if (required(effectiveApproval?.plan_id, "approval.plan_id") !== plan.plan_id) throw new Error("approval.plan_id does not match the plan");
+      if (!new Set(["approved", "approved-with-conditions"]).has(effectiveApproval?.decision)) {
         throw new Error("approval decision must be approved or approved-with-conditions");
       }
       const risks = plan.risks.map((risk) => risk.risk_id);
-      const acknowledged = new Set(asArray(approval.acknowledged_risks).map(String));
+      const acknowledged = new Set(asArray(effectiveApproval.acknowledged_risks).map(String));
       const missingRisks = risks.filter((riskIdValue) => !acknowledged.has(riskIdValue));
       if (missingRisks.length) throw new Error(`approval must acknowledge every risk: ${missingRisks.join(", ")}`);
       const openBlockers = plan.blockers.filter(blockerIsOpen);
       if (openBlockers.length) throw new Error(`plan has unresolved blockers: ${openBlockers.map((item) => item.blocker_id).join(", ")}`);
-      const conditions = asArray(approval.conditions);
-      if (approval.decision === "approved-with-conditions" && !conditions.length) throw new Error("conditional approval requires conditions");
-      if (approval.decision === "approved-with-conditions" && approval.conditions_satisfied !== true && !conditions.every((condition) => condition?.status === "satisfied" || condition?.satisfied === true)) {
+      const conditions = asArray(effectiveApproval.conditions);
+      if (effectiveApproval.decision === "approved-with-conditions" && !conditions.length) throw new Error("conditional approval requires conditions");
+      if (effectiveApproval.decision === "approved-with-conditions" && effectiveApproval.conditions_satisfied !== true && !conditions.every((condition) => condition?.status === "satisfied" || condition?.satisfied === true)) {
         throw new Error("all conditional approval conditions must be machine-checkable and satisfied");
       }
 
-      const authorizationEnvelope = await this.createAuthorizationEnvelope(plan, approval);
-      const storedApproval = clone(approval);
+      const authorizationEnvelope = await this.createAuthorizationEnvelope(plan, effectiveApproval);
+      const storedApproval = clone(effectiveApproval);
       delete storedApproval.authorization_envelope;
       delete storedApproval.host_attestation;
       delete storedApproval.attestation;
@@ -1977,6 +2088,7 @@ export class FlowStateDispatcher {
         plan_id: plan.plan_id,
         plan_version: version,
         approved_at: nowIso(this.clock),
+        ...(reusedFrom ? { reused_from: reusedFrom } : {}),
         ...(authorizationEnvelope ? { authorization_envelope: authorizationEnvelope } : {}),
       };
       plan.authorization_envelope = authorizationEnvelope;
@@ -2001,7 +2113,13 @@ export class FlowStateDispatcher {
         });
       }
       series.updated_at = nowIso(this.clock);
-      this.event(state, "USER_PLAN_APPROVED", { plan_series_id: planSeriesId, plan_version: version, decision: approval.decision });
+      this.event(state, reusedFrom ? "APPROVAL_REUSED" : "USER_PLAN_APPROVED", {
+        plan_series_id: planSeriesId,
+        plan_version: version,
+        approval_id: storedApproval.approval_id,
+        decision: effectiveApproval.decision,
+        ...(reusedFrom ? { source_plan_id: reusedFrom.plan_id, source_plan_version: reusedFrom.plan_version } : {}),
+      });
       return clone({ plan_series_id: planSeriesId, plan_version: version, ready_tasks: plan.tasks.filter((task) => task.status === "ready").map((task) => task.task_id), final_review_requests_sent: finalReviewRequestsSent, ...(authorizationEnvelope ? { authorization_envelope: authorizationEnvelope } : {}) });
     });
   }
@@ -2116,6 +2234,7 @@ export class FlowStateDispatcher {
           role_assignment_hash: roleAssignmentHash(plan.role_assignments.execution),
           method_lenses: clone(executionMethodLenses(plan, task)),
           execution_baseline: clone(plan.execution_baseline),
+          resource_policy: clone(plan.resource_policy),
           ...(plan.authorization_envelope ? { authorization_envelope: clone(plan.authorization_envelope) } : {}),
           allowed_paths: task.allowed_paths,
           forbidden_actions: task.forbidden_actions,
@@ -2204,6 +2323,7 @@ export class FlowStateDispatcher {
   }
 
   async ingestExecutionReport(report) {
+    const validatedReportRisks = normalizeReportedRisks(report?.new_risks);
     let reviewMessage = null;
     const result = await this.store.transaction(this.projectId, async (state) => {
       required(report.report_id, "report.report_id");
@@ -2284,18 +2404,12 @@ export class FlowStateDispatcher {
       dispatch.status = "report-received";
       task.report_id = report.report_id;
       task.status = "report-returned";
-      const reportRisks = asArray(report.new_risks);
-      const highRisk = reportRisks.some((risk) => ["high", "critical"].includes(String(risk.severity ?? risk.level).toLowerCase()));
+      const highRisk = validatedReportRisks.some((risk) => ["high", "critical"].includes(risk.severity));
       for (const blocker of normalizedBlockers) {
         series.blockers[blocker.blocker_id] = blocker;
         if (!plan.blockers.some((item) => item.blocker_id === blocker.blocker_id)) plan.blockers.push(blocker);
       }
-      const normalizedReportRisks = reportRisks.map((risk, index) => ({
-        ...clone(risk),
-        risk_id: riskId(risk, plan.risks.length + index),
-        severity: String(risk.severity ?? risk.level ?? "medium"),
-        status: String(risk.status ?? "open"),
-      }));
+      const normalizedReportRisks = clone(validatedReportRisks);
       for (const risk of normalizedReportRisks) {
         if (!plan.risks.some((item) => item.risk_id === risk.risk_id)) plan.risks.push(risk);
       }

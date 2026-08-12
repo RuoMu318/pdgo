@@ -113,6 +113,8 @@ routing_events:
     rule: string
     from: mode | null
     to: mode
+resource_policy: clean-context, medium user-approved-or-host-default reasoning, planning 1/0, execution 2/1, review 2/1, compact evidence, stop-and-report, host_enforced false, savings_proven false
+processing_token_note: "181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。"
 total_billable_tokens: number | unavailable
 total_billable_tokens_source: provider | host | unavailable
 extra_model_calls: integer

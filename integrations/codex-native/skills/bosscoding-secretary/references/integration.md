@@ -1,5 +1,10 @@
 # Secretary integration
 
+The plan and dispatch carry the same `resource_policy`: clean context; `user-approved-or-host-default` reasoning at
+effort `medium`; planning 1/0, execution 2/1, and review 2/1 `max_agents/followup_tasks`; compact evidence;
+`stop-and-report`; `host_enforced: false`; `savings_proven: false`. Approval reuse requires a stored real user approval
+in the same series without boundary drift. 181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。
+
 This reference is loaded only for high-assurance mode or an explicit secretary or BossCoding entry. Lightweight and standard modes do not load the secretary, this reference, PDGO state, formal plans, governance prompts, or role processes, and do not add PDGO approval rounds.
 
 ## Authority order

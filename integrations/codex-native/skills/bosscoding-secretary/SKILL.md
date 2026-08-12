@@ -5,6 +5,11 @@ description: 仅在高保障模式，或用户显式调用秘书/BossCoding 时�
 
 # BossCoding Secretary
 
+`resource_policy` stays unchanged through dispatch: clean context; `user-approved-or-host-default` reasoning at
+effort `medium`; planning 1/0, execution 2/1, review 2/1 `max_agents/followup_tasks`; compact evidence;
+`stop-and-report`; `host_enforced: false`; `savings_proven: false`. Approval reuse requires a same-series stored user
+approval and an unchanged governed boundary. 181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。
+
 ## 加载边界
 
 此 Skill 只在高保障模式，或用户显式调用秘书／BossCoding 入口时加载。轻量模式和标准模式不触发本 Skill；普通修改不再仅因“会写文件”就自动升级。

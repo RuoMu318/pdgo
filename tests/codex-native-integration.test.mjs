@@ -507,3 +507,37 @@ test("status documents report capability-awareness validation without claiming a
   assert.match(currentAction, /targeted[^.\n]*pass/i);
   assert.match(currentAction, /no acceptance is claimed/i);
 });
+
+test("Codex-native resource policy is machine-readable and documented without savings or billing claims", async () => {
+  const plan = await readFile(path.join(root, "schemas", "plan.yaml"), "utf8");
+  const dispatch = await readFile(path.join(root, "schemas", "dispatch.yaml"), "utf8");
+  const approval = await readFile(path.join(root, "schemas", "user-plan-approval.yaml"), "utf8");
+  const report = await readFile(path.join(root, "schemas", "execution-report.yaml"), "utf8");
+  const runtime = await readFile(path.join(root, "docs", "dispatch-runtime.md"), "utf8");
+  const routing = await readFile(path.join(root, "docs", "lightweight-routing-requirements.md"), "utf8");
+  const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
+  const secretary = await readFile(path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"), "utf8");
+  const secretaryIntegration = await readFile(path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "references", "integration.md"), "utf8");
+  const bridge = await readFile(path.join(root, "integrations", "codex-native", "skills", "pdgo-codex-native-bridge", "SKILL.md"), "utf8");
+  const bridgeIntegration = await readFile(path.join(root, "integrations", "codex-native", "skills", "pdgo-codex-native-bridge", "references", "integration.md"), "utf8");
+
+  for (const schema of [plan, dispatch]) assert.match(schema, /^resource_policy:$/m);
+  assert.match(approval, /^approval_reuse:$/m);
+  assert.match(report, /^new_risks:/m);
+  assert.deepEqual(profile.resource_policy, {
+    context: "clean",
+    reasoning: { source: "user-approved-or-host-default", effort: "medium" },
+    planning: { max_agents: 1, followup_tasks: 0 },
+    execution: { max_agents: 2, followup_tasks: 1 },
+    review: { max_agents: 2, followup_tasks: 1 },
+    evidence: "compact",
+    failure: "stop-and-report",
+    host_enforced: false,
+    savings_proven: false,
+  });
+  for (const document of [runtime, routing, secretary, secretaryIntegration, bridge, bridgeIntegration]) {
+    assert.match(document, /resource_policy/);
+    assert.match(document, /181\.9[^\n]*(?:处理|processing)[^\n]*Token/i);
+    assert.doesNotMatch(document, /181\.9[^\n]*(?:属于账单|计费 Token|billable tokens|已节省|tokens saved)/i);
+  }
+});

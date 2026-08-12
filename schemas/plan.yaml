@@ -55,6 +55,24 @@ authorization_policy:
   required: true
   attestation_source: host-transport
   fail_closed: true
+resource_policy:
+  context: clean
+  reasoning:
+    source: user-approved-or-host-default
+    effort: medium
+  planning:
+    max_agents: 1
+    followup_tasks: 0
+  execution:
+    max_agents: 2
+    followup_tasks: 1
+  review:
+    max_agents: 2
+    followup_tasks: 1
+  evidence: compact
+  failure: stop-and-report
+  host_enforced: false
+  savings_proven: false
 # Created by the dispatcher only after a trusted injected transport/adapter attests
 # the immutable approved boundary. Caller-supplied verified fields are not trusted.
 authorization_envelope:
@@ -134,6 +152,8 @@ tasks:
       - result.txt exists with the approved content
     expected_evidence:
       - result.txt content inspection
+# A task that omits allowed_paths and forbidden_actions inherits the plan values.
+# An explicit task allowed_paths must be a subset; task forbidden_actions are added to the plan prohibitions.
 acceptance_criteria:
   - result.txt exists with the approved content
 expected_evidence:
