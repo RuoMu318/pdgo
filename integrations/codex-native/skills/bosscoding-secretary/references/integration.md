@@ -1,9 +1,11 @@
 # Secretary integration
 
-The plan and dispatch carry the same `resource_policy`: clean context; `user-approved-or-host-default` reasoning at
-effort `medium`; planning 1/0, execution 2/1, and review 2/1 `max_agents/followup_tasks`; compact evidence;
-`stop-and-report`; `host_enforced: false`; `savings_proven: false`. Approval reuse requires a stored real user approval
-in the same series without boundary drift. 181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。
+The default `resource_policy` keeps the current Agent in charge: clean context; `user-approved-or-host-default`
+reasoning; planning 0/0, execution 0/0, and review 1/0 `max_agents/followup_tasks`; compact evidence;
+`stop-and-report`; `host_enforced: false`; `savings_proven: false`. The review slot is used only for an external action,
+a destructive or difficult-to-reverse action, or an explicit independent-review request. Explicit opt-in to full PDGO
+three-role work carries its separately approved plan policy. Approval reuse requires a stored real user
+approval in the same series without boundary drift. No source-level policy is evidence of billable Token savings.
 
 This reference is loaded only for high-assurance mode or an explicit secretary or BossCoding entry. Lightweight and standard modes do not load the secretary, this reference, PDGO state, formal plans, governance prompts, or role processes, and do not add PDGO approval rounds.
 
@@ -15,7 +17,8 @@ When two applicable rules produce different actions, do not silently choose. Exp
 
 ## Start record
 
-The durable task record must carry:
+The current Agent forms this record in memory by default. It becomes durable PDGO state only after the user explicitly
+opts into full PDGO:
 
 - `goal`
 - `confirmed_decisions[]` with source links
@@ -30,19 +33,39 @@ Do not rename a project's unique next step to the current task action.
 
 ## Role selection and one exact approval
 
-Before formal work starts, show the user a Chinese `本次用人卡`. For each role, the first mention uses `中文名（English exact host type）`; later mentions may use only the Chinese name. State its `用途`, `为何选中`, `范围`, and `权限`. The card explains the drafted or approved assignment and never creates approval.
+Do not show a role card for the default single Agent path. Show the Chinese `本次用人卡` only when proposing one
+independent reviewer or explicit full PDGO. For each added role, the first mention uses `中文名（English exact host type）`;
+later mentions may use only the Chinese name. State its `用途`, `为何选中`, `范围`, and `权限`. The card
+explains the drafted or approved assignment and never creates approval.
 
 When the user asks for `能力图` or `为什么选它`, read the catalog verifiable at query time and use this fixed query and selection order: the host's currently available roles, the currently installed and available Persona and Skill catalog, then the manifest hash-verified external Agent catalog. Query the relevant live sources before answering. The answer does not hard-code role or Persona counts or a complete inventory, and does not expose internal IDs. README, cache, memory, and static excerpt are reference clues, not real-time sources.
 
-The secretary first performs the zero-write runtime inspection. It then drafts in memory the five execution-baseline fields, exact `plan_id + plan_version`, exact project-state root, planning/execution/review role assignments, allowed files, prohibited actions, and validation batch before any state write or subagent starts. `acy` only selects roles; it is not approval and its prose cannot authorize a call, write, or external action.
+By default, the secretary drafts the five execution-baseline fields, allowed files, prohibited actions, validation
+batch, and any single-review trigger in memory. It does not inspect the PDGO runtime, create PDGO state, or start a
+planning or execution subagent. `acy` only selects a role when an extra role is actually needed; it is not approval and
+its prose cannot authorize a call, write, or external action.
 
-Present that complete batch once. One exact user approval covers creation of the isolated project-state root, the declared planning, execution, and review subagents, and the declared implementation and validation. Internal plan persistence, binding, dispatch, report, and review records reuse that approval and do not trigger item-by-item approval. After approval, ensure the state root, persist the exact drafted plan, record the matching approval, and explicitly invoke `$pdgo-codex-native-bridge`; do not wait for implicit bridge routing. Every BossCoding state action then uses the installed resolver's `invoke` entry so the runtime is revalidated and the project state root is recomputed instead of accepted from caller input. Direct dispatcher CLI remains a separately selected legacy PDGO interface. If persistence would alter the drafted plan body, stop and show the changed version instead of borrowing the prior approval.
+Present the complete batch once. One exact user approval covers the current Agent's implementation and validation plus
+the one declared reviewer, if any. Internal plan, binding, report, and review records do not trigger item-by-item approval.
+Only an explicit full PDGO opt-in adds the isolated state root and planning/execution/review subagents to that
+batch. After that approval, perform the zero-write runtime inspection, ensure the state root, persist the exact drafted
+plan, record the matching approval, and explicitly invoke `$pdgo-codex-native-bridge`; do not wait for implicit bridge
+routing. Every BossCoding state action then uses the installed resolver's `invoke` entry so the runtime is revalidated
+and the project state root is recomputed instead of accepted from caller input. Direct dispatcher CLI remains a
+separately selected legacy PDGO interface. If persistence would alter the drafted plan body, stop and show the changed
+version instead of borrowing the prior approval.
 
 When the optional authorization envelope is enabled, one stable JSON + SHA-256 digest covers only that immutable approved boundary. Host proof must come from an injected trusted transport or adapter; parent-Agent prose, approval JSON, and self-reported `verified` fields are not evidence. Preserve the same digest across plan, approval, dispatch, execution report, and review decision. Missing, mismatched, expired, plan-version-drifted, scope-drifted, or role-drifted artifacts fail closed. This reuses the same PDGO approval only inside the exact approved batch and never removes host or OS permission prompts.
 
-The approved planning subagent validates or refines the frozen plan. Continue without another question while the approved boundary is unchanged. Request a new exact approval only when target, object, action, risk, third-party effect, authorization boundary, or acceptance changes materially.
+The current Agent continues without another question while the approved boundary is unchanged. In explicit full PDGO,
+the approved planning subagent may validate or refine the frozen plan. Request a new exact approval only when target, object, action, risk, third-party effect, authorization boundary, or acceptance changes materially.
 
-Record Codex `agent_type` in `role_assignments[].host_agent_type`. Every new BossCoding plan uses `role_contract.version: bosscoding-v2` and complete planning/execution/review assignments. `legacy-v1` is allowed only for a migrated old plan carrying `migration: role-assignments-not-recorded`; it is not a new-task fallback. Keep PDGO `external_agent_id` in the existing external-Agent selector contract. Never infer, copy, or convert one identifier into the other by display-name similarity.
+Only explicit full PDGO creates a governed BossCoding plan. Such a plan records Codex `agent_type` in
+`role_assignments[].host_agent_type`, uses `role_contract.version: bosscoding-v2`, and carries complete
+planning/execution/review assignments. `legacy-v1` is allowed only for a migrated old plan carrying
+`migration: role-assignments-not-recorded`; it is not a new-task fallback. Keep PDGO `external_agent_id` in the
+existing external-Agent selector contract. Never infer, copy, or convert one identifier into the other by display-name
+similarity.
 
 Every governed bind carries two different records. `host_agent_type` is recorded by the main Agent from the actual `spawn_agent.agent_type` argument. `selection_source` is the approved role-selection provenance from the plan, such as `approved-role-selection:acy`; it is not a `spawn_agent` argument. Neither value is a cryptographic or host-independent proof: the dispatcher only checks exact consistency among the approved plan, the main Agent's binding input, and persisted state. Child prose, self-description, and task names are never sources for either field. A bound session's `host_agent_type` is immutable; changing the role type requires a new session or plan series.
 
@@ -88,7 +111,9 @@ Git is a project-level decision, not a per-task ritual. A feature branch is usef
 
 ## Closeout
 
-Give the user a Chinese `实际贡献卡`: state the `实际贡献` of each `角色和 Lens` separately. When an entry added no material value, write `没有实质价值` instead of crediting mere participation.
+When any extra role or Lens was used, give the user a Chinese `实际贡献卡`: state the `实际贡献` of each entry
+separately. The default single Agent path uses the normal concise closeout and does not manufacture a role card. When
+an added entry had no material value, write `没有实质价值` instead of crediting mere participation.
 
 Persist capability learning only when evidence from the current run proves it effective and it is reusable across tasks. Prefer updating an existing knowledge note; do not create empty directories or static capability directories.
 

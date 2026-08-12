@@ -325,23 +325,55 @@ function boundCurrentRequest(input, localAction) {
   return { action, targets: actionTargets, approved_local_root: normalizedRoot };
 }
 
+const INDEPENDENT_REVIEW_RISK_KEYS = ["external_action", "destructive", "difficult_to_reverse", "independent_review"];
+
+function highAssuranceRoute(input, decisionStage, reason) {
+  if (input.explicit_full_pdgo === true) {
+    return {
+      mode: "high_assurance",
+      decision_stage: decisionStage,
+      reason: "explicit-full-pdgo-entry",
+      execution: "current-agent-coordinates-full-pdgo",
+      governance: "full-pdgo-explicit-opt-in",
+      planning_subagents: 1,
+      execution_subagents: 1,
+      review_subagents: 1,
+      subagents: 3,
+      pdgo_state_writes: 1,
+      review_trigger: "explicit-full-pdgo-entry",
+    };
+  }
+  const risk = input.risk ?? {};
+  const reviewTrigger = INDEPENDENT_REVIEW_RISK_KEYS.find((key) => risk[key] === true) ?? null;
+  const reviewSubagents = reviewTrigger ? 1 : 0;
+  return {
+    mode: "high_assurance",
+    decision_stage: decisionStage,
+    reason,
+    execution: "current-agent-with-governed-plan",
+    governance: reviewSubagents ? "single-agent-plus-review" : "single-agent",
+    planning_subagents: 0,
+    execution_subagents: 0,
+    review_subagents: reviewSubagents,
+    subagents: reviewSubagents,
+    pdgo_state_writes: 0,
+    review_trigger: reviewTrigger,
+  };
+}
+
 export function classifyBossCodingRoute(input = {}) {
   const risk = input.risk ?? {};
   const completeRiskProfile = HIGH_ASSURANCE_RISK_KEYS.every((key) => typeof risk[key] === "boolean");
-  if (input.explicit_secretary === true || !completeRiskProfile) {
-    return {
-      mode: "high_assurance",
-      decision_stage: "risk-gate",
-      reason: input.explicit_secretary === true ? "explicit-secretary-entry" : "risk-profile-incomplete",
-    };
+  if (input.explicit_full_pdgo === true || input.explicit_secretary === true || !completeRiskProfile) {
+    return highAssuranceRoute(
+      input,
+      "risk-gate",
+      input.explicit_secretary === true ? "explicit-secretary-entry" : "risk-profile-incomplete",
+    );
   }
   const highRisk = HIGH_ASSURANCE_RISK_KEYS.find((key) => risk[key] === true);
   if (highRisk) {
-    return {
-      mode: "high_assurance",
-      decision_stage: "risk-gate",
-      reason: highRisk,
-    };
+    return highAssuranceRoute(input, "risk-gate", highRisk);
   }
   const localAction = input.local_action ?? {};
   const currentRequest = boundCurrentRequest(input, localAction);
@@ -351,18 +383,10 @@ export function classifyBossCodingRoute(input = {}) {
     && localAction.explicit_current_request !== false
     && BOUNDED_LOCAL_ACTION_RISK_KEYS.every((key) => localAction[key] === false);
   if (!boundedLocalAction) {
-    return {
-      mode: "high_assurance",
-      decision_stage: "authorization-gate",
-      reason: "bounded-local-action-missing-incomplete-or-risky",
-    };
+    return highAssuranceRoute(input, "authorization-gate", "bounded-local-action-missing-incomplete-or-risky");
   }
   if (!new Set(["lightweight", "standard"]).has(input.workload)) {
-    return {
-      mode: "high_assurance",
-      decision_stage: "workload",
-      reason: "workload-depth-missing-or-unknown",
-    };
+    return highAssuranceRoute(input, "workload", "workload-depth-missing-or-unknown");
   }
   const lightweight = input.workload === "lightweight";
   return {

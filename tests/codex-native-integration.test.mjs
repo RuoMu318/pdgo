@@ -45,7 +45,7 @@ test("Codex-native bridge binds the real planning subagent as well as worker and
   assert.match(integration, /\"role\": \"planning\"/);
 });
 
-test("secretary owns the user entry and explicitly invokes the non-implicit bridge after one exact approval", async () => {
+test("secretary owns the user entry and invokes the non-implicit bridge only for explicit full PDGO", async () => {
   const secretaryRoot = path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary");
   const bridgeRoot = path.join(root, "integrations", "codex-native", "skills", "pdgo-codex-native-bridge");
   const secretary = await readFile(path.join(secretaryRoot, "SKILL.md"), "utf8");
@@ -58,8 +58,9 @@ test("secretary owns the user entry and explicitly invokes the non-implicit brid
   assert.match(secretary, /秘书，按 BossCoding 做：<任务>/);
   assert.match(secretary, /\$bosscoding-secretary/);
   assert.match(secretary, /\$nuwa-skill[^\n]*(不可用|不可见)[^\n]*不阻塞[^\n]*BossCoding/);
-  assert.match(secretaryIntegration, /acy[^\n]*only selects roles[^\n]*not approval/i);
-  assert.match(secretaryIntegration, /one exact user approval[^\n]*planning[^\n]*execution[^\n]*review/i);
+  assert.match(secretaryIntegration, /acy[^\n]*only selects[^\n]*role[^\n]*(?:not|is not) approval/i);
+  assert.match(secretaryIntegration, /one exact user approval[^\n]*current Agent/i);
+  assert.match(secretaryIntegration, /explicit full PDGO[^\n]*planning[^\n]*execution[^\n]*review/i);
   assert.match(secretaryIntegration, /explicitly invoke[^\n]*\$pdgo-codex-native-bridge/i);
   assert.match(bridge, /获批后[^\n]*planning[^\n]*(验证|细化)/i);
   assert.match(bridgeOpenai, /allow_implicit_invocation: false/);
@@ -206,7 +207,7 @@ test("locked external prompts opt out of Windows text conversion", async () => {
   );
 });
 
-test("BossCoding shows a Chinese-first assignment card before formal work starts", async () => {
+test("BossCoding shows a Chinese-first assignment card only when an extra role is proposed", async () => {
   const secretary = await readFile(
     path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"),
     "utf8",
@@ -228,12 +229,13 @@ test("BossCoding shows a Chinese-first assignment card before formal work starts
   assert.equal(profile.capability_awareness.startup_card.label, "本次用人卡");
   assert.equal(profile.capability_awareness.startup_card.display_timing, "before-formal-work-starts");
   assert.equal(profile.capability_awareness.startup_card.display_action, "show");
+  assert.equal(profile.capability_awareness.startup_card.display_condition, "optional-review-or-explicit-full-pdgo-only");
   assert.equal(profile.capability_awareness.startup_card.first_role_name_format, "中文名（English exact host type）");
   assert.equal(profile.capability_awareness.startup_card.later_role_name_format, "中文名");
   assert.deepEqual(profile.capability_awareness.startup_card.required_fields, ["用途", "为何选中", "范围", "权限"]);
 });
 
-test("BossCoding closes formal work with an honest contribution card for roles and lenses", async () => {
+test("BossCoding shows an honest contribution card only when roles or lenses were used", async () => {
   const secretary = await readFile(
     path.join(root, "integrations", "codex-native", "skills", "bosscoding-secretary", "SKILL.md"),
     "utf8",
@@ -246,13 +248,14 @@ test("BossCoding closes formal work with an honest contribution card for roles a
 
   for (const document of [secretary, integration]) {
     assert.match(document, /实际贡献卡/);
-    assert.match(document, /角色[和与、]\s*Lens|角色和 Lens/);
+    assert.match(document, /角色[和与、]\s*Lens|角色和 Lens|role or Lens/i);
     assert.match(document, /实际贡献/);
     assert.match(document, /没有实质价值/);
   }
   assert.equal(profile.capability_awareness.closeout_card.label, "实际贡献卡");
   assert.equal(profile.capability_awareness.closeout_card.display_timing, "formal-task-closeout");
   assert.equal(profile.capability_awareness.closeout_card.display_action, "show");
+  assert.equal(profile.capability_awareness.closeout_card.display_condition, "extra-role-or-lens-used-only");
   assert.deepEqual(profile.capability_awareness.closeout_card.entry_types, ["角色", "Lens"]);
   assert.equal(profile.capability_awareness.closeout_card.no_material_value_statement, "没有实质价值");
 });
@@ -406,9 +409,22 @@ test("three-mode routing defers full BossCoding governance until high assurance"
     "governance_prompt_loads",
     "role_process_loads",
   ]);
-  assert.equal(profile.routing.high_assurance.full_secretary_governance, true);
-  assert.equal(profile.cold_start.scope, "high-assurance-or-explicit-secretary");
+  assert.equal(profile.routing.high_assurance.execution, "current-agent-with-governed-plan");
+  assert.equal(profile.routing.high_assurance.default_governance, "single-agent");
+  assert.deepEqual(profile.routing.high_assurance.default_subagents, { planning: 0, execution: 0, review: 0 });
+  assert.deepEqual(profile.routing.high_assurance.independent_review.triggers, [
+    "external_action",
+    "destructive",
+    "difficult_to_reverse",
+    "independent_review",
+  ]);
+  assert.equal(profile.routing.high_assurance.independent_review.max_review_subagents, 1);
+  assert.equal(profile.routing.high_assurance.full_pdgo.explicit_opt_in_only, true);
+  assert.deepEqual(profile.routing.high_assurance.full_pdgo.subagents, { planning: 1, execution: 1, review: 1 });
+  assert.equal(profile.cold_start.scope, "explicit-full-pdgo-only");
   assert.equal(profile.cold_start.lightweight_and_standard_load_secretary, false);
+  assert.equal(profile.cold_start.high_assurance_loads_secretary_contract, true);
+  assert.equal(profile.cold_start.high_assurance_loads_pdgo_runtime_by_default, false);
   assert.deepEqual(profile.benchmark.arms, [
     "native_codex",
     "fixed_superpowers",
@@ -527,9 +543,9 @@ test("Codex-native resource policy is machine-readable and documented without sa
   assert.deepEqual(profile.resource_policy, {
     context: "clean",
     reasoning: { source: "user-approved-or-host-default", effort: "medium" },
-    planning: { max_agents: 1, followup_tasks: 0 },
-    execution: { max_agents: 2, followup_tasks: 1 },
-    review: { max_agents: 2, followup_tasks: 1 },
+    planning: { max_agents: 0, followup_tasks: 0 },
+    execution: { max_agents: 0, followup_tasks: 0 },
+    review: { max_agents: 1, followup_tasks: 0 },
     evidence: "compact",
     failure: "stop-and-report",
     host_enforced: false,
@@ -537,7 +553,8 @@ test("Codex-native resource policy is machine-readable and documented without sa
   });
   for (const document of [runtime, routing, secretary, secretaryIntegration, bridge, bridgeIntegration]) {
     assert.match(document, /resource_policy/);
-    assert.match(document, /181\.9[^\n]*(?:处理|processing)[^\n]*Token/i);
-    assert.doesNotMatch(document, /181\.9[^\n]*(?:属于账单|计费 Token|billable tokens|已节省|tokens saved)/i);
+    assert.match(document, /(?:single Agent|single-agent|当前 Agent)/i);
+    assert.match(document, /(?:explicit opt-in|显式启用|明确要求)[^\n]*(?:full PDGO|三角色|three-role)/i);
+    assert.doesNotMatch(document, /181\.9|1158|已节省|tokens saved/i);
   }
 });

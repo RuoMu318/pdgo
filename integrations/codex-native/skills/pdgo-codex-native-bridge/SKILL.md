@@ -1,22 +1,24 @@
 ---
 name: pdgo-codex-native-bridge
-description: 用 Codex 内置子 Agent 驱动 PDGO 的真实策划、执行和独立审核，并把真实 Agent ID、报告、修正与停止原因写回 PDGO。用户要求用 PDGO、内置子 Agent、策划—执行—审核闭环或可恢复的长程派工时使用；不能把本机 Codex CLI、Gemini CLI 或虚构会话 ID 当作替代。
+description: 仅在用户明确启用完整 PDGO 三角色时，用 Codex 内置子 Agent 驱动真实策划、执行和独立审核，并把真实 Agent ID、报告、修正与停止原因写回 PDGO。默认 BossCoding 高保障任务不调用本桥接；不能把本机 Codex CLI、Gemini CLI 或虚构会话 ID 当作替代。
 ---
 
 # PDGO Codex Native Bridge
 
-Preserve `resource_policy` exactly: clean context; `user-approved-or-host-default` reasoning at effort `medium`;
-planning 1/0, execution 2/1, review 2/1 `max_agents/followup_tasks`; compact evidence; `stop-and-report`;
-`host_enforced: false`; `savings_proven: false`. 181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。
+BossCoding 默认是当前 Agent 直接完成，默认 `resource_policy` 不启动策划或执行子 Agent，最多按风险增加
+一个只读审核者。只有用户明确要求 full PDGO three-role／完整 PDGO 三角色时才显式启用本桥接，并原样保留
+该次已批准计划中的 `resource_policy`。`host_enforced: false`、`savings_proven: false`；源码规则不能证明
+真实 Token 节省。
 
 ## 目的
 
-把 PDGO 的治理状态机连接到 Codex 当前任务可用的内置协作工具。PDGO 负责计划版本、批准、状态、身份约束、修正和恢复；本 Skill 负责真正调用 `spawn_agent`、`followup_task`、`wait_agent` 并登记真实返回 ID。
+把显式 full PDGO 的治理状态机连接到 Codex 当前任务可用的内置协作工具。PDGO 负责计划版本、批准、状态、身份约束、修正和恢复；本 Skill 负责真正调用 `spawn_agent`、`followup_task`、`wait_agent` 并登记真实返回 ID。
 
 每次正式使用前完整读取 [integration.md](references/integration.md)。
 
 ## 必要条件
 
+- 用户已看见额外 Token／流程成本并明确要求完整 PDGO 三角色；
 - 当前环境真实提供内置子 Agent 工具；
 - 用户已经批准精确实施批次与子 Agent；
 - 项目规则允许相应读写；
@@ -34,7 +36,7 @@ planning 1/0, execution 2/1, review 2/1 `max_agents/followup_tasks`; compact evi
 
 四者 ID 必须可区分。主 Agent、planning、execution 或 worker 的输出不能作为独立通过决定。
 
-所有新 BossCoding 计划使用 `role_contract.version: bosscoding-v2`，并完整记录 planning、execution、review 三项 `role_assignments`。旧计划只有在显式标记 `legacy-v1` 与 `migration: role-assignments-not-recorded` 时才保留兼容。`role_assignments` 中的 `host_agent_type` 记录 Codex 宿主的 `agent_type`；既有 `external_agent_id` 仍只属于外部 Agent 目录。两者不得按显示名静默互转。`method_lenses` 只传递获批的方法镜头：authority 必须是 `advisory`，不得应用到 review，也不得成为身份、权限或验收来源。
+所有由本桥接创建的新 full PDGO 计划使用 `role_contract.version: bosscoding-v2`，并完整记录 planning、execution、review 三项 `role_assignments`。旧计划只有在显式标记 `legacy-v1` 与 `migration: role-assignments-not-recorded` 时才保留兼容。`role_assignments` 中的 `host_agent_type` 记录 Codex 宿主的 `agent_type`；既有 `external_agent_id` 仍只属于外部 Agent 目录。两者不得按显示名静默互转。`method_lenses` 只传递获批的方法镜头：authority 必须是 `advisory`，不得应用到 review，也不得成为身份、权限或验收来源。
 
 ## 真实派工流程
 
@@ -71,7 +73,7 @@ planning 1/0, execution 2/1, review 2/1 `max_agents/followup_tasks`; compact evi
 - 只有内置子 Agent 工具的真实返回值可以绑定为 host session；
 - FileQueue 的逻辑 ID 只用于手工队列和测试，不能声称是真实独立 Agent；
 - Node 脚本不能直接调用 Codex 内置工具；
-- 单元测试、mock 和同一上下文自查不能代替真实三角色前向测试；
+- 单元测试、mock 和同一上下文自查不能代替显式 full PDGO 的真实三角色前向测试；
 - 不启动常驻进程；使用单次命令和持久状态实现断点续跑。
 
 ## 面向用户

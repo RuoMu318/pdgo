@@ -238,8 +238,10 @@ Adapters must return real session identifiers or an explicit `adapter-unavailabl
 The Codex-native source now routes each request before loading mode-specific side effects. Lightweight work stays in
 the current Agent with zero extra model calls, subagents, PDGO state writes, new PDGO approval rounds, formal plans,
 governance prompts, or role processes. Standard work uses the current Agent with a proportionate self-check, without
-governance-prompt loads or new PDGO approval rounds.
-High-assurance work, or an explicit secretary/BossCoding entry, loads the full secretary workflow.
+governance-prompt loads or new PDGO approval rounds. High-assurance work loads the secretary contract but remains with
+the current Agent by default. External, destructive, difficult-to-reverse, or explicitly independently reviewed work
+adds at most one read-only reviewer. Full PDGO three-role execution is an explicit opt-in after its extra Token and
+process cost is shown.
 
 The executable risk gate runs before workload depth. Lightweight and standard require a structured
 `current_request_boundary` with source, action, targets, and an approved absolute local root. The action must be in the
@@ -259,11 +261,11 @@ has been run, so no real cost saving is claimed.
 
 ### BossCoding cold start
 
-When high assurance or an explicit secretary/BossCoding entry is selected, the installed secretary resolves one schema-1.1 descriptor at `<CodexHome>/runtime/bosscoding/runtime.json`. The descriptor contains `schema_version`, `integration_id`, `runtime_root`, nested `manifest` and `dispatcher` objects, and mandatory `runtime_tree`. The descriptor pins the manifest; that hashed manifest is the single source for the complete runtime path list, including the dispatcher, its imported libraries, the cold-start resolver, and the configured specialist index, metadata index, and prompt tree. A missing descriptor, path escape, integration mismatch, incomplete tree, or hash mismatch is a blocker rather than permission to search the disk or use an unverified runtime.
+When high assurance or an explicit secretary/BossCoding entry is selected, the secretary first works in memory with the current Agent. It resolves the schema-1.1 descriptor at `<CodexHome>/runtime/bosscoding/runtime.json` only when the user explicitly opts into full PDGO three-role execution. The descriptor contains `schema_version`, `integration_id`, `runtime_root`, nested `manifest` and `dispatcher` objects, and mandatory `runtime_tree`. The descriptor pins the manifest; that hashed manifest is the single source for the complete runtime path list, including the dispatcher, its imported libraries, the cold-start resolver, and the configured specialist index, metadata index, and prompt tree. A missing descriptor, path escape, integration mismatch, incomplete tree, or hash mismatch is a blocker rather than permission to search the disk or use an unverified runtime.
 
 Each consuming project uses isolated state at `<CodexHome>/state/bosscoding/projects/<name>-<hash16>`, where the suffix is derived from the canonical project root. The secretary and bridge resolve these paths themselves. A BossCoding user is not asked to run the CLI or move dispatch JSON between Agents.
 
-Cold start is deliberately ordered so inspection cannot become an unapproved write: resolve and verify the runtime with zero writes; draft the exact baseline, IDs, roles, file/test batch, and state root in memory; obtain one approval covering state creation and all three roles; then ensure state, persist and approve the exact plan, and spawn/bind planning, review, and execution. New BossCoding plans use the complete `bosscoding-v2` role contract. `host_agent_type` is recorded from the real `spawn_agent.agent_type` argument; `selection_source` is the approved role-selection record, not a spawn argument or cryptographic proof. The installed resolver's verified invoke entry rechecks the descriptor, recomputes the project state root, and forbids arbitrary root or catalog overrides before every BossCoding state action. Direct dispatcher CLI remains a separately opted-in legacy PDGO interface. These checks protect against mistakes and ordinary local drift; they do not claim isolation from a malicious process already running as the same OS user.
+Explicit full PDGO cold start is deliberately ordered so inspection cannot become an unapproved write: resolve and verify the runtime with zero writes; draft the exact baseline, IDs, roles, file/test batch, and state root in memory; obtain one approval covering state creation and all three roles; then ensure state, persist and approve the exact plan, and spawn/bind planning, review, and execution. Only these explicit full PDGO plans use the complete `bosscoding-v2` role contract. `host_agent_type` is recorded from the real `spawn_agent.agent_type` argument; `selection_source` is the approved role-selection record, not a spawn argument or cryptographic proof. The installed resolver's verified invoke entry rechecks the descriptor, recomputes the project state root, and forbids arbitrary root or catalog overrides before every BossCoding state action. Direct dispatcher CLI remains a separately opted-in legacy PDGO interface. These checks protect against mistakes and ordinary local drift; they do not claim isolation from a malicious process already running as the same OS user.
 
 The dispatcher separates resolver-owned verified BossCoding invocation from the direct legacy CLI: the direct CLI rejects caller-supplied interface claims and BossCoding v2 state, while resolver-owned creation rejects legacy plans. State and queue writers reject linked or non-canonical paths inside the isolated state tree. The installer publishes a complete ownership record atomically, snapshots every existing target before staging, refuses concurrent target or source drift, verifies committed targets, and preserves externally modified files instead of deleting them during rollback. For an existing CodexHome, it strips the managed overlay and checks the older unmanaged absolute write-approval rule before creating a directory or installation lock, then rechecks inside the lock before any target change. Normal whitespace and line-ending variation are accepted. This is a narrow known-rule detector, not a claim to understand arbitrary natural-language policy.
 
@@ -281,9 +283,9 @@ Install Nuwa separately only when you need to create, update, or audit Persona S
 ## BossCoding quick start
 
 In Codex, say `秘书：<任务>`, `秘书，按 BossCoding 做：<任务>`, or invoke
-`$bosscoding-secretary <任务>`. The secretary resolves the verified runtime, drafts one exact batch, obtains one
-approval, and coordinates planning, execution, and independent review. BossCoding users do not run a dispatcher CLI
-or move JSON between Agents.
+`$bosscoding-secretary <任务>`. The secretary drafts one exact batch and the current Agent completes it by default;
+one read-only reviewer is added only when the risk requires it. Say `完整 PDGO 三角色` only when that extra process
+and Token cost is wanted. BossCoding users do not run a dispatcher CLI or move JSON between Agents.
 
 ## Legacy PDGO direct CLI
 

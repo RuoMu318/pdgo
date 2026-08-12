@@ -329,11 +329,13 @@ approval, and distinct bound reviewer exist.
 
 ## Resource and approval reuse policy
 
-`resource_policy` is copied unchanged from plan to dispatch: clean context; reasoning from
-`user-approved-or-host-default` with effort `medium`; planning `max_agents: 1 / followup_tasks: 0`; execution and
-review `max_agents: 2 / followup_tasks: 1`; compact evidence; `stop-and-report`; `host_enforced: false`; and
-`savings_proven: false`. Explicit `approval_reuse` accepts only a stored real user approval in the same series with no
-target, object, action, risk, role, acceptance, or path drift. Fresh approval records `USER_PLAN_APPROVED` with
-`approval_id`; reuse records only `APPROVAL_REUSED`. Malformed `new_risks` fail before any state or message change.
+BossCoding defaults to a single Agent: the current Agent plans, executes, self-checks, and reports. The default
+`resource_policy` starts no planning or execution subagent and permits at most one read-only reviewer for an external,
+destructive, difficult-to-reverse, or explicitly independently reviewed action. Explicit opt-in to full PDGO
+three-role work creates a governed plan and copies that plan's `resource_policy` unchanged to dispatch. Both policies
+use compact evidence, `stop-and-report`, `host_enforced: false`, and `savings_proven: false`.
 
-181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。
+Explicit `approval_reuse` accepts only a stored real user approval in the same series with no target, object, action,
+risk, role, acceptance, or path drift. Fresh approval records `USER_PLAN_APPROVED` with `approval_id`; reuse records
+only `APPROVAL_REUSED`. Malformed `new_risks` fail before any state or message change. Source policy and processing
+counters are not billable Token measurements and do not prove savings.

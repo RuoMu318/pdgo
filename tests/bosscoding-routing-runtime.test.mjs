@@ -101,6 +101,58 @@ test("ordinary routing rejects unbound, out-of-root, broad, and forbidden curren
   }
 });
 
+test("high assurance keeps planning and execution in the current Agent by default", () => {
+  for (const risk of ["production", "sensitive_data", "critical_ambiguity", "cross_session"]) {
+    const result = classifyBossCodingRoute({
+      risk: { ...SAFE_RISK_PROFILE, [risk]: true },
+      workload: "lightweight",
+    });
+
+    assert.equal(result.mode, "high_assurance", risk);
+    assert.equal(result.execution, "current-agent-with-governed-plan", risk);
+    assert.equal(result.governance, "single-agent", risk);
+    assert.equal(result.planning_subagents, 0, risk);
+    assert.equal(result.execution_subagents, 0, risk);
+    assert.equal(result.review_subagents, 0, risk);
+    assert.equal(result.subagents, 0, risk);
+    assert.equal(result.pdgo_state_writes, 0, risk);
+  }
+});
+
+test("only external, irreversible, destructive, or explicit independent review adds one reviewer", () => {
+  for (const risk of ["external_action", "destructive", "difficult_to_reverse", "independent_review"]) {
+    const result = classifyBossCodingRoute({
+      risk: { ...SAFE_RISK_PROFILE, [risk]: true },
+      workload: "standard",
+    });
+
+    assert.equal(result.mode, "high_assurance", risk);
+    assert.equal(result.execution, "current-agent-with-governed-plan", risk);
+    assert.equal(result.governance, "single-agent-plus-review", risk);
+    assert.equal(result.planning_subagents, 0, risk);
+    assert.equal(result.execution_subagents, 0, risk);
+    assert.equal(result.review_subagents, 1, risk);
+    assert.equal(result.subagents, 1, risk);
+    assert.equal(result.review_trigger, risk);
+  }
+});
+
+test("the full three-role PDGO loop is an explicit opt-in rather than a BossCoding default", () => {
+  const result = classifyBossCodingRoute({
+    risk: SAFE_RISK_PROFILE,
+    explicit_full_pdgo: true,
+    workload: "standard",
+  });
+
+  assert.equal(result.mode, "high_assurance");
+  assert.equal(result.governance, "full-pdgo-explicit-opt-in");
+  assert.equal(result.planning_subagents, 1);
+  assert.equal(result.execution_subagents, 1);
+  assert.equal(result.review_subagents, 1);
+  assert.equal(result.subagents, 3);
+  assert.equal(result.pdgo_state_writes, 1);
+});
+
 test("POSIX containment rejects a differently-cased absolute target outside the approved root", () => {
   const target = "/tmp/repo/outside.txt";
   const result = classifyBossCodingRoute({

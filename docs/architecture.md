@@ -56,7 +56,9 @@ PDGO state writes, formal plans, governance prompts, or role processes can run.
 
 - Lightweight work stays in the current Agent and has zero PDGO governance side effects.
 - Standard work stays in the current Agent with a proportionate self-check, zero governance-prompt loads, and zero new PDGO approval rounds.
-- High-assurance work, or an explicit secretary/BossCoding entry, loads the full secretary governance layer.
+- High-assurance work, or an explicit secretary/BossCoding entry, loads the secretary contract but stays with the
+  current Agent by default. External, destructive, difficult-to-reverse, or explicitly independently reviewed work
+  adds at most one read-only reviewer. Full PDGO three-role orchestration is explicit opt-in only.
 
 Lightweight and standard share one authorization gate before work-depth selection. They require a structured
 `current_request_boundary` whose closed-set action and file targets match the local action. Targets are normalized and
@@ -65,9 +67,10 @@ contradictions, missing evidence, or any declared risk fail closed. Both modes e
 `authorization_source=explicit-current-user-request` and `pdgo_new_approval_rounds=0`. This source-level boundary is
 not live host attestation, which remains unimplemented for ordinary routing.
 
-The full core then performs memory lookup, Skill routing, approval checks, task state transitions, failure handling,
-and audit linking for high-assurance work. It must not contain product-specific instructions and delegates domain
-decisions to project profiles and scoped Skills.
+The high-assurance core performs only the planning, approval checks, failure handling, and evidence needed for the
+actual risk. Default single-agent work does not create PDGO state or load role processes. Explicit full PDGO may add
+memory lookup, Skill routing, task state transitions, role binding, recovery, and audit linking. The core must not
+contain product-specific instructions and delegates domain decisions to project profiles and scoped Skills.
 
 The dispatcher also supports an optional fail-closed authorization policy. It hashes only the immutable approved
 boundary with stable JSON plus SHA-256 and accepts host attestation only from an injected transport or adapter. When

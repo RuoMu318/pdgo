@@ -1,11 +1,14 @@
 # Codex native bridge integration
 
-Copy `resource_policy` unchanged from plan to dispatch: clean context; `user-approved-or-host-default` reasoning at
-effort `medium`; planning 1/0, execution 2/1, and review 2/1 `max_agents/followup_tasks`; compact evidence;
-`stop-and-report`; `host_enforced: false`; `savings_proven: false`. Validate report `new_risks` before any state or
-message change. 181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。
+The default BossCoding path is a single Agent and does not invoke this bridge. Explicit opt-in to full PDGO three-role
+work carries a separately approved `resource_policy`; copy that policy unchanged from plan to dispatch. Keep compact
+evidence, `stop-and-report`, `host_enforced: false`, and `savings_proven: false`. Validate report `new_risks` before any
+state or message change. Do not infer billable Token savings from source policy or processing counters.
 
 ## State and commands
+
+This entire reference applies only after the user explicitly opts into full PDGO. Ordinary high-assurance work remains
+with the current Agent and creates no bridge state.
 
 Resolve `<CodexHome>/runtime/bosscoding/runtime.json` and require descriptor schema-1.1. Verify `integration_id`, `runtime_root`, `manifest.path + manifest.sha256`, `dispatcher.path + dispatcher.sha256`, and mandatory `runtime_tree` with algorithm `sha256-tree-v1`. The SHA-256-verified manifest is the single source for `runtime_tree.paths`; it must cover the dispatcher, imported libraries, cold-start resolver, configured specialist index, metadata index, and prompt tree. Every path stays inside `runtime_root` and every hash matches.
 

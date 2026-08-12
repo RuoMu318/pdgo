@@ -16,9 +16,9 @@
 | --- | --- | --- |
 | 轻量模式 | 当前主 Agent 在一次连续任务内直接完成明确、局部、低风险、可撤销的工作，不产生 PDGO 治理开销 | 简单问答、翻译、短改写、指定材料的只读解释、用户明确要求的本地小改 |
 | 标准模式 | 任务仍可在当前工作区内完成和回滚，但复杂度、文件数量或验证范围已超过轻量边界；采用有界执行和相称自检 | 普通功能修改、边界固定且可测试的多文件机械修改、局部故障修复 |
-| 高保障模式 | 任务因外部影响、风险、难撤销性、持续时间或验收独立性，需要精确计划、状态恢复、角色隔离或独立审核 | 对外发送或发布、生产变更、敏感数据操作、破坏性或难撤销操作、跨会话任务、要求独立验收的任务 |
+| 高保障模式 | 任务因外部影响、风险、难撤销性、持续时间或验收要求，需要精确计划和更强边界；默认仍由当前 Agent 完成 | 对外发送或发布、生产变更、敏感数据操作、破坏性或难撤销操作、跨会话任务、要求独立验收的任务 |
 
-使用多少 Agent 不是判定高保障模式的条件。模式先由任务本身决定，再配置所需角色；但只要启动子 Agent，该次运行就不再满足轻量模式硬约束。
+使用多少 Agent 不是判定高保障模式的条件。模式先由任务本身决定，再配置资源：默认单 Agent；只有外部动作、破坏性或难撤销操作、用户明确要求独立审核时，才增加最多一个只读审核者；完整 PDGO 三角色必须由用户在看见额外 Token／流程成本后明确要求。只要启动子 Agent，该次运行就不再满足轻量模式硬约束。
 
 ## 3. 客观分流规则
 
@@ -63,6 +63,8 @@
 - 目标、范围、授权或完成标准存在会改变执行方向的歧义；
 - 执行中出现新的高风险事实、范围失控或关键证据缺口。
 
+进入高保障不等于自动启动三角色。当前 Agent 默认负责计划、执行、验证和汇报；只有外部动作、破坏性或难撤销操作，或用户明确要求独立审核时，才增加最多一个只读审核者。明确要求 full PDGO 三角色才会显式启用：必须先说明额外 Token／流程成本。
+
 ### 3.4 升级与降级
 
 - 路由必须发生在模型扩展调用、子 Agent、PDGO 状态写入和目标修改之前。
@@ -74,7 +76,7 @@
 
 ## 4. 可选授权包络
 
-高保障计划可启用 `authorization_policy.required: true`。dispatcher 用稳定 JSON 排序和 SHA-256 对不可变批准边界生成 `boundary_digest`；边界包含精确 plan/version、范围、禁止动作、完成条件、任务范围和三角色分配，不包含运行状态、报告内容或其他可变字段。
+显式 full PDGO 计划可启用 `authorization_policy.required: true`。dispatcher 用稳定 JSON 排序和 SHA-256 对不可变批准边界生成 `boundary_digest`；边界包含精确 plan/version、范围、禁止动作、完成条件、任务范围和三角色分配，不包含运行状态、报告内容或其他可变字段。默认单 Agent 路径不为此创建 PDGO 状态。
 
 宿主证明只能由注入的可信 transport／adapter 返回。批准 JSON、父 Agent 文本或消息中自报的 `verified: true` 都不是证明。启用策略后，同一 `authorization_envelope` 必须贯穿 plan、approval、dispatch、execution report 和 review decision；既定批次的计划持久化、绑定、派工、报告和审核记录复用同一次批准，不逐项追问。只有目标、对象、动作、风险、第三方影响、授权边界或验收发生实质变化时才重新确认。缺失、不一致、过期、plan/version 漂移、范围漂移或角色漂移都 fail closed。未启用策略的旧计划保持兼容。
 
@@ -113,8 +115,8 @@ routing_events:
     rule: string
     from: mode | null
     to: mode
-resource_policy: clean-context, medium user-approved-or-host-default reasoning, planning 1/0, execution 2/1, review 2/1, compact evidence, stop-and-report, host_enforced false, savings_proven false
-processing_token_note: "181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。"
+resource_policy: clean-context, medium user-approved-or-host-default reasoning, planning 0/0, execution 0/0, review 1/0, compact evidence, stop-and-report, host_enforced false, savings_proven false
+processing_token_note: "宿主没有可信计量时记为 unavailable；源码策略和处理计数不等于账单 Token，也不证明已经节省。"
 total_billable_tokens: number | unavailable
 total_billable_tokens_source: provider | host | unavailable
 extra_model_calls: integer
@@ -184,7 +186,7 @@ pdgo_marginal_tokens_ratio
 
 ## 8. 拟议门槛与报告限制
 
-在真实配对基准完成前，所有 Token、费用、耗时、成功率和百分比阈值都只能标为“拟议门槛”。报告不得使用“已节省”“已通过”或同义表达。
+在真实配对基准完成前，所有 Token、费用、耗时、成功率和百分比阈值都只能标为“拟议门槛”。报告不得作节省或通过结论。
 
 轻量模式的全部零值和禁止加载规则属于行为硬约束，不因成本结果而放宽。其他发布阈值必须在运行前冻结；报告同时给出样本数、原始数值、冷热启动、失败与返工，以及不可测字段。
 
@@ -208,7 +210,13 @@ pdgo_marginal_tokens_ratio
 
 - **Given** 任务涉及生产、外部状态、敏感数据、难撤销动作、跨会话恢复或独立验收；
 - **When** 首次命中任一条件；
-- **Then** 在对应动作前进入高保障模式，并应用该模式的计划、授权和验收边界。
+- **Then** 在对应动作前进入高保障模式，并应用该模式的计划、授权和验收边界；默认由当前 Agent 完成，只有外部、破坏性、难撤销或明确独立审核才增加一个只读审核者。
+
+### AC-03A：完整 PDGO 只显式启用
+
+- **Given** 高保障任务没有明确要求完整 PDGO 三角色；
+- **When** 形成资源配置；
+- **Then** 不启动策划或执行子 Agent、不创建 PDGO 状态；只有用户看见额外成本并明确要求后，才启用完整三角色。
 
 ### AC-04：实际模式与成本不回写
 

@@ -224,7 +224,9 @@ FlowStateDispatcher 负责状态机；FlowStateStore 持久化方案、任务、
 
 Codex-native 源码现在会先分流，再加载各模式的副作用。轻量模式由当前 Agent 直接完成，额外模型调用、
 子 Agent、PDGO 状态写入、新增 PDGO 批准、正式计划、治理提示和角色流程均为零；标准模式由当前 Agent
-执行并做相称自检，不加载治理提示，也不新增 PDGO 批准；高保障模式或用户显式调用秘书／BossCoding 时，才加载完整秘书流程。
+执行并做相称自检，不加载治理提示，也不新增 PDGO 批准。高保障模式加载秘书规则，但默认仍由当前 Agent
+完成；只有外部、破坏性、难撤销或明确要求独立审核时才增加最多一个只读审核者。完整 PDGO 三角色必须在
+说明额外 Token 和流程成本后由用户明确启用。
 
 可执行风险门先于工作量判断。轻量和标准都要求结构化 `current_request_boundary`，包含来源、动作、目标和获准的本地绝对根；
 动作必须属于普通模式封闭集并与待执行动作一致，文件目标必须规范化、与请求一致且位于该根内。路径遍历、根外路径、宽泛目标、
@@ -238,11 +240,11 @@ Codex-native 源码现在会先分流，再加载各模式的副作用。轻量�
 
 ## BossCoding 冷启动
 
-进入高保障模式或用户显式调用秘书／BossCoding 后，安装的秘书只读取 `<CodexHome>/runtime/bosscoding/runtime.json` 这一份 schema 1.1 描述符。描述符先锁定 manifest；已校验 manifest 再给出完整 `runtime_tree.paths`，覆盖 dispatcher、实际导入库、冷启动 resolver，以及专业角色的索引、元数据索引和提示词树。缺失、越界、路径经过链接或哈希漂移都会停止，不会搜索磁盘猜路径。
+进入高保障模式或用户显式调用秘书／BossCoding 后，秘书先由当前 Agent 在内存中形成批次；只有用户明确启用完整 PDGO 三角色时，才读取 `<CodexHome>/runtime/bosscoding/runtime.json` 这一份 schema 1.1 描述符。描述符先锁定 manifest；已校验 manifest 再给出完整 `runtime_tree.paths`，覆盖 dispatcher、实际导入库、冷启动 resolver，以及专业角色的索引、元数据索引和提示词树。缺失、越界、路径经过链接或哈希漂移都会停止，不会搜索磁盘猜路径。
 
 陌生项目先只读检查，不创建项目状态。秘书在内存中起草完整批次并取得一次精确批准后，才在 `<CodexHome>/state/bosscoding/projects/<name>-<hash16>` 创建隔离状态。之后每个 BossCoding 状态动作都通过已安装 resolver 的 verified invoke 入口：它重新校验运行时、按项目规范路径重算状态根，并拒绝任意 `--root` 或外部目录覆盖。普通 PDGO 的直接 CLI 仍是单独选择的旧接口，不是老板需要手工操作的流程。
 
-新 BossCoding 计划必须使用完整的 `bosscoding-v2` 三角色契约。`host_agent_type` 由主 Agent 从真实 `spawn_agent.agent_type` 参数记录；`selection_source` 只是获批的选角来源记录，不是 spawn 参数或密码学证明。`permission_mode` 也是治理边界，不等于操作系统沙箱。当前保护目标是防止误配置、普通并发和本地漂移，不声称能隔离已经以同一 Windows 用户身份运行的恶意进程。
+只有明确启用的完整 PDGO 计划才使用 `bosscoding-v2` 三角色契约。`host_agent_type` 由主 Agent 从真实 `spawn_agent.agent_type` 参数记录；`selection_source` 只是获批的选角来源记录，不是 spawn 参数或密码学证明。`permission_mode` 也是治理边界，不等于操作系统沙箱。当前保护目标是防止误配置、普通并发和本地漂移，不声称能隔离已经以同一 Windows 用户身份运行的恶意进程。
 
 dispatcher 明确分开“只能由已安装 resolver 发起的受控调用”和“直接旧 CLI”：直接 CLI 不接受调用者冒充受控入口，也拒绝 BossCoding v2 状态；受控入口则拒绝新建 legacy 计划。状态和队列写入会拒绝隔离目录内部的链接或非规范路径。安装器先原子发布完整锁，再记录每个原目标的类型和摘要；安装期间目标或源码变化就停止，提交后逐项复核，回滚时若发现外部新修改会保留现场而不是静默覆盖。对于已存在的 CodexHome，安装器会在创建目录或安装锁前先剥离受管 overlay 并检查未受管文本中的已知旧版“任何文件写入都重新批准”绝对规则；无冲突后取得锁，并在锁内再次检查，再允许修改目标。它兼容普通空白与换行差异，但不声称理解任意自然语言政策。
 
@@ -255,8 +257,8 @@ PDGO 可独立使用，不安装[女娲](https://github.com/alchaincyf/nuwa-skil
 ## BossCoding 快速开始
 
 在 Codex 里直接说 `秘书：<任务>`、`秘书，按 BossCoding 做：<任务>`，或调用
-`$bosscoding-secretary <任务>`。秘书会定位已验证运行时、起草一个精确批次、取得一次批准，并自动协调
-策划、执行和独立审核。老板不需要运行 dispatcher CLI，也不需要在 Agent 之间搬运 JSON。
+`$bosscoding-secretary <任务>`。秘书会起草一个精确批次，默认由当前 Agent 完成；只有风险确实需要时
+才加一个只读审核者。只有你明确说“完整 PDGO 三角色”，才启用三角色流程。老板不需要运行 dispatcher CLI，也不需要在 Agent 之间搬运 JSON。
 
 ## 旧版 PDGO 直接 CLI
 

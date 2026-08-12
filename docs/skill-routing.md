@@ -5,8 +5,9 @@
 Route every request before model extensions, subagents, PDGO state writes, formal plans, governance prompts, or role
 processes. Lightweight work runs directly in the current Agent with the seven zero-cost constraints. Standard work
 runs in the current Agent with a proportionate self-check, no governance-prompt loads, and no new PDGO approval
-rounds. High-assurance work, and explicit secretary or BossCoding
-invocations, load the full routing and governance contract below.
+rounds. High-assurance work and explicit secretary or BossCoding invocations load the secretary contract but remain
+with the current Agent by default. External, destructive, difficult-to-reverse, or explicitly independently reviewed
+work adds at most one read-only reviewer. Full PDGO three-role routing is explicit opt-in only.
 
 The executable classifier applies the high-assurance risk gate before workload depth. Lightweight and standard require
 a structured `current_request_boundary`: its action must belong to the closed ordinary-action set and match the local
@@ -52,11 +53,14 @@ Skills without exposing source branding in the route.
 1. Apply active higher-level guidance and the nearest project `AGENTS.md`.
 2. Select lightweight, standard, or high-assurance before mode-specific side effects.
 3. For lightweight or standard work, execute in the current Agent and stop this routing sequence.
-4. For high-assurance or an explicit secretary/BossCoding entry, load the project profile and secretary contract.
-5. Search plan, knowledge, and session indexes before opening historical content.
+4. For high-assurance or an explicit secretary/BossCoding entry, load the secretary contract and keep work in the
+   current Agent unless the review trigger requires one reviewer.
+5. Only after explicit full PDGO opt-in, load the project profile and plan/session indexes, create governed state, and
+   route three roles.
 6. Classify the concrete scenario, apply hard filters, and select one primary active Skill.
-7. Record selected and rejected Skills; route external Agent candidates through their profile and evidence metadata.
-8. Stop with `skill-unresolved` when no candidate satisfies the hard filters.
+7. Record selected and rejected Skills only when governed state is active; route external Agent candidates through
+   their profile and evidence metadata.
+8. Stop with `skill-unresolved` when a required candidate satisfies none of the hard filters.
 
 ## Agent routing
 

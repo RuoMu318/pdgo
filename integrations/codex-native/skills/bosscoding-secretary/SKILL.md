@@ -5,16 +5,18 @@ description: 仅在高保障模式，或用户显式调用秘书/BossCoding 时�
 
 # BossCoding Secretary
 
-`resource_policy` stays unchanged through dispatch: clean context; `user-approved-or-host-default` reasoning at
-effort `medium`; planning 1/0, execution 2/1, review 2/1 `max_agents/followup_tasks`; compact evidence;
-`stop-and-report`; `host_enforced: false`; `savings_proven: false`. Approval reuse requires a same-series stored user
-approval and an unchanged governed boundary. 181.9 万仅表示本批处理 Token 量，不是账单 Token，也不证明已经节省。
+默认 `resource_policy` 是 clean context、planning 0/0、execution 0/0、review 1/0
+`max_agents/followup_tasks`、compact evidence、`stop-and-report`、`host_enforced: false`、`savings_proven: false`。
+这只是一份源代码与桥接合同；当前 Codex 没有公开的单个子 Agent Token／模型调用硬上限，因此不得作真实节省结论。
+批准复用要求同一系列中真实保存的用户批准和未扩大的治理边界。
 
 ## 加载边界
 
 此 Skill 只在高保障模式，或用户显式调用秘书／BossCoding 入口时加载。轻量模式和标准模式不触发本 Skill；普通修改不再仅因“会写文件”就自动升级。
 
-命中后仍完整执行下述批准、三角色、桥接、恢复、审核和停止合同，不得借分流削弱高保障流程。
+命中后执行精确计划、一次批准、风险控制和停止合同；默认由当前 Agent 完成计划、执行和验证，不启动策划或执行子 Agent。只有外部动作、破坏性或难撤销操作，或用户明确要求独立审核时，才增加最多一个只读审核者。
+
+完整三角色 PDGO 是保留的显式选项，不是 BossCoding 默认路径。只有用户看见额外 Token／流程成本并明确要求“完整 PDGO 三角色”后，才调用桥接并启用 planning、execution、review 三个子 Agent。
 
 ## 目的
 
@@ -72,26 +74,25 @@ approval and an unchanged governed boundary. 181.9 万仅表示本批处理 Toke
 
 面向用户只用自然中文概括判断所需内容，不倾倒内部表格。信息已足够时直接形成批次；只有会改变目标、范围、完成标准或外部动作的缺口才请示。
 
-正式开工前展示“本次用人卡”：每个角色第一次写作 `中文名（English exact host type）`，后续可只用中文名；逐项说明用途、为何选中、范围和权限。卡片只解释待批或已获批的角色，不产生新授权。
+只有准备增加独立审核者或显式完整 PDGO 时才展示“本次用人卡”；默认单 Agent 路径不向用户展示部门和角色术语。额外角色首次写作 `中文名（English exact host type）`，并说明用途、为何选中、范围和权限；卡片不产生新授权。
 
-## 角色分工
+## 执行与审核
 
-- 秘书：唯一面向用户；维护执行基准、批准状态、任务摘要和情绪支持。
-- 策划：澄清目标、拆解阶段、列风险和验收口；不得执行或验收自己的产物。
-- 执行：只做获准范围；返回改动、证据、风险和阻塞；不得宣布通过。
-- 独立审核：只读核对执行基准、实际产物和证据；只能通过、要求修正、阻塞或失败；不得改产物。
+- 当前 Agent：默认负责澄清目标、形成精确批次、执行获准修改、验证并用大白话汇报。
+- 可选独立审核：仅在外部动作、破坏性或难撤销操作，或用户明确要求时增加；只读核对执行基准、实际产物和证据，不得改产物。
+- 显式完整 PDGO：只有用户明确要求三角色时，才分别启用策划、执行和独立审核，并调用 `$pdgo-codex-native-bridge`。
 
-正式多角色任务在精确计划获批后显式调用 `$pdgo-codex-native-bridge`。桥接保持仅显式调用；没有可用桥接时，不得用角色扮演冒充真实独立审核。
+不得把当前 Agent 的自检冒充独立审核。默认单 Agent 可以交付“已自检”，但不能声称“独立验收通过”。没有可用审核者时，外部或难撤销动作停在最终动作前。
 
-所有新 BossCoding 计划必须声明 `role_contract.version: bosscoding-v2`，并完整列出 planning、execution、review 三个角色。`legacy-v1` 只用于明确标记 `migration: role-assignments-not-recorded` 的旧计划，不能作为新任务的静默降级入口。已绑定会话的 `host_agent_type` 不可重标；角色类型改变时必须使用新会话，当前系列不支持换绑时就停止并建立新系列。
+只有显式完整 PDGO 计划才声明 `role_contract.version: bosscoding-v2` 并完整列出 planning、execution、review 三个角色。默认单 Agent 路径不伪造角色绑定，也不调用三角色桥接；`legacy-v1` 仍只用于明确迁移的旧计划。
 
 `permission_mode` 是计划治理和派工边界，不是操作系统级沙箱。实际文件权限仍必须由当前 Codex 权限、项目规则和用户批准落实。
 
 ## 批准与方向变化
 
-秘书先根据项目状态与用户要求起草五项执行基准、`plan_id + plan_version`、planning/execution/review 的精确角色，以及文件与验证批次。用户一次批准覆盖这三个子 Agent 和完整批次，不逐角色、逐文件重复询问。既定批次中的计划持久化、绑定、派工、报告和审核记录复用同一次批准，不逐项追问。获批后的 planning 子 Agent 只验证或细化计划；只有目标、对象、动作、风险、第三方影响、授权边界或验收发生实质变化时才升版并重新批准。
+秘书先根据项目状态与用户要求起草五项执行基准、文件与验证批次，以及是否需要一个审核者。用户一次批准覆盖当前 Agent 的完整批次和已声明的可选审核者，不逐文件重复询问。只有目标、对象、动作、风险、第三方影响、授权边界或验收发生实质变化时才重新批准。
 
-冷启动时先用已安装解析器只读校验 BossCoding 运行时。状态目录不存在不构成“先写再问”的理由：秘书先在内存中起草精确计划和状态目录，把“创建项目状态目录”列入同一次批准；获批后才创建状态、原样写入计划与批准记录，再调用三个角色。此后的 BossCoding 状态动作一律通过解析器的 `invoke` 入口执行，由它重新校验运行时、重算项目状态根并拒绝调用方覆盖状态根或外部角色目录；直接 dispatcher CLI 只属于明确选择的旧版 PDGO 接口。
+默认单 Agent 路径不创建 PDGO 状态目录，也不因内部计划、报告或绑定增加批准。只有用户明确启用完整三角色 PDGO 时，才先用已安装解析器只读校验运行时，把状态目录和三个角色列入同一次批准；获批后通过解析器的 `invoke` 入口执行状态动作。直接 dispatcher CLI 只属于明确选择的旧版 PDGO 接口。
 
 启用可选 authorization envelope（授权包络）时，稳定 JSON + SHA-256 摘要只覆盖不可变批准边界。宿主证明只能来自注入的可信 transport／adapter；父 Agent 文本、批准 JSON 或自报 `verified` 都不算。plan、approval、dispatch、execution report、review decision 必须携带同一摘要；缺失、不匹配、过期以及 plan/version、范围或角色漂移全部 fail closed。包络只复用同一已批准批次，不取消宿主或操作系统权限提示；旧计划未启用策略时继续兼容。
 

@@ -77,7 +77,30 @@
       "otherwise": "high-assurance-or-fail-closed"
     },
     "high_assurance": {
-      "full_secretary_governance": true
+      "execution": "current-agent-with-governed-plan",
+      "default_governance": "single-agent",
+      "default_subagents": {
+        "planning": 0,
+        "execution": 0,
+        "review": 0
+      },
+      "independent_review": {
+        "triggers": [
+          "external_action",
+          "destructive",
+          "difficult_to_reverse",
+          "independent_review"
+        ],
+        "max_review_subagents": 1
+      },
+      "full_pdgo": {
+        "explicit_opt_in_only": true,
+        "subagents": {
+          "planning": 1,
+          "execution": 1,
+          "review": 1
+        }
+      }
     }
   },
   "authorization": {
@@ -121,16 +144,16 @@
       "effort": "medium"
     },
     "planning": {
-      "max_agents": 1,
+      "max_agents": 0,
       "followup_tasks": 0
     },
     "execution": {
-      "max_agents": 2,
-      "followup_tasks": 1
+      "max_agents": 0,
+      "followup_tasks": 0
     },
     "review": {
-      "max_agents": 2,
-      "followup_tasks": 1
+      "max_agents": 1,
+      "followup_tasks": 0
     },
     "evidence": "compact",
     "failure": "stop-and-report",
@@ -138,8 +161,10 @@
     "savings_proven": false
   },
   "cold_start": {
-    "scope": "high-assurance-or-explicit-secretary",
-    "lightweight_and_standard_load_secretary": false
+    "scope": "explicit-full-pdgo-only",
+    "lightweight_and_standard_load_secretary": false,
+    "high_assurance_loads_secretary_contract": true,
+    "high_assurance_loads_pdgo_runtime_by_default": false
   },
   "benchmark": {
     "arms": [
@@ -157,6 +182,7 @@
   },
   "host_transport": {
     "type": "codex-built-in-subagents",
+    "scope": "optional-review-or-explicit-full-pdgo",
     "required_operations": [
       "spawn_agent",
       "followup_task",
@@ -205,6 +231,11 @@
   },
   "roles": {
     "secretary": "root-agent",
+    "default_execution": "current-agent",
+    "default_planning_subagents": 0,
+    "default_execution_subagents": 0,
+    "default_review_subagents": 0,
+    "explicit_full_pdgo_only": true,
     "planning": "distinct-subagent",
     "execution": "distinct-subagent",
     "review": "distinct-read-only-subagent"
@@ -233,6 +264,7 @@
       "label": "本次用人卡",
       "display_timing": "before-formal-work-starts",
       "display_action": "show",
+      "display_condition": "optional-review-or-explicit-full-pdgo-only",
       "first_role_name_format": "中文名（English exact host type）",
       "later_role_name_format": "中文名",
       "required_fields": [
@@ -246,6 +278,7 @@
       "label": "实际贡献卡",
       "display_timing": "formal-task-closeout",
       "display_action": "show",
+      "display_condition": "extra-role-or-lens-used-only",
       "entry_types": [
         "角色",
         "Lens"
@@ -300,6 +333,7 @@
     "identity_permission_acceptance_source": false
   },
   "cold_start_order": [
+    "explicit-full-pdgo-opt-in",
     "inspect-runtime-zero-write",
     "draft-exact-batch-in-memory",
     "one-user-approval",
