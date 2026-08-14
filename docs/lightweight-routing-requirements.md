@@ -1,6 +1,6 @@
 # PDGO 三模式分流需求
 
-> 状态：v1 提示词／配置纵切已通过本地验证；v3 有界本地动作路由仍是未安装的源码候选，只有完整验证与独立审核后才能称为已接受。
+> 状态：v3 有界本地动作路由已通过本地验证并安装到本机 Codex，schema 1.1 运行时树哈希通过；真实本地写入已覆盖当前 Agent 的文件行为，但宿主未提供可信的自动分流证明或账单 Token。
 >
 > 原则：先按任务的风险、可逆性和验收需要分流，再加载完成任务所需的最小流程。未实测阈值只能称为“拟议门槛”，不得宣称已经省钱或通过验证。
 
@@ -8,7 +8,7 @@
 
 本需求把任务分为轻量模式、标准模式和高保障模式，使治理成本与任务风险相称，同时保留可核查的路由、成本和结果记录。
 
-本轮源码候选把 v2 的权限例外推广为所有低风险工作的有界本地动作门，并为安装器增加已知旧规则冲突拒绝；不修改 CLI wrapper、manifest、schema、依赖、全局安装或生产配置，也不授权外部动作。
+本轮实现把 v2 的权限例外推广为所有低风险工作的有界本地动作门，并为安装器增加已知旧规则冲突拒绝。当前收口只更新本地源码、测试和状态记录；不重新安装、不修改生产配置，也不授权外部动作。
 
 ## 2. 三种模式
 
@@ -49,7 +49,7 @@
 
 依赖安装、依赖升级、锁文件变更和联网下载必须作为单独动作重新评估其权限、来源、影响和回滚方式，不能随其他修改搭便车进入轻量模式。
 
-轻量和标准共用同一个有界本地动作门：必须提供结构化 `current_request_boundary`，其 `source` 为 `current-user-request`，`action` 属于普通模式动作封闭集并与 `local_action.action` 一致，`targets` 与待执行目标逐项一致，`approved_local_root` 是非文件系统根的本地绝对路径。文件目标必须先规范化再验证仍位于该根内；路径遍历、根外绝对路径、宽泛目标、`publish`／`delete`／`format` 等封闭集外动作以及字段矛盾全部拒绝。仅有 `explicit_current_request: true` 的布尔自报不能绑定请求。动作仍须仅本地、可撤销，并且 `wildcard`、`administrator`、`account`、`global`、`network`、`secrets`、`production`、`third_party`、`destructive`、`irreversible`、`sensitive_data` 十一项风险全部显式为 `false`。任一字段缺失、范围扩大或任一风险为真，都在工作量判断前进入高保障模式或停止。两种模式都输出 `authorization_source: explicit-current-user-request` 和 `pdgo_new_approval_rounds: 0`，只按工作深度选择直接执行或相称自检。这个源码级结构化边界不构成实时宿主证明；普通模式的 live host attestation 仍未实现，也不取消宿主或操作系统仍要求的权限提示。
+轻量和标准共用同一个有界本地动作门：必须提供结构化 `current_request_boundary`，其 `source` 为 `current-user-request`，`action` 属于普通模式动作封闭集并与 `local_action.action` 一致，`targets` 与待执行目标逐项一致，`approved_local_root` 是非文件系统根的本地绝对路径。文件目标必须先规范化再验证仍位于该根内；路径遍历、根外绝对路径、宽泛目标、`publish`／`delete`／`format` 等封闭集外动作以及字段矛盾全部拒绝。仅有 `explicit_current_request: true` 的布尔自报不能绑定请求。动作仍须仅本地、可撤销，并且 `wildcard`、`administrator`、`account`、`global`、`network`、`secrets`、`production`、`third_party`、`destructive`、`irreversible`、`sensitive_data` 十一项风险全部显式为 `false`。任一字段缺失、范围扩大或任一风险为真，都在工作量判断前进入高保障模式或停止。两种模式都输出 `authorization_source: explicit-current-user-request` 和 `pdgo_new_approval_rounds: 0`，只按工作深度选择直接执行或相称自检。这个源码级结构化边界不构成实时宿主证明；当前 Codex 没有注入可信的普通分流／遥测回执，所以一次真实文件写入只能证明文件行为，不能证明自动模式选择，也不取消宿主或操作系统仍要求的权限提示。
 
 ### 3.3 高保障模式
 

@@ -504,24 +504,23 @@ test("Codex-native contracts describe risk-first bounded local routing and trust
   assert.equal(profile.authorization.legacy_without_policy_supported, true);
 });
 
-test("status documents report capability-awareness validation without claiming acceptance", async () => {
+test("status documents report the current routing closeout and residual host evidence limits", async () => {
   const status = await readFile(path.join(root, "STATUS.md"), "utf8");
   const progress = await readFile(path.join(root, "PROGRESS.md"), "utf8");
   const currentAction = status.match(/## Current action\r?\n([\s\S]*)$/)?.[1] ?? "";
-  const statusSliceCount = status.match(/(\w+) targeted red\/green(?: capability)? contract slices pass/i)?.[1];
-  const progressSliceCount = progress.match(/through (\w+) targeted red\/green slices/i)?.[1];
 
   for (const document of [status, progress]) {
-    assert.match(document, /BOSSCODING-CAPABILITY-AWARENESS-20260809-v2/);
-    assert.match(document, /本次用人卡/);
-    assert.match(document, /实际贡献卡/);
-    assert.match(document, /full[\s\S]{0,120}validation[\s\S]{0,120}pass/i);
+    assert.match(document, /feat\/lightweight-routing-v3/);
+    assert.match(document, /559c2163537c54f4539fb1982e65a63ba9015a1c/);
+    assert.match(document, /140\/140/);
+    assert.match(document, /host attestation|宿主证明/i);
+    assert.match(document, /billable Token|账单 Token/i);
   }
-  assert.equal(statusSliceCount?.toLowerCase(), "six");
-  assert.equal(progressSliceCount?.toLowerCase(), statusSliceCount?.toLowerCase());
-  assert.doesNotMatch(currentAction, /no implementation action remains/i);
-  assert.match(currentAction, /targeted[^.\n]*pass/i);
-  assert.match(currentAction, /no acceptance is claimed/i);
+  assert.match(currentAction, /No local implementation blocker remains/i);
+  assert.match(currentAction, /host_enforced` remains `false`/i);
+  assert.match(currentAction, /savings_proven`\s+remains `false`/i);
+  assert.match(currentAction, /future trusted Codex host adapter or provider billing interface/i);
+  assert.doesNotMatch(currentAction, /no acceptance is claimed/i);
 });
 
 test("Codex-native resource policy is machine-readable and documented without savings or billing claims", async () => {

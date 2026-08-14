@@ -65,7 +65,8 @@ Lightweight and standard share one authorization gate before work-depth selectio
 contained within an approved absolute local root; traversal, out-of-root paths, broad targets, forbidden actions,
 contradictions, missing evidence, or any declared risk fail closed. Both modes emit
 `authorization_source=explicit-current-user-request` and `pdgo_new_approval_rounds=0`. This source-level boundary is
-not live host attestation, which remains unimplemented for ordinary routing.
+not live host attestation. A real bounded local write proves current-Agent file behavior, but the current Codex host
+does not expose a trusted routing/telemetry receipt, so automatic ordinary-mode selection remains unattested.
 
 The high-assurance core performs only the planning, approval checks, failure handling, and evidence needed for the
 actual risk. Default single-agent work does not create PDGO state or load role processes. Explicit full PDGO may add

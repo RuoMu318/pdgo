@@ -110,3 +110,25 @@ external message occurred.
 - 2026-08-09: v2 T01 validation passes: dispatcher 52/52, integration 17/17, and full Node 111/111,
   with zero failures, skips, or todos; project validation, smoke, both Skill quick validations, and
   diff checks pass. This remains executor evidence pending independent review.
+
+- 2026-08-12: Approval reuse, risk-first bounded routing, default single-Agent routing, and resolved
+  transport-block recovery were completed through local commit `559c2163537c54f4539fb1982e65a63ba9015a1c`
+  on `feat/lightweight-routing-v3`.
+- 2026-08-13: Re-ran the current Node baseline at that commit: 140/140 passed with zero failures,
+  skips, or todos. The worktree was clean before this closeout batch.
+- 2026-08-13: Re-verified the installed schema-1.1 descriptor and complete runtime-tree digest. The
+  installed runtime resolves to the current BossCoding-PDGO-v3 checkout.
+- 2026-08-13: Completed one real bounded local write with the current Agent. Exactly one of three
+  lines changed, the other two remained unchanged, the temporary directory was deleted, no
+  subagent was used, no PDGO state entry changed, and no additional approval round occurred. The
+  end-to-end batch took 106,758 ms.
+- 2026-08-13: This live write does not close trusted ordinary-routing host attestation: the parent
+  task had already loaded BossCoding secretary governance, and the current host exposes no trusted
+  routing/telemetry receipt. It therefore proves file behavior only, not automatic mode selection.
+- 2026-08-13: Billable Token usage remains `unavailable`; the host exposes neither provider billing
+  usage for the run nor an active goal-linked usage record. No Token or savings estimate is made.
+
+Current completion state: all known local implementation and regression issues in the approved
+routing/recovery scope are resolved. Trusted host routing attestation and billable Token savings
+remain external evidence limitations with explicit reasons. No reinstall, commit, push, publication,
+production change, R01 change, or Vault write is authorized or performed by this closeout batch.

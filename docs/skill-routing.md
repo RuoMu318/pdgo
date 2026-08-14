@@ -14,8 +14,9 @@ a structured `current_request_boundary`: its action must belong to the closed or
 action; its file targets must match after normalization and remain inside the approved absolute local root. Traversal,
 out-of-root paths, broad targets, forbidden actions, contradictions, missing fields, or any risk fail closed. Both modes
 report `authorization_source=explicit-current-user-request` and `pdgo_new_approval_rounds=0`; only work depth differs.
-This source-level boundary is not live host attestation, which remains unimplemented for ordinary routing, and it does
-not remove host or OS permission prompts.
+This source-level boundary is not live host attestation. A real bounded local write proves current-Agent file behavior,
+but automatic ordinary-mode selection remains unattested because the current Codex host exposes no trusted
+routing/telemetry receipt. This does not remove host or OS permission prompts.
 
 ## Required classification
 

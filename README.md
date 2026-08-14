@@ -249,15 +249,18 @@ closed ordinary-action set and match the local action; file targets are normaliz
 stay inside that root. Traversal, out-of-root paths, broad targets, publish/delete/format actions, contradictions,
 missing fields, and any declared risk fail closed to high assurance. Both report
 `authorization_source=explicit-current-user-request` and `pdgo_new_approval_rounds=0`; only work depth differs. This
-source-level contract is not live host attestation; live host attestation for ordinary routing remains unimplemented.
+source-level contract is not live host attestation. A real bounded local write has verified current-Agent file behavior,
+but trusted ordinary-routing attestation remains unavailable because the current Codex host exposes no injected
+routing/telemetry receipt; the run therefore cannot prove automatic mode selection.
 High-assurance plans may also enable an optional authorization envelope: a trusted injected host adapter attests one
 SHA-256 digest over the immutable approved boundary, and the same envelope must survive dispatch, report, and review.
 Self-reported verification and plain FileQueue messages are not host attestation. The one approved batch reuses that
 authorization across its unchanged internal plan, binding, dispatch, report, and review records; a material target,
 object, action, risk, third-party effect, authorization-boundary, or acceptance change requires a new exact approval.
 
-This is a source candidate only. It has not been installed globally and no paid Token, latency, or quality benchmark
-has been run, so no real cost saving is claimed.
+The current checkout is installed on this local Codex host and its schema-1.1 descriptor and runtime-tree digest verify.
+It has not been pushed or published. No provider billable-Token record or fair paired latency/quality benchmark is
+available, so no real cost saving is claimed and `savings_proven` remains `false`.
 
 ### BossCoding cold start
 
@@ -347,7 +350,8 @@ as an official BossCoding release, collaboration, or endorsement. See
 
 ## Status and license
 
-The three-mode routing implementation is currently a locally validated source candidate. It is not globally installed,
-and real Token, latency, and quality benchmarks remain pending.
+The three-mode routing implementation has passed local source validation and is installed on this local Codex host with
+a verified runtime tree. Trusted automatic-routing attestation and provider billable-Token evidence remain unavailable;
+real paired Token, latency, and quality benchmarks therefore remain pending.
 
 PDGO is an MIT-licensed reference implementation of the FlowState method. The repository is intentionally platform-neutral; a platform adapter is required for any conversation or background capability that the local file system cannot provide.
