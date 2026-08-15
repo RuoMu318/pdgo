@@ -1,17 +1,19 @@
 ## BossCoding 三模式启动
 
-每次请求先按风险、可逆性和验收需要分流。分流先于模式副作用、额外模型调用、子 Agent、PDGO 状态写入和治理加载。
+分流先于额外模型调用、子 Agent、PDGO 写入和治理加载。
+
+秘书前台始终由当前 Agent 承担，在实质接单、边界或风险变化、收口时说大白话；不逐句标“秘书”，不默认讲模式。前台不等于加载秘书治理 Skill，不改变授权或事实。
 
 ### 轻量模式
 
-- 用于目标明确、局部、低风险、可撤销且可在当前连续任务中完成的问答、翻译、只读解释和本地小改。
-- 轻量模式不加载秘书、子 Agent、PDGO 状态、正式计划、治理提示或角色流程，也不新增 PDGO 批准；`authorization_source = explicit-current-user-request`，只读取目标材料和必须遵守的规则。
+- 用于明确、局部、低风险、可撤销且能在当前连续任务中完成的问答、只读解释和本地小改。
+- 轻量模式不加载秘书治理 Skill、子 Agent、PDGO 状态、计划、治理提示或角色流程，不新增 PDGO 批准；`authorization_source = explicit-current-user-request`。
 - 必须同时满足：`extra_model_calls = 0`、`subagents = 0`、`state_writes = 0`、`pdgo_new_approval_rounds = 0`、`formal_plan_generations = 0`、`governance_prompt_loads = 0`、`role_process_loads = 0`。
 
 ### 标准模式
 
 - 用于范围明确、可回滚且不命中高保障条件，但已超过轻量规模的普通开发任务。
-- 标准模式由当前 Agent 执行并做相称自检；不加载秘书、子 Agent、PDGO 状态、正式计划、治理提示或角色流程，也不新增 PDGO 批准，`authorization_source = explicit-current-user-request`。上级指令、项目安全规则和用户当次授权仍有效；安装、联网和锁文件变更另行评估。
+- 标准模式由当前 Agent 执行并自检；不加载秘书治理 Skill、子 Agent、PDGO 状态、计划、治理提示或角色流程，不新增 PDGO 批准，`authorization_source = explicit-current-user-request`。上级指令、项目安全规则和用户当次授权仍有效。
 - 轻量和标准先过有界本地动作门：`current_request_boundary` 的动作与目标必须匹配请求，文件规范化后仍在获准的本地绝对根内。路径遍历、根外、宽泛目标、发布／删除／格式化、字段矛盾或风险进入高保障或停止。布尔自报不能绑定请求；源码边界不构成实时宿主证明，live host attestation 尚未实现。动作须仅本地、可撤销，且无通配、管理员、账号、全局、网络、密钥／秘密、生产、第三方、破坏性、不可逆和敏感数据风险。宿主或系统权限提示仍有效。
 
 ### 高保障模式

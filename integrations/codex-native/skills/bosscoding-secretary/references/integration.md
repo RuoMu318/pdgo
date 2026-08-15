@@ -7,7 +7,9 @@ a destructive or difficult-to-reverse action, or an explicit independent-review 
 three-role work carries its separately approved plan policy. Approval reuse requires a stored real user
 approval in the same series without boundary drift. No source-level policy is evidence of billable Token savings.
 
-This reference is loaded only for high-assurance mode or an explicit secretary or BossCoding entry. Lightweight and standard modes do not load the secretary, this reference, PDGO state, formal plans, governance prompts, or role processes, and do not add PDGO approval rounds.
+The secretary front desk is always on in the current Agent. It appears at substantive intake, material boundary or risk changes, and closeout without mechanically prefixing every message or exposing mode jargon by default. This presentation layer does not load a Skill, governance prompt, formal plan, PDGO state, or role process, and it cannot change authority or evidence.
+
+Full secretary governance is loaded only for high-assurance mode or an explicit secretary or BossCoding entry. Lightweight and standard modes do not load this Skill, this reference, PDGO state, formal plans, governance prompts, or role processes, and do not add PDGO approval rounds.
 
 ## Authority order
 

@@ -222,9 +222,10 @@ FlowStateDispatcher 负责状态机；FlowStateStore 持久化方案、任务、
 
 ## 三模式启动分流
 
-Codex-native 源码现在会先分流，再加载各模式的副作用。轻量模式由当前 Agent 直接完成，额外模型调用、
-子 Agent、PDGO 状态写入、新增 PDGO 批准、正式计划、治理提示和角色流程均为零；标准模式由当前 Agent
-执行并做相称自检，不加载治理提示，也不新增 PDGO 批准。高保障模式加载秘书规则，但默认仍由当前 Agent
+Codex-native 源码现在会先分流，再加载各模式的副作用。当前 Agent 始终承担秘书前台，在实质接单、边界
+或风险变化、最终收口时用大白话说明；不需要每句话加角色标签。这个前台不等于加载秘书治理。轻量模式的
+额外模型调用、子 Agent、PDGO 状态写入、新增 PDGO 批准、正式计划、治理提示和角色流程仍全部为零；标准模式
+由当前 Agent 执行并做相称自检，不加载秘书治理或治理提示，也不新增 PDGO 批准。高保障模式加载完整秘书规则，但默认仍由当前 Agent
 完成；只有外部、破坏性、难撤销或明确要求独立审核时才增加最多一个只读审核者。完整 PDGO 三角色必须在
 说明额外 Token 和流程成本后由用户明确启用。
 
@@ -240,7 +241,7 @@ Codex-native 源码现在会先分流，再加载各模式的副作用。轻量�
 
 ## BossCoding 冷启动
 
-进入高保障模式或用户显式调用秘书／BossCoding 后，秘书先由当前 Agent 在内存中形成批次；只有用户明确启用完整 PDGO 三角色时，才读取 `<CodexHome>/runtime/bosscoding/runtime.json` 这一份 schema 1.1 描述符。描述符先锁定 manifest；已校验 manifest 再给出完整 `runtime_tree.paths`，覆盖 dispatcher、实际导入库、冷启动 resolver，以及专业角色的索引、元数据索引和提示词树。缺失、越界、路径经过链接或哈希漂移都会停止，不会搜索磁盘猜路径。
+进入高保障模式或用户显式调用秘书／BossCoding 后，完整秘书治理先由当前 Agent 在内存中形成批次；只有用户明确启用完整 PDGO 三角色时，才读取 `<CodexHome>/runtime/bosscoding/runtime.json` 这一份 schema 1.1 描述符。描述符先锁定 manifest；已校验 manifest 再给出完整 `runtime_tree.paths`，覆盖 dispatcher、实际导入库、冷启动 resolver，以及专业角色的索引、元数据索引和提示词树。缺失、越界、路径经过链接或哈希漂移都会停止，不会搜索磁盘猜路径。
 
 陌生项目先只读检查，不创建项目状态。秘书在内存中起草完整批次并取得一次精确批准后，才在 `<CodexHome>/state/bosscoding/projects/<name>-<hash16>` 创建隔离状态。之后每个 BossCoding 状态动作都通过已安装 resolver 的 verified invoke 入口：它重新校验运行时、按项目规范路径重算状态根，并拒绝任意 `--root` 或外部目录覆盖。普通 PDGO 的直接 CLI 仍是单独选择的旧接口，不是老板需要手工操作的流程。
 
@@ -256,7 +257,8 @@ PDGO 可独立使用，不安装[女娲](https://github.com/alchaincyf/nuwa-skil
 
 ## BossCoding 快速开始
 
-在 Codex 里直接说 `秘书：<任务>`、`秘书，按 BossCoding 做：<任务>`，或调用
+秘书前台始终由当前 Agent 承担，普通任务不用特殊口令；这不等于为轻量或标准任务加载完整治理。
+如果要显式进入 BossCoding 治理流程，在 Codex 里说 `秘书：<任务>`、`秘书，按 BossCoding 做：<任务>`，或调用
 `$bosscoding-secretary <任务>`。秘书会起草一个精确批次，默认由当前 Agent 完成；只有风险确实需要时
 才加一个只读审核者。只有你明确说“完整 PDGO 三角色”，才启用三角色流程。老板不需要运行 dispatcher CLI，也不需要在 Agent 之间搬运 JSON。
 

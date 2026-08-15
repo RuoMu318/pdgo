@@ -143,3 +143,14 @@ production change, R01 change, or Vault write is authorized or performed by this
   repository validation; smoke; and both Codex-native Skill quick validations. CI now runs Node,
   repository/Skill validation, and smoke instead of reporting green from repository validation alone.
   The batch remains uncommitted and has not been pushed, merged, reinstalled, or independently reviewed.
+- 2026-08-15: The user approved a local secretary-front-desk batch. The current Agent is now the
+  always-on front desk at substantive intake, material boundary or risk changes, and closeout, while
+  lightweight and standard modes still load no secretary governance Skill, governance prompt, PDGO
+  state, formal plan, role process, extra model, subagent, or new approval round.
+- 2026-08-15: Replaced the self-referential current-HEAD status assertion with a historical source-base
+  record that remains true after a future commit. Full Node tests pass 141/141; repository validation,
+  smoke, and both Codex-native Skill quick validations pass. The first quick-validation attempt used
+  Windows GBK and failed to decode UTF-8 Chinese; the same checks passed under Python UTF-8 mode.
+- 2026-08-15: This front-desk batch remains local and uncommitted. It has not been pushed, merged, or
+  reinstalled; trusted ordinary-routing host attestation and billable Token evidence remain unavailable,
+  so `host_enforced=false` and `savings_proven=false` remain unchanged.

@@ -4,15 +4,17 @@ Updated: 2026-08-15
 
 ## Goal
 
-Build and verify a Codex-native BossCoding secretary layer on top of PDGO. The main Agent is the
-only user-facing secretary and completes ordinary work directly. One read-only reviewer is added
+Build and verify a Codex-native BossCoding secretary layer on top of PDGO. The current Agent always
+acts as the user-facing secretary front desk and completes ordinary work directly. Full secretary
+governance loads only for high assurance or an explicit secretary/BossCoding entry. One read-only reviewer is added
 only for external, destructive, difficult-to-reverse, or explicitly independent review; the full
 planning, execution, and review trio remains an explicit opt-in. A user approves one exact batch,
 then in-scope work advances until completion or a defined stop condition.
 
 ## Confirmed decisions
 
-- Default user experience is direct secretary invocation; presentation never changes evidence or
+- Default user experience is an always-on secretary front desk at substantive intake, material
+  boundary or risk changes, and closeout. It needs no special prefix and never changes evidence or
   authorization rules.
 - The secretary may coordinate and advise, but may not change direction, lower acceptance criteria,
   suppress disagreement, or accept failed work.
@@ -23,6 +25,8 @@ then in-scope work advances until completion or a defined stop condition.
   the current Agent; one read-only reviewer is added only for external, destructive,
   difficult-to-reverse, or explicitly independently reviewed work. Full three-role PDGO remains an
   explicit opt-in.
+- The always-on front desk is presentation and accountability, not a secretary Skill or governance
+  prompt load. Lightweight and standard zero-cost routing invariants remain unchanged.
 - After the initial failure baseline, two completed correction rounds with the same unresolved issue
   and no new evidence stop automatic revision and return a plain-language report.
 
@@ -53,18 +57,18 @@ then in-scope work advances until completion or a defined stop condition.
 
 ## Current action
 
-The current local branch is `feat/lightweight-routing-v3` at HEAD `5a706b46e159f2829732e880a05565d4118bc59f`.
-The latest committed Node baseline was 140/140; the current uncommitted merge-review repair passes
-141/141 with zero failures, skips, or todos. Repository validation, smoke, and both Codex-native Skill
-quick validations also pass. The installed Codex runtime descriptor was last verified before this
-uncommitted repair. A real bounded
-local write also completed with the current Agent, zero subagents, no observed PDGO state change,
-no added approval round, and exact cleanup.
+Source base before the secretary-front-desk batch was `41c5680e510ce334e690a3120bd2a6082911960e`.
+That commit SHA is historical evidence for the batch base, not a self-referential current-HEAD assertion.
+The current local branch is `feat/lightweight-routing-v3`; this approved local batch makes the
+secretary front desk always visible while retaining risk-based full-governance loading. The earlier
+clean routing baseline was 140/140, and the source base after the merge-review repair was 141/141.
+The current uncommitted batch passes the complete local validation set. It has not been committed,
+pushed, merged, or reinstalled, so the installed Codex runtime and draft PR do not contain it.
 
 ## Residual limitations
 
-- No local implementation blocker remains in the current uncommitted repair. It has not been
-  committed, pushed, merged, reinstalled, or independently reviewed.
+- No local implementation blocker remains in the current uncommitted secretary-front-desk batch.
+  It has not been committed, pushed, merged, reinstalled, or independently reviewed.
 - Trusted ordinary-routing host attestation is unavailable because the current Codex tool surface
   does not expose an injected routing/telemetry receipt. The live write proves file behavior, not
   automatic mode selection, so `host_enforced` remains `false`.
@@ -76,10 +80,12 @@ no added approval round, and exact cleanup.
 
 ## Closeout baseline
 
-- Scope: local source, documentation, status records, and deterministic tests only.
+- Scope: local secretary/front-desk source contracts, consumer profile, public documentation,
+  status records, and deterministic tests only.
 - Forbidden: global reinstall, Git commit/push, publication, production changes, R01 changes, Vault
   writes, and fabricated host or Token evidence.
-- Acceptance: current tests pass, status and public docs match the uncommitted source reality,
+- Acceptance: current tests pass, the always-on front desk remains separate from risk-loaded
+  governance, status and public docs match the uncommitted source reality,
   installed-runtime evidence is not carried across source drift, and unresolved external evidence
   dependencies are explicit.
-- Rollback: revert only this uncommitted closeout documentation/test batch.
+- Rollback: revert only this uncommitted secretary-front-desk batch.

@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -98,6 +97,10 @@ test("public BossCoding quick start uses the secretary and isolates direct CLI a
   const chineseQuickStart = chinese.match(/## BossCoding 快速开始\r?\n([\s\S]*?)(?=\r?\n## )/)?.[1] ?? "";
   assert.match(englishQuickStart, /秘书(?:，按 BossCoding 做)?：<任务>/);
   assert.match(chineseQuickStart, /秘书(?:，按 BossCoding 做)?：<任务>/);
+  assert.match(englishQuickStart, /secretary front desk[^.\n]*always on/i);
+  assert.match(chineseQuickStart, /秘书前台[^。\n]*(?:始终|常驻)/);
+  assert.match(englishQuickStart, /does not[^.\n]*load[^.\n]*governance/i);
+  assert.match(chineseQuickStart, /不等于[^。\n]*加载[^。\n]*治理/);
   assert.doesNotMatch(englishQuickStart, /皇帝模式|Emperor mode/i);
   assert.doesNotMatch(chineseQuickStart, /皇帝模式|Emperor mode/i);
   assert.doesNotMatch(englishQuickStart, /flowstate-dispatcher|--action/);
@@ -182,7 +185,8 @@ test("global BossCoding overlay is a bounded three-mode bootstrap", async () => 
   ]) {
     assert.match(overlay, new RegExp(`${zeroCost}\\s*=\\s*0`));
   }
-  assert.match(overlay, /轻量模式[^\n]*不加载[^\n]*秘书/);
+  assert.match(overlay, /秘书前台[^\n]*(?:始终|常驻)[^\n]*当前 Agent/);
+  assert.match(overlay, /轻量模式[^\n]*不加载[^\n]*秘书治理/);
   assert.match(overlay, /标准模式[^\n]*(?:当前|单一)[^\n]*Agent[^\n]*(?:自检|检查)/i);
   assert.match(overlay, /标准模式[^\n]*不加载[^\n]*治理提示/);
   assert.match(overlay, /标准模式[^\n]*不新增[^\n]*PDGO 批准/);
@@ -386,9 +390,11 @@ test("three-mode routing defers full BossCoding governance until high assurance"
   );
   const profile = JSON.parse(await readFile(path.join(root, "profiles", "bosscoding-codex-consumer.json"), "utf8"));
 
+  assert.match(secretary, /秘书前台[^。\n]*(?:始终|常驻)[^。\n]*当前 Agent/);
   assert.match(secretary, /高保障模式[^。\n]*(?:显式|明确)[^。\n]*(?:秘书|BossCoding)/);
-  assert.match(secretary, /轻量模式[^。\n]*标准模式[^。\n]*不触发/);
-  assert.match(integration, /loaded only for high-assurance mode or an explicit [^.\n]*(?:secretary|BossCoding)[^.\n]*entry/i);
+  assert.match(secretary, /轻量模式[^。\n]*标准模式[^。\n]*不加载[^。\n]*(?:本 Skill|完整治理)/);
+  assert.match(integration, /secretary front desk[^.\n]*always on[^.\n]*current Agent/i);
+  assert.match(integration, /full secretary governance[^.\n]*loaded only for high-assurance mode or an explicit [^.\n]*(?:secretary|BossCoding)[^.\n]*entry/i);
   assert.deepEqual(profile.routing.modes, ["lightweight", "standard", "high_assurance"]);
   assert.equal(profile.routing.route_before_mode_side_effects, true);
   assert.deepEqual(profile.routing.lightweight.required_zero_costs, [
@@ -423,7 +429,19 @@ test("three-mode routing defers full BossCoding governance until high assurance"
   assert.equal(profile.routing.high_assurance.full_pdgo.explicit_opt_in_only, true);
   assert.deepEqual(profile.routing.high_assurance.full_pdgo.subagents, { planning: 1, execution: 1, review: 1 });
   assert.equal(profile.cold_start.scope, "explicit-full-pdgo-only");
+  assert.equal(profile.secretary_presence.front_desk_always_on, true);
+  assert.equal(profile.secretary_presence.owner, "current-agent");
+  assert.deepEqual(profile.secretary_presence.checkpoints, [
+    "substantive-intake",
+    "material-boundary-or-risk-change",
+    "closeout",
+  ]);
+  assert.equal(profile.secretary_presence.mechanical_label_required, false);
+  assert.equal(profile.secretary_presence.mode_jargon_user_facing_by_default, false);
+  assert.equal(profile.secretary_presence.front_desk_is_governance_prompt_load, false);
   assert.equal(profile.cold_start.lightweight_and_standard_load_secretary, false);
+  assert.equal(profile.cold_start.legacy_load_secretary_field_means_governance_contract, true);
+  assert.equal(profile.cold_start.lightweight_and_standard_load_secretary_governance_contract, false);
   assert.equal(profile.cold_start.high_assurance_loads_secretary_contract, true);
   assert.equal(profile.cold_start.high_assurance_loads_pdgo_runtime_by_default, false);
   assert.deepEqual(profile.benchmark.arms, [
@@ -509,8 +527,6 @@ test("status documents report the current routing closeout and residual host evi
   const status = await readFile(path.join(root, "STATUS.md"), "utf8");
   const progress = await readFile(path.join(root, "PROGRESS.md"), "utf8");
   const currentAction = status.match(/## Current action\r?\n([\s\S]*)$/)?.[1] ?? "";
-  const gitHead = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" });
-  assert.equal(gitHead.status, 0, gitHead.stderr);
 
   for (const document of [status, progress]) {
     assert.match(document, /feat\/lightweight-routing-v3/);
@@ -518,7 +534,8 @@ test("status documents report the current routing closeout and residual host evi
     assert.match(document, /host attestation|宿主证明/i);
     assert.match(document, /billable Token|账单 Token/i);
   }
-  assert.match(status, new RegExp(gitHead.stdout.trim()));
+  assert.match(status, /Source base before the secretary-front-desk batch[^\n]*`[0-9a-f]{40}`/i);
+  assert.match(status, /commit SHA is historical evidence[^.\n]*not a self-referential current-HEAD assertion/i);
   assert.match(currentAction, /No local implementation blocker remains/i);
   assert.match(currentAction, /host_enforced` remains `false`/i);
   assert.match(currentAction, /savings_proven`\s+remains `false`/i);

@@ -160,9 +160,23 @@
     "host_enforced": false,
     "savings_proven": false
   },
+  "secretary_presence": {
+    "front_desk_always_on": true,
+    "owner": "current-agent",
+    "checkpoints": [
+      "substantive-intake",
+      "material-boundary-or-risk-change",
+      "closeout"
+    ],
+    "mechanical_label_required": false,
+    "mode_jargon_user_facing_by_default": false,
+    "front_desk_is_governance_prompt_load": false
+  },
   "cold_start": {
     "scope": "explicit-full-pdgo-only",
     "lightweight_and_standard_load_secretary": false,
+    "legacy_load_secretary_field_means_governance_contract": true,
+    "lightweight_and_standard_load_secretary_governance_contract": false,
     "high_assurance_loads_secretary_contract": true,
     "high_assurance_loads_pdgo_runtime_by_default": false
   },
