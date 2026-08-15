@@ -36,14 +36,15 @@ again.
 ## Optional authorization envelope
 
 A plan may enable `authorization_policy.required: true`. At approval, the dispatcher serializes only the immutable
-approved boundary with stable key ordering and computes one SHA-256 `boundary_digest`. Host authorization evidence
+approved boundary, including the full approved risk records, with stable key ordering and computes one SHA-256
+`boundary_digest`. Host authorization evidence
 must come from an injected trusted transport or adapter through `attestAuthorization`; parent-Agent prose, approval
 JSON, and self-reported `verified` fields are not trusted. Plain `FileQueueAdapter` has no authenticated attestation
 channel and therefore fails closed when this policy is required.
 
 The same authorization envelope and digest are stored on the plan and approval, added to every dispatch, and echoed
 unchanged by its execution report and review decision. Missing, mismatched, expired, wrong-plan-version, scope-drifted,
-or role-drifted evidence is rejected before the next transition. This envelope reuses one exact PDGO approval within
+risk-drifted, or role-drifted evidence is rejected before the next transition. This envelope reuses one exact PDGO approval within
 that immutable batch; it does not remove any host or operating-system permission prompt. Plans that omit the optional
 policy retain the legacy contract.
 

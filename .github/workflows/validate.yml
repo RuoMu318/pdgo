@@ -8,7 +8,13 @@ jobs:
   validate:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - name: Run Node contract and runtime tests
+        shell: pwsh
+        run: npm.cmd run test:node
       - name: Validate repository contracts
         shell: pwsh
-        run: ./scripts/validate-flowstate.ps1
+        run: npm.cmd run validate
+      - name: Run smoke test
+        shell: pwsh
+        run: npm.cmd run test

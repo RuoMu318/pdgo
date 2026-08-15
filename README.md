@@ -258,8 +258,9 @@ Self-reported verification and plain FileQueue messages are not host attestation
 authorization across its unchanged internal plan, binding, dispatch, report, and review records; a material target,
 object, action, risk, third-party effect, authorization-boundary, or acceptance change requires a new exact approval.
 
-The current checkout is installed on this local Codex host and its schema-1.1 descriptor and runtime-tree digest verify.
-It has not been pushed or published. No provider billable-Token record or fair paired latency/quality benchmark is
+Local validation previously passed for a recorded checkout, including a Codex installation whose schema-1.1 descriptor
+and runtime-tree digest verified. That evidence applies only to the recorded checkout; it does not prove that every
+clone is installed or unchanged. No provider billable-Token record or fair paired latency/quality benchmark is
 available, so no real cost saving is claimed and `savings_proven` remains `false`.
 
 ### BossCoding cold start
@@ -337,9 +338,12 @@ New fields must be additive and optional unless a contract explicitly makes them
 ```powershell
 npm.cmd run test:node
 npm.cmd run validate
+npm.cmd run test
 ```
 
-The test suite covers Skill inventory, approval binding, series continuity, dispatch contracts, queue idempotency, restart recovery, blocker handling, external-role boundaries, and generated indexes.
+The CI workflow runs all three gates. Repository validation includes both Codex-native integration Skills; the Node
+suite covers Skill inventory, approval binding, authorization-risk drift, series continuity, dispatch contracts, queue
+idempotency, restart recovery, blocker handling, external-role boundaries, and generated indexes.
 
 ### BossCoding attribution
 

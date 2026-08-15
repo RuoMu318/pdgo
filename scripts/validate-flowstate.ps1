@@ -19,6 +19,15 @@ function Require-JsonManifest([string]$relativePath, [string]$expectedName) {
     } catch { $errors.Add("Invalid JSON manifest: $relativePath ($($_.Exception.Message))") }
 }
 
+function Get-FileSha256([string]$path) {
+    $stream = [System.IO.File]::OpenRead($path)
+    try {
+        $sha256 = [System.Security.Cryptography.SHA256]::Create()
+        try { return ([System.BitConverter]::ToString($sha256.ComputeHash($stream))).Replace('-', '').ToLowerInvariant() }
+        finally { $sha256.Dispose() }
+    } finally { $stream.Dispose() }
+}
+
 @(
     'README.md',
     'README.zh-CN.md',
@@ -78,6 +87,19 @@ foreach ($skillDir in $activeSkillDirs) {
     if ($skillText -match '\[TODO:') { $errors.Add("Active Skill contains an unresolved TODO: $($skillDir.Name)") }
 }
 
+foreach ($skillName in @('bosscoding-secretary', 'pdgo-codex-native-bridge')) {
+    $relativeRoot = "integrations/codex-native/skills/$skillName"
+    foreach ($requiredSkillFile in @('SKILL.md', 'skill-manifest.yaml', 'agents/openai.yaml')) {
+        Require-Path "$relativeRoot/$requiredSkillFile"
+    }
+    $skillPath = Join-Path $root "$relativeRoot/SKILL.md"
+    if (-not (Test-Path -LiteralPath $skillPath)) { continue }
+    $skillText = Get-Content -Raw -Encoding utf8 -LiteralPath $skillPath
+    $frontmatterPattern = '(?ms)^---\s*\r?\nname:\s*{0}\s*\r?\ndescription:\s*.+?\r?\n---' -f [regex]::Escape($skillName)
+    if ($skillText -notmatch $frontmatterPattern) { $errors.Add("Codex-native Skill frontmatter is invalid: $skillName") }
+    if ($skillText -match '\[TODO:') { $errors.Add("Codex-native Skill contains an unresolved TODO: $skillName") }
+}
+
 $indexPath = Join-Path $root 'skills/skill-index.json'
 if (Test-Path -LiteralPath $indexPath) {
     try {
@@ -118,7 +140,7 @@ if (Test-Path -LiteralPath $lockPath) {
         foreach ($source in @($lock.sources)) {
             $sourcePath = Join-Path $root ([string]$source.path)
             if (-not (Test-Path -LiteralPath $sourcePath)) { $errors.Add("Missing locked upstream Skill: $($source.path)"); continue }
-            $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $sourcePath).Hash.ToLowerInvariant()
+            $actual = Get-FileSha256 $sourcePath
             if ($actual -ne ([string]$source.sha256).ToLowerInvariant()) { $errors.Add("Upstream SHA mismatch: $($source.skill_id)") }
         }
     } catch { $errors.Add("Invalid Superpowers source lock: $($_.Exception.Message)") }

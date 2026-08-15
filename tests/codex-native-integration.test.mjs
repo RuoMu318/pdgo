@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -508,14 +509,16 @@ test("status documents report the current routing closeout and residual host evi
   const status = await readFile(path.join(root, "STATUS.md"), "utf8");
   const progress = await readFile(path.join(root, "PROGRESS.md"), "utf8");
   const currentAction = status.match(/## Current action\r?\n([\s\S]*)$/)?.[1] ?? "";
+  const gitHead = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" });
+  assert.equal(gitHead.status, 0, gitHead.stderr);
 
   for (const document of [status, progress]) {
     assert.match(document, /feat\/lightweight-routing-v3/);
-    assert.match(document, /559c2163537c54f4539fb1982e65a63ba9015a1c/);
     assert.match(document, /140\/140/);
     assert.match(document, /host attestation|宿主证明/i);
     assert.match(document, /billable Token|账单 Token/i);
   }
+  assert.match(status, new RegExp(gitHead.stdout.trim()));
   assert.match(currentAction, /No local implementation blocker remains/i);
   assert.match(currentAction, /host_enforced` remains `false`/i);
   assert.match(currentAction, /savings_proven`\s+remains `false`/i);

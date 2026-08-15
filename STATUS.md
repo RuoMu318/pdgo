@@ -1,13 +1,14 @@
 # BossCoding Codex integration status
 
-Updated: 2026-08-13
+Updated: 2026-08-15
 
 ## Goal
 
 Build and verify a Codex-native BossCoding secretary layer on top of PDGO. The main Agent is the
-only user-facing secretary; planning, execution, and independent review use separate task-scoped
-subagents. A user approves one exact plan version, then in-scope work advances automatically until
-completion or a defined stop condition.
+only user-facing secretary and completes ordinary work directly. One read-only reviewer is added
+only for external, destructive, difficult-to-reverse, or explicitly independent review; the full
+planning, execution, and review trio remains an explicit opt-in. A user approves one exact batch,
+then in-scope work advances until completion or a defined stop condition.
 
 ## Confirmed decisions
 
@@ -52,15 +53,18 @@ completion or a defined stop condition.
 
 ## Current action
 
-The current local branch is `feat/lightweight-routing-v3` at `559c2163537c54f4539fb1982e65a63ba9015a1c`.
-The latest Node baseline is 140/140 with zero failures, skips, or todos. The installed Codex runtime
-descriptor resolves to this checkout and its schema-1.1 runtime-tree digest verifies. A real bounded
+The current local branch is `feat/lightweight-routing-v3` at HEAD `5a706b46e159f2829732e880a05565d4118bc59f`.
+The latest committed Node baseline was 140/140; the current uncommitted merge-review repair passes
+141/141 with zero failures, skips, or todos. Repository validation, smoke, and both Codex-native Skill
+quick validations also pass. The installed Codex runtime descriptor was last verified before this
+uncommitted repair. A real bounded
 local write also completed with the current Agent, zero subagents, no observed PDGO state change,
 no added approval round, and exact cleanup.
 
 ## Residual limitations
 
-- No local implementation blocker remains in the approved routing and recovery scope.
+- No local implementation blocker remains in the current uncommitted repair. It has not been
+  committed, pushed, merged, reinstalled, or independently reviewed.
 - Trusted ordinary-routing host attestation is unavailable because the current Codex tool surface
   does not expose an injected routing/telemetry receipt. The live write proves file behavior, not
   automatic mode selection, so `host_enforced` remains `false`.
@@ -75,6 +79,7 @@ no added approval round, and exact cleanup.
 - Scope: local source, documentation, status records, and deterministic tests only.
 - Forbidden: global reinstall, Git commit/push, publication, production changes, R01 changes, Vault
   writes, and fabricated host or Token evidence.
-- Acceptance: current tests pass, runtime-tree inspection remains valid, status and public docs
-  match the installed local reality, and unresolved external evidence dependencies are explicit.
+- Acceptance: current tests pass, status and public docs match the uncommitted source reality,
+  installed-runtime evidence is not carried across source drift, and unresolved external evidence
+  dependencies are explicit.
 - Rollback: revert only this uncommitted closeout documentation/test batch.

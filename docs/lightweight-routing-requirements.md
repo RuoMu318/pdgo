@@ -76,9 +76,9 @@
 
 ## 4. 可选授权包络
 
-显式 full PDGO 计划可启用 `authorization_policy.required: true`。dispatcher 用稳定 JSON 排序和 SHA-256 对不可变批准边界生成 `boundary_digest`；边界包含精确 plan/version、范围、禁止动作、完成条件、任务范围和三角色分配，不包含运行状态、报告内容或其他可变字段。默认单 Agent 路径不为此创建 PDGO 状态。
+显式 full PDGO 计划可启用 `authorization_policy.required: true`。dispatcher 用稳定 JSON 排序和 SHA-256 对不可变批准边界生成 `boundary_digest`；边界包含精确 plan/version、范围、完整风险记录、禁止动作、完成条件、任务范围和三角色分配，不包含运行状态、报告内容或其他可变字段。默认单 Agent 路径不为此创建 PDGO 状态。
 
-宿主证明只能由注入的可信 transport／adapter 返回。批准 JSON、父 Agent 文本或消息中自报的 `verified: true` 都不是证明。启用策略后，同一 `authorization_envelope` 必须贯穿 plan、approval、dispatch、execution report 和 review decision；既定批次的计划持久化、绑定、派工、报告和审核记录复用同一次批准，不逐项追问。只有目标、对象、动作、风险、第三方影响、授权边界或验收发生实质变化时才重新确认。缺失、不一致、过期、plan/version 漂移、范围漂移或角色漂移都 fail closed。未启用策略的旧计划保持兼容。
+宿主证明只能由注入的可信 transport／adapter 返回。批准 JSON、父 Agent 文本或消息中自报的 `verified: true` 都不是证明。启用策略后，同一 `authorization_envelope` 必须贯穿 plan、approval、dispatch、execution report 和 review decision；既定批次的计划持久化、绑定、派工、报告和审核记录复用同一次批准，不逐项追问。只有目标、对象、动作、风险、第三方影响、授权边界或验收发生实质变化时才重新确认。缺失、不一致、过期、plan/version 漂移、范围漂移、风险漂移或角色漂移都 fail closed。未启用策略的旧计划保持兼容。
 
 ### 4.1 安装前旧规则冲突
 

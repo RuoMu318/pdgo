@@ -155,6 +155,7 @@ function authorizationStageBoundary(stage) {
 }
 
 function authorizationBoundary(plan, approval) {
+  const acknowledgedRiskIds = new Set(asArray(approval?.acknowledged_risks).map(String));
   return {
     plan_series_id: plan.plan_series_id,
     plan_id: plan.plan_id,
@@ -180,6 +181,7 @@ function authorizationBoundary(plan, approval) {
     rollback: clone(plan.rollback),
     allowed_paths: clone(plan.allowed_paths),
     forbidden_actions: clone(plan.forbidden_actions),
+    risks: clone(asArray(plan.risks).filter((risk) => acknowledgedRiskIds.has(String(risk.risk_id)))),
     serial_parallel_policy: plan.serial_parallel_policy,
     max_parallel: plan.max_parallel,
     authorization_policy: clone(plan.authorization_policy),

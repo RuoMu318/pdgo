@@ -132,3 +132,14 @@ Current completion state: all known local implementation and regression issues i
 routing/recovery scope are resolved. Trusted host routing attestation and billable Token savings
 remain external evidence limitations with explicit reasons. No reinstall, commit, push, publication,
 production change, R01 change, or Vault write is authorized or performed by this closeout batch.
+
+- 2026-08-15: Draft PR #2 received a read-only merge review. The review found that the authorization
+  digest omitted full plan risk records, README publication wording and STATUS HEAD were stale, and
+  GitHub CI ran repository validation without the full local test gates.
+- 2026-08-15: The user approved one local-only repair batch with no commit, push, merge, reinstall,
+  Vault, or R01 changes. A new regression first reproduced the risk-drift bypass, then passed after
+  the dispatcher added complete plan risks to the immutable authorization boundary.
+- 2026-08-15: The final local repair gates pass: Node 141/141 with zero failures, skips, or todos;
+  repository validation; smoke; and both Codex-native Skill quick validations. CI now runs Node,
+  repository/Skill validation, and smoke instead of reporting green from repository validation alone.
+  The batch remains uncommitted and has not been pushed, merged, reinstalled, or independently reviewed.

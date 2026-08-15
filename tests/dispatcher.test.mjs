@@ -291,6 +291,53 @@ test("one trusted approval envelope survives a fully host-bound BossCoding v2 ba
   }
 });
 
+test("authorization envelope rejects drift in approved risk details", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-risk-drift-"));
+  const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
+  const adapter = new AttestedAdapter({ clock });
+  const store = new FlowStateStore({ root: path.join(root, "state") });
+  const dispatcher = new FlowStateDispatcher({
+    store,
+    adapter,
+    projectId: "demo",
+    clock,
+  });
+  try {
+    await dispatcher.createPlan({
+      planSeriesId: "series-authorization-risk-drift",
+      planVersion: "v1",
+      plan: makePlan({
+        plan_id: "plan-authorization-risk-drift-v1",
+        authorization_policy: { required: true },
+      }),
+    });
+    await dispatcher.approvePlan({
+      planSeriesId: "series-authorization-risk-drift",
+      planVersion: "v1",
+      approval: {
+        approval_id: "approval-authorization-risk-drift",
+        approver: "user",
+        plan_id: "plan-authorization-risk-drift-v1",
+        plan_version: "v1",
+        decision: "approved",
+        acknowledged_risks: ["R01"],
+      },
+    });
+
+    const state = await store.load("demo");
+    state.series["series-authorization-risk-drift"].plans.v1.risks[0].severity = "critical";
+    state.series["series-authorization-risk-drift"].plans.v1.risks[0].impact = "unbounded";
+    await store.save(state);
+
+    await assert.rejects(
+      () => dispatcher.dispatchReady({ planSeriesId: "series-authorization-risk-drift", planVersion: "v1" }),
+      /authorization boundary digest does not match/i,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("authorization attestation fails closed for unavailable, forged, mismatched, expired, or wrong-version proof", async () => {
   const cases = [
     {
