@@ -20,6 +20,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const canonicalTempBase = await realpath(os.tmpdir());
 const resolverSource = path.join(
   repoRoot,
   "integrations",
@@ -251,7 +252,7 @@ async function makeInstallerSource(tempRoot, overlay = "## BossCoding 默认协�
 }
 
 test("cold-start inspect resolves from the installed Skill and performs zero state writes", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-cold-inspect-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-cold-inspect-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const codexHome = path.join(tempRoot, "codex-home");
   const projectRoot = path.join(tempRoot, "Unrelated 项目");
@@ -274,7 +275,7 @@ test("cold-start inspect resolves from the installed Skill and performs zero sta
 });
 
 test("cold-start ensure requires the exact inspected state root and is idempotent", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-cold-ensure-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-cold-ensure-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const codexHome = path.join(tempRoot, "codex-home");
   const projectRoot = path.join(tempRoot, "Project A");
@@ -319,7 +320,7 @@ test("cold-start ensure requires the exact inspected state root and is idempoten
 });
 
 test("BossCoding verified invoke recomputes the state root and rejects runtime catalog overrides", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-cold-verified-invoke-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-cold-verified-invoke-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const codexHome = path.join(tempRoot, "codex-home");
   const projectRoot = path.join(tempRoot, "Verified Project");
@@ -378,7 +379,7 @@ test("BossCoding verified invoke recomputes the state root and rejects runtime c
 });
 
 test("cold-start resolver fails closed on descriptor path and SHA-256 drift", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-cold-integrity-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-cold-integrity-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const codexHome = path.join(tempRoot, "codex-home");
   const projectRoot = path.join(tempRoot, "Project B");
@@ -401,7 +402,7 @@ test("cold-start resolver fails closed on descriptor path and SHA-256 drift", as
 });
 
 test("cold-start resolver rejects drift in imported dispatcher libraries and the Agency prompt tree", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-cold-tree-integrity-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-cold-tree-integrity-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const codexHome = path.join(tempRoot, "codex-home");
   const projectRoot = path.join(tempRoot, "Project tree");
@@ -430,7 +431,7 @@ test("cold-start resolver rejects drift in imported dispatcher libraries and the
 });
 
 test("cold-start resolver rejects a project path that is itself a symlink, junction, or non-canonical alias", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-cold-project-link-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-cold-project-link-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const codexHome = path.join(tempRoot, "codex-home");
   const projectRoot = path.join(tempRoot, "real-project");
@@ -447,7 +448,7 @@ test("cold-start resolver rejects a project path that is itself a symlink, junct
 });
 
 test("dispatcher finds the bundled external Agent catalog from an unrelated cwd without moving legacy state", async (t) => {
-  const unrelated = await mkdtemp(path.join(os.tmpdir(), "pdgo-dispatch-unrelated-"));
+  const unrelated = await mkdtemp(path.join(canonicalTempBase, "pdgo-dispatch-unrelated-"));
   t.after(() => rm(unrelated, { recursive: true, force: true }));
 
   const output = expectSuccess(runNode(dispatcherSource, [
@@ -461,7 +462,7 @@ test("dispatcher finds the bundled external Agent catalog from an unrelated cwd 
 });
 
 test("installer refuses the known unmanaged absolute write-approval rule before changing any target", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-policy-conflict-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-policy-conflict-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const codexHome = path.join(tempRoot, "codex-home");
   const fixture = await makeInstallerSource(tempRoot);
@@ -521,7 +522,7 @@ test("installer refuses the known unmanaged absolute write-approval rule before 
 });
 
 test("Codex-native installer preserves legacy BossCoding text, installs one managed block, and emits descriptor 1.1", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-native-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-native-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const codexHome = path.join(tempRoot, "codex-home");
   const fixture = await makeInstallerSource(tempRoot);
@@ -569,7 +570,7 @@ test("Codex-native installer preserves legacy BossCoding text, installs one mana
 
 test("overlay insertion preserves legacy sections before either a level-one or level-two next heading", async (t) => {
   for (const nextHeading of ["# Next policy", "## Next policy"]) {
-    const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-overlay-preserve-"));
+    const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-overlay-preserve-"));
     t.after(() => rm(tempRoot, { recursive: true, force: true }));
     const fixture = await makeInstallerSource(tempRoot);
     const codexHome = path.join(tempRoot, "codex-home");
@@ -587,7 +588,7 @@ test("overlay insertion preserves legacy sections before either a level-one or l
 });
 
 test("installer preflight failure mutates no existing target", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-preflight-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-preflight-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -606,7 +607,7 @@ test("installer preflight failure mutates no existing target", async (t) => {
 });
 
 test("installer rolls back a commit error and recovers an interrupted batch before later preflight", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-atomic-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-atomic-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -644,7 +645,7 @@ test("installer rolls back a commit error and recovers an interrupted batch befo
 });
 
 test("installer rejects a symlinked target ancestor before any write", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-link-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-link-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -663,7 +664,7 @@ test("installer rejects a symlinked target ancestor before any write", async (t)
 });
 
 test("installer ownership lock rejects a second live installer without rolling back the active batch", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-lock-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-lock-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -684,7 +685,7 @@ test("installer ownership lock rejects a second live installer without rolling b
 });
 
 test("installer publishes a complete lock atomically and recovers after a pre-publish crash", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-lock-publish-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-lock-publish-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -702,7 +703,7 @@ test("installer publishes a complete lock atomically and recovers after a pre-pu
 });
 
 test("installer safely isolates pure staging orphans with a missing or truncated journal", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-orphan-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-orphan-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -722,7 +723,7 @@ test("installer safely isolates pure staging orphans with a missing or truncated
 });
 
 test("installer fails and rolls back when the source drifts after the staging snapshot", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-source-drift-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-source-drift-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -744,7 +745,7 @@ test("installer fails and rolls back when the source drifts after the staging sn
 
 test("installer detects file and directory target drift before the first mutation", async (t) => {
   for (const targetKind of ["file", "directory"]) {
-    const tempRoot = await mkdtemp(path.join(os.tmpdir(), `pdgo-install-target-drift-${targetKind}-`));
+    const tempRoot = await mkdtemp(path.join(canonicalTempBase, `pdgo-install-target-drift-${targetKind}-`));
     t.after(() => rm(tempRoot, { recursive: true, force: true }));
     const fixture = await makeInstallerSource(tempRoot);
     const codexHome = path.join(tempRoot, "codex-home");
@@ -774,7 +775,7 @@ test("installer preserves and recovers the physical backup across both rename jo
     ["BOSSCODING_INSTALL_FAIL_AFTER_BACKUP_RENAME", 88],
     ["BOSSCODING_INSTALL_FAIL_AFTER_TARGET_RENAME", 89],
   ]) {
-    const tempRoot = await mkdtemp(path.join(os.tmpdir(), `pdgo-install-rename-window-${expectedStatus}-`));
+    const tempRoot = await mkdtemp(path.join(canonicalTempBase, `pdgo-install-rename-window-${expectedStatus}-`));
     t.after(() => rm(tempRoot, { recursive: true, force: true }));
     const fixture = await makeInstallerSource(tempRoot);
     const codexHome = path.join(tempRoot, "codex-home");
@@ -797,7 +798,7 @@ test("installer preserves and recovers the physical backup across both rename jo
 });
 
 test("first-install interruption before atomic publish leaves no partial live Skill", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-first-publish-interrupt-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-first-publish-interrupt-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -817,7 +818,7 @@ test("first-install interruption before atomic publish leaves no partial live Sk
 
 test("first install preserves file and directory targets created concurrently after the final snapshot", async (t) => {
   for (const targetKind of ["directory", "file"]) {
-    const tempRoot = await mkdtemp(path.join(os.tmpdir(), `pdgo-install-first-late-${targetKind}-`));
+    const tempRoot = await mkdtemp(path.join(canonicalTempBase, `pdgo-install-first-late-${targetKind}-`));
     t.after(() => rm(tempRoot, { recursive: true, force: true }));
     const fixture = await makeInstallerSource(tempRoot);
     const codexHome = path.join(tempRoot, "codex-home");
@@ -846,7 +847,7 @@ test("first install preserves file and directory targets created concurrently af
 
 test("first install preserves identical file and directory targets copied concurrently from staging", async (t) => {
   for (const targetKind of ["directory", "file"]) {
-    const tempRoot = await mkdtemp(path.join(os.tmpdir(), `pdgo-install-first-identical-${targetKind}-`));
+    const tempRoot = await mkdtemp(path.join(canonicalTempBase, `pdgo-install-first-identical-${targetKind}-`));
     t.after(() => rm(tempRoot, { recursive: true, force: true }));
     const fixture = await makeInstallerSource(tempRoot);
     const codexHome = path.join(tempRoot, "codex-home");
@@ -873,7 +874,7 @@ test("first install preserves identical file and directory targets copied concur
 
 test("installer preserves late file and directory edits made after the final snapshot check", async (t) => {
   for (const targetKind of ["directory", "file"]) {
-    const tempRoot = await mkdtemp(path.join(os.tmpdir(), `pdgo-install-late-target-drift-${targetKind}-`));
+    const tempRoot = await mkdtemp(path.join(canonicalTempBase, `pdgo-install-late-target-drift-${targetKind}-`));
     t.after(() => rm(tempRoot, { recursive: true, force: true }));
     const fixture = await makeInstallerSource(tempRoot);
     const codexHome = path.join(tempRoot, "codex-home");
@@ -900,7 +901,7 @@ test("installer preserves late file and directory edits made after the final sna
 });
 
 test("installer rollback preserves an externally modified committed target", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-rollback-conflict-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-rollback-conflict-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -923,7 +924,7 @@ test("installer rollback preserves an externally modified committed target", asy
 });
 
 test("installer rechecks the live source after commit and rolls back stale output", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-post-source-drift-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-post-source-drift-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -944,7 +945,7 @@ test("installer rechecks the live source after commit and rolls back stale outpu
 });
 
 test("installer verifies every committed target and rolls back a post-commit mismatch", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-install-post-verify-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-install-post-verify-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
   const fixture = await makeInstallerSource(tempRoot);
   const codexHome = path.join(tempRoot, "codex-home");
@@ -962,7 +963,7 @@ test("installer verifies every committed target and rolls back a post-commit mis
 });
 
 test("stateful dispatcher actions require explicit root and project unless legacy defaults are explicitly enabled", async (t) => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "pdgo-cli-args-"));
+  const tempRoot = await mkdtemp(path.join(canonicalTempBase, "pdgo-cli-args-"));
   t.after(() => rm(tempRoot, { recursive: true, force: true }));
 
   const noRoot = runNode(dispatcherSource, ["--action", "resume", "--project", "p", "--external-agents", "false"], tempRoot);

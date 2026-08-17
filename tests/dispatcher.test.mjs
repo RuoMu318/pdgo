@@ -1,10 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { CodexAppServerAdapter, FileQueueAdapter, FlowStateDispatcher, FlowStateRuntime, FlowStateStore } from "../scripts/lib/flowstate-dispatcher.mjs";
+
+const canonicalTempBase = await realpath(os.tmpdir());
 
 class MockAdapter {
   constructor() {
@@ -151,7 +153,7 @@ function bossExecutionBaseline(overrides = {}) {
 }
 
 async function fixture() {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-dispatcher-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-dispatcher-"));
   const adapter = new MockAdapter();
   const dispatcher = new FlowStateDispatcher({
     store: new FlowStateStore({ root: path.join(root, "state") }),
@@ -167,7 +169,7 @@ async function ingestObservedReview(dispatcher, review, observedSessionId = revi
 }
 
 test("one trusted approval envelope survives a fully host-bound BossCoding v2 batch unchanged", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-authorization-"));
   const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
   const adapter = new AttestedAdapter({ clock });
   const dispatcher = new FlowStateDispatcher({
@@ -292,7 +294,7 @@ test("one trusted approval envelope survives a fully host-bound BossCoding v2 ba
 });
 
 test("authorization envelope rejects drift in approved risk details", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-risk-drift-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-authorization-risk-drift-"));
   const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
   const adapter = new AttestedAdapter({ clock });
   const store = new FlowStateStore({ root: path.join(root, "state") });
@@ -373,7 +375,7 @@ test("authorization attestation fails closed for unavailable, forged, mismatched
   ];
 
   for (const entry of cases) {
-    const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-negative-"));
+    const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-authorization-negative-"));
     const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
     const adapter = entry.adapter(root, clock);
     const dispatcher = new FlowStateDispatcher({
@@ -410,7 +412,7 @@ test("authorization attestation fails closed for unavailable, forged, mismatched
 });
 
 test("authorization envelope rejects missing, mismatched, and expired report or review artifacts", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-artifacts-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-authorization-artifacts-"));
   let now = Date.parse("2026-08-11T01:00:00.000Z");
   const clock = () => now;
   const adapter = new AttestedAdapter({ clock });
@@ -466,7 +468,7 @@ test("authorization digest detects plan-version, scope, and role drift before di
     ["scope", (plan) => { plan.allowed_paths.push("outside-approved-scope.txt"); }],
     ["role", (plan) => { plan.role_assignments.execution = { host_agent_type: "Different Worker", selection_source: "unapproved", permission_mode: "approved-scope-write" }; }],
   ]) {
-    const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-drift-"));
+    const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-authorization-drift-"));
     const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
     const adapter = new AttestedAdapter({ clock });
     const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
@@ -494,7 +496,7 @@ test("authorization digest covers static dispatch selectors, lenses, stages, and
     ["max parallel", (plan) => { plan.max_parallel = 2; }],
     ["planning policy", (plan) => { plan.planning_policy.max_revision_cycles += 1; }],
   ]) {
-    const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-static-drift-"));
+    const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-authorization-static-drift-"));
     const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
     const adapter = new AttestedAdapter({ clock });
     const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
@@ -511,7 +513,7 @@ test("authorization digest covers static dispatch selectors, lenses, stages, and
 });
 
 test("an authorized report can surface a new risk for review before reapproval", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorization-new-risk-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-authorization-new-risk-"));
   const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
   const adapter = new AttestedAdapter({ clock });
   const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
@@ -1029,7 +1031,7 @@ test("BossCoding v2 requires an explicit complete role contract", async () => {
 });
 
 test("direct CLI cannot claim verified mode, cannot downgrade v2 state, and resolver-owned invocation rejects new legacy plans", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-cli-interface-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-cli-interface-"));
   try {
     const dispatcherCli = path.resolve("scripts", "flowstate-dispatcher.mjs");
     const v2Input = path.join(root, "v2-plan.json");
@@ -1295,7 +1297,7 @@ test("only the independent reviewer session can accept an execution report", asy
 });
 
 test("host bridge binds real controller and worker ids before accepting reports or review", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-host-bind-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-host-bind-"));
   const dispatcher = new FlowStateDispatcher({
     store: new FlowStateStore({ root: path.join(root, "state") }),
     adapter: new FileQueueAdapter({ root: path.join(root, "queue") }),
@@ -1404,7 +1406,7 @@ test("host bridge binds real controller and worker ids before accepting reports 
 });
 
 test("governed host bindings require and persist host-observed role metadata from the approved plan", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-governed-host-bind-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-governed-host-bind-"));
   const dispatcher = new FlowStateDispatcher({
     store: new FlowStateStore({ root: path.join(root, "state") }),
     adapter: new FileQueueAdapter({ root: path.join(root, "queue") }),
@@ -1530,7 +1532,7 @@ test("governed host bindings require and persist host-observed role metadata fro
 });
 
 test("BossCoding v2 rejects execution reports until the exact worker is host-bound", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-v2-report-bind-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-v2-report-bind-"));
   const dispatcher = new FlowStateDispatcher({
     store: new FlowStateStore({ root: path.join(root, "state") }),
     adapter: new FileQueueAdapter({ root: path.join(root, "queue") }),
@@ -1594,7 +1596,7 @@ test("BossCoding v2 rejects execution reports until the exact worker is host-bou
 });
 
 test("BossCoding v2 binds a new worker after revision without weakening dispatch identity", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-v2-revision-worker-bind-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-v2-revision-worker-bind-"));
   const dispatcher = new FlowStateDispatcher({
     store: new FlowStateStore({ root: path.join(root, "state") }),
     adapter: new MockAdapter(),
@@ -1735,7 +1737,7 @@ test("BossCoding v2 binds a new worker after revision without weakening dispatch
 });
 
 test("state and queue writes reject linked paths inside their governed roots", async (t) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-linked-writes-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-linked-writes-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const outsideState = path.join(root, "outside-state");
   const stateRoot = path.join(root, "state");
@@ -1761,7 +1763,7 @@ test("state and queue writes reject linked paths inside their governed roots", a
 });
 
 test("a missing state root below a junction ancestor is rejected before any outside write", async (t) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-linked-root-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-linked-root-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const outside = path.join(root, "outside");
   const linkedAncestor = path.join(root, "linked-ancestor");
@@ -1776,7 +1778,7 @@ test("a missing state root below a junction ancestor is rejected before any outs
 });
 
 test("host_agent_type is immutable for a bound session across BossCoding v2 plan versions", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-host-identity-immutable-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-host-identity-immutable-"));
   const dispatcher = new FlowStateDispatcher({
     store: new FlowStateStore({ root: path.join(root, "state") }),
     adapter: new FileQueueAdapter({ root: path.join(root, "queue") }),
@@ -2146,7 +2148,7 @@ test("failed blocker notifications do not commit reports or planning opinions", 
 });
 
 test("file queue leaves dispatch and report messages on disk", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-queue-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-queue-"));
   try {
     const adapter = new FileQueueAdapter({ root: path.join(root, "queue"), id: (prefix) => `${prefix}-fixed` });
     const sessions = await adapter.ensureSeriesSessions({ seriesId: "series-local" });
@@ -2164,7 +2166,7 @@ test("file queue leaves dispatch and report messages on disk", async () => {
 });
 
 test("file queue dispatches are idempotent and processed messages are archived", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-queue-idempotency-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-queue-idempotency-"));
   try {
     const adapter = new FileQueueAdapter({ root: path.join(root, "queue"), id: (prefix) => `${prefix}-fixed` });
     const first = await adapter.send({ message_type: "PLAN_DISPATCH", dispatch_id: "dispatch-1", target_session_id: "worker-1" });
@@ -2305,7 +2307,7 @@ test("BossCoding v2 cannot complete with empty gates, unchecked evidence, or omi
 });
 
 test("parallel BossCoding reviews refresh the last request before final plan acceptance", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorized-parallel-refresh-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-authorized-parallel-refresh-"));
   const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
   const adapter = new AttestedAdapter({ clock });
   const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
@@ -2413,7 +2415,7 @@ test("parallel BossCoding reviews refresh the last request before final plan acc
 });
 
 test("parallel stale acceptance with a new risk waits for reapproval before final review", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-authorized-parallel-reapproval-refresh-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-authorized-parallel-reapproval-refresh-"));
   const clock = () => Date.parse("2026-08-11T01:00:00.000Z");
   const adapter = new AttestedAdapter({ clock });
   const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root: path.join(root, "state") }), adapter, projectId: "demo", clock });
@@ -2559,7 +2561,7 @@ test("a newer plan approval never releases a superseded version final review req
 });
 
 test("file queue safely routes canonical Codex subagent names without changing their identity", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-queue-codex-session-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-queue-codex-session-"));
   try {
     const adapter = new FileQueueAdapter({ root: path.join(root, "queue"), id: (prefix) => `${prefix}-fixed` });
     const canonicalSessionId = "/root/e2e_reviewer";
@@ -2598,7 +2600,7 @@ test("file queue safely routes canonical Codex subagent names without changing t
 });
 
 test("file queue rejects traversal-shaped report and review ids", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-queue-safe-id-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-queue-safe-id-"));
   try {
     const adapter = new FileQueueAdapter({ root: path.join(root, "queue") });
     await assert.rejects(
@@ -2623,7 +2625,7 @@ test("file queue rejects traversal-shaped report and review ids", async () => {
 });
 
 test("state transactions serialize concurrent writers without losing updates", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-store-lock-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-store-lock-"));
   try {
     const store = new FlowStateStore({ root: path.join(root, "state") });
     const increment = () => store.transaction("demo", async (state) => {
@@ -2639,7 +2641,7 @@ test("state transactions serialize concurrent writers without losing updates", a
 });
 
 test("a long state transaction cannot have its lock stolen or deleted by a competing writer", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-store-long-lock-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-store-long-lock-"));
   try {
     const firstStore = new FlowStateStore({ root: path.join(root, "state"), lockTimeoutMs: 100, staleLockMs: 120 });
     const secondStore = new FlowStateStore({ root: path.join(root, "state"), lockTimeoutMs: 100, staleLockMs: 120 });
@@ -2669,7 +2671,7 @@ test("a long state transaction cannot have its lock stolen or deleted by a compe
 });
 
 test("concurrent restarts reclaim one dead lock without deleting the new live owner", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-store-dead-lock-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-store-dead-lock-"));
   try {
     const stateRoot = path.join(root, "state");
     await mkdir(stateRoot, { recursive: true });
@@ -2695,7 +2697,7 @@ test("concurrent restarts reclaim one dead lock without deleting the new live ow
 });
 
 test("loading a connected pre-upgrade state locks its existing controller identities", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-state-migration-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-state-migration-"));
   try {
     const stateRoot = path.join(root, "state");
     await mkdir(stateRoot, { recursive: true });
@@ -2744,7 +2746,7 @@ test("loading a connected pre-upgrade state locks its existing controller identi
 });
 
 test("automatic dispatch pauses instead of treating a file queue as a live Agent transport", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-automatic-transport-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-automatic-transport-"));
   try {
     const adapter = new FileQueueAdapter({ root: path.join(root, "queue") });
     const dispatcher = new FlowStateDispatcher({
@@ -2766,7 +2768,7 @@ test("automatic dispatch pauses instead of treating a file queue as a live Agent
 });
 
 test("reapproval restores a never-dispatched task after its transport blocker is resolved", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-resolved-transport-reapproval-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-resolved-transport-reapproval-"));
   const seriesId = "series-resolved-transport-reapproval";
   const approval = {
     approver: "user",
@@ -2861,7 +2863,7 @@ test("reapproval restores a never-dispatched task after its transport blocker is
 });
 
 test("reapproval does not unlock a task that was blocked after dispatch", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-dispatched-block-reapproval-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-dispatched-block-reapproval-"));
   const seriesId = "series-dispatched-block-reapproval";
   const approval = {
     approver: "user",
@@ -2957,7 +2959,7 @@ test("reapproval does not unlock a task that was blocked after dispatch", async 
 });
 
 test("runtime resumes queued reports and reviews and dispatches the next task once", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-runtime-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-runtime-"));
   let sequence = 0;
   try {
     const adapter = new ConnectedQueueAdapter({ root: path.join(root, "queue"), id: (prefix) => `${prefix}-${++sequence}` });
@@ -3025,7 +3027,7 @@ test("runtime resumes queued reports and reviews and dispatches the next task on
 });
 
 test("runtime does not accept a review from an unauthenticated file queue", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-runtime-untrusted-review-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-runtime-untrusted-review-"));
   try {
     const adapter = new FileQueueAdapter({ root: path.join(root, "queue") });
     const dispatcher = new FlowStateDispatcher({
@@ -3085,7 +3087,7 @@ test("runtime does not accept a review from an unauthenticated file queue", asyn
 });
 
 test("runtime surfaces legacy reviews routed to the execution controller for requeue", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-runtime-legacy-review-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-runtime-legacy-review-"));
   try {
     const adapter = new ConnectedQueueAdapter({ root: path.join(root, "queue") });
     const dispatcher = new FlowStateDispatcher({
@@ -3148,7 +3150,7 @@ test("runtime surfaces legacy reviews routed to the execution controller for req
 });
 
 test("runtime keeps the series paused when planning waits for the user", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-runtime-blocked-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-runtime-blocked-"));
   let sequence = 0;
   try {
     const adapter = new ConnectedQueueAdapter({ root: path.join(root, "queue"), id: (prefix) => `${prefix}-${++sequence}` });
@@ -3200,7 +3202,7 @@ test("runtime keeps the series paused when planning waits for the user", async (
 });
 
 test("runtime supports an unscoped same-window cycle without product paths", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-runtime-unscoped-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-runtime-unscoped-"));
   try {
     const adapter = new FileQueueAdapter({ root: path.join(root, "queue") });
     const dispatcher = new FlowStateDispatcher({
@@ -3478,7 +3480,7 @@ test("Codex App Server adapter creates controller threads once and task threads 
       return { turn: { id: `turn-${++counter}` } };
     },
   });
-  const root = await mkdtemp(path.join(os.tmpdir(), "flowstate-app-server-"));
+  const root = await mkdtemp(path.join(canonicalTempBase, "flowstate-app-server-"));
   try {
     const dispatcher = new FlowStateDispatcher({ store: new FlowStateStore({ root }), adapter, projectId: "demo" });
     await dispatcher.createPlan({ planSeriesId: "series-app", planVersion: "v1", plan: makePlan({ plan_id: "series-app-plan-v1" }) });
