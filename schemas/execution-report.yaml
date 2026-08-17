@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 message_type: EXECUTION_REPORT | EXECUTION_STOPPED
 trace_id: trace-YYYYMMDD-NNN
 report_id: report-YYYYMMDD-NNN
@@ -9,8 +9,32 @@ plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
 plan_version: v1
 task_id: T01
 session_id: execution-session-id
+worker_session_id: execution-worker-session-id
+worker_identity_verified: false
+identity_format: worker-session-field | worker-in-session-id | legacy-controller-session
 execution_session_id: execution-session-id
 planning_session_id: planning-session-id
+reviewer_session_id: review-session-id
+# Echo the exact dispatch envelope when the approved plan enables authorization_policy.required.
+authorization_envelope:
+  schema_version: "1.0"
+  plan_series_id: PROJECT-YYYYMMDD-NNN
+  plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+  plan_version: v1
+  approval_id: approval-YYYYMMDD-NNN
+  boundary_digest: sha256-hex
+  approval_boundary:
+    approval_id: approval-YYYYMMDD-NNN
+    approver: user
+    decision: approved
+    approved_scope: []
+    acknowledged_risks: []
+    conditions: []
+  expires_at: "YYYY-MM-DDThh:mm:ssZ"
+  attestation:
+    proof_id: host-proof-id
+    transport: trusted-host-adapter
+    attested_at: "YYYY-MM-DDThh:mm:ssZ"
 status: returned-to-planning | blocked | abnormal-stopped
 abnormal_stop: false
 summary: ""
@@ -21,6 +45,8 @@ evidence: []
 assumptions: []
 deviations: []
 new_risks: []
+# Each optional item requires risk_id, severity (low | medium | high | critical), and impact.
+# Every item is validated before the report or any state transition is recorded.
 new_blockers: []
 blocker_contract:
   required_when: status is blocked, abnormal_stop is true, or message_type is EXECUTION_STOPPED

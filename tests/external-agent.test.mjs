@@ -125,6 +125,7 @@ test("external Agent selection is only sent as a complete governed dispatch", as
     target_session_id: "worker-1",
     planning_session_id: "planning-1",
     execution_session_id: "execution-1",
+    reviewer_session_id: "review-1",
     return_to: "planning-1",
     acceptance_criteria: ["done"],
     expected_evidence: ["report"],
@@ -205,6 +206,7 @@ test("external Agent adapter inherits a stage selector and uses the connected ho
     target_session_id: worker.worker_session_id,
     planning_session_id: "planning-1",
     execution_session_id: "execution-1",
+    reviewer_session_id: "review-1",
     return_to: "planning-1",
     acceptance_criteria: ["done"],
     expected_evidence: ["report"],
@@ -242,4 +244,35 @@ test("external Agent adapter rejects a host worker without a real session id", a
     () => adapter.ensureWorkerSession({ task: { external_agent_id: entry.agent_id } }),
     /did not return a worker session/,
   );
+});
+
+test("external Agent adapter authenticates reviews only from the transport it actually polls", async () => {
+  const catalog = {
+    async resolve() { throw new Error("not used"); },
+  };
+  const fileQueueLike = {
+    authenticatedReviewSource: false,
+    async receiveReviews() { return []; },
+  };
+  const workerOnlyHost = {
+    authenticatedReviewSource: true,
+    async startWorker() { return { worker_session_id: "worker-1" }; },
+  };
+  const fallback = new AgencyAgentsAdapter({
+    catalog,
+    baseAdapter: fileQueueLike,
+    hostTransport: workerOnlyHost,
+  });
+  assert.equal(fallback.authenticatedReviewSource, false);
+
+  const reviewHost = {
+    authenticatedReviewSource: true,
+    async receiveReviews() { return []; },
+  };
+  const hostBacked = new AgencyAgentsAdapter({
+    catalog,
+    baseAdapter: fileQueueLike,
+    hostTransport: reviewHost,
+  });
+  assert.equal(hostBacked.authenticatedReviewSource, true);
 });

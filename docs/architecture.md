@@ -51,11 +51,34 @@ PDGO
 
 ## 2. Core layer
 
-The core layer is always active. It performs startup classification, memory lookup, Skill routing, mode checks,
-approval checks, task state transitions, failure handling, and audit linking.
+Only the bounded three-mode bootstrap is always active. It routes the request before model extensions, subagents,
+PDGO state writes, formal plans, governance prompts, or role processes can run.
 
-The core layer must not contain product-specific instructions. It may enforce universal boundaries but delegates
-domain decisions to project profiles and scoped Skills.
+- Lightweight work stays in the current Agent and has zero PDGO governance side effects.
+- Standard work stays in the current Agent with a proportionate self-check, zero governance-prompt loads, and zero new PDGO approval rounds.
+- High-assurance work, or an explicit secretary/BossCoding entry, loads the secretary contract but stays with the
+  current Agent by default. External, destructive, difficult-to-reverse, or explicitly independently reviewed work
+  adds at most one read-only reviewer. Full PDGO three-role orchestration is explicit opt-in only.
+
+Lightweight and standard share one authorization gate before work-depth selection. They require a structured
+`current_request_boundary` whose closed-set action and file targets match the local action. Targets are normalized and
+contained within an approved absolute local root; traversal, out-of-root paths, broad targets, forbidden actions,
+contradictions, missing evidence, or any declared risk fail closed. Both modes emit
+`authorization_source=explicit-current-user-request` and `pdgo_new_approval_rounds=0`. This source-level boundary is
+not live host attestation. A real bounded local write proves current-Agent file behavior, but the current Codex host
+does not expose a trusted routing/telemetry receipt, so automatic ordinary-mode selection remains unattested.
+
+The high-assurance core performs only the planning, approval checks, failure handling, and evidence needed for the
+actual risk. Default single-agent work does not create PDGO state or load role processes. Explicit full PDGO may add
+memory lookup, Skill routing, task state transitions, role binding, recovery, and audit linking. The core must not
+contain product-specific instructions and delegates domain decisions to project profiles and scoped Skills.
+
+The dispatcher also supports an optional fail-closed authorization policy. It hashes only the immutable approved
+boundary with stable JSON plus SHA-256 and accepts host attestation only from an injected transport or adapter. When
+enabled, the same envelope must survive plan, approval, dispatch, report, and review; unchanged internal artifacts do
+not create item-by-item approval rounds. A material target, object, action, risk, third-party effect, authorization
+boundary, or acceptance change requires a new exact approval. Missing, expired, mismatched, version-drifted,
+scope-drifted, or role-drifted artifacts stop. Legacy plans without the policy remain compatible.
 
 ## 3. Department layer
 
@@ -65,9 +88,10 @@ Produces an immutable, titled, indexed plan series version. It owns discovery, r
 registration, dependency analysis, acceptance design, and the user approval request. It does not modify product
 artifacts before approval.
 
-The planning controller also owns the execution loop: it divides long plans into ordered serial or parallel stages,
-assigns stage-level Skills and agent selectors, dispatches each ready task, independently reviews every returned
-report, and either unlocks the next work or issues a correction. A correction stays in the same approved version only
+The planning controller owns plan lifecycle and blocker disposition. It divides long plans into ordered serial or
+parallel stages and assigns stage-level Skills and agent selectors, but it does not accept ordinary execution results.
+Every normal report is sent to the persistent independent review controller, which either unlocks the next work or
+issues a correction. A correction stays in the same approved version only
 when it is an omitted approved item, a defect repair, or an alternate implementation method with no unresolved risk
 or blocker and no permission, acceptance, architecture, rollback, or scope change. Every new blocker pauses the
 series for planning disposition. Planning may resolve it inside the approved contract; otherwise it clears approval
@@ -97,16 +121,14 @@ worker      performs one bounded operation
 reviewer    checks outputs independently
 ```
 
-Controllers and workers use different sessions when the task is handed off. For one `plan_series_id`, the planning
-controller and execution controller are persistent sessions: series extensions reuse them so planning and execution
-continue in the same conversations. A parallel series gets a new controller pair and a `parallel_of` link; its
-accepted result is synchronized back to the parent planning session. Reviewers receive artifacts and evidence, not
-an assumed shared transcript. This keeps handoffs auditable without losing series continuity.
+Controllers and workers use different sessions when the task is handed off. For one `plan_series_id`, planning,
+execution, and review controllers are three distinct persistent sessions. A series extension reuses all three; a
+parallel series gets a new controller trio and a `parallel_of` link. The reviewer receives artifacts and evidence,
+not an assumed shared transcript. Only a decision observed from its bound session can unlock dependent work.
 
-When no project can be identified, the host may use an unscoped project identity and run planning, execution
-reasoning, and review in the same visible Codex window. These are still separate logical departments in the state
-record. The no-project mode is read-only with respect to unknown product paths and cannot create external dispatches
-until the user supplies a concrete scope and version-bound approval.
+When no project can be identified, the host may use an unscoped project identity for read-only planning and method
+work. Logical departments in one visible window are not independent identity evidence: acceptance remains unavailable
+until the host binds a distinct reviewer session. Unknown product paths remain read-only.
 
 ## 5. Skill organization
 
@@ -150,8 +172,8 @@ clarify goal
 → request user approval
 → execute bounded task
 → test and verify
-→ request independent review
-→ return report to planning
+→ send a review request to the bound reviewer
+→ receive a source-verified review decision
 → accept, issue in-scope correction, block, or fail
 → unlock dependent task
 → dispatch next task in the same series controller sessions

@@ -8,4 +8,5 @@
 skills/** text eol=lf working-tree-encoding=UTF-8
 
 # The locked Agent prompt cache is retained byte-for-byte for source-SHA verification.
-integrations/external-agents/agency-agents/prompts/** whitespace=-trailing-space,-blank-at-eof,-conflict-marker
+# `-text` prevents Windows autocrlf from changing the bytes covered by source_sha.
+integrations/external-agents/agency-agents/prompts/** -text whitespace=-trailing-space,-blank-at-eof,-conflict-marker

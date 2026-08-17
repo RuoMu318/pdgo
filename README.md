@@ -33,7 +33,7 @@ project intake
   -> request explicit user approval for the exact plan version
   -> dispatch one ready task to execution
   -> collect an execution report
-  -> send the report to planning for independent acceptance
+  -> send a REVIEW_REQUEST to the bound independent reviewer
   -> accept, revise, block, or fail the task
   -> unlock and dispatch the next dependent task when all gates pass
   -> write checkpoints, summaries, indexes, and audit records
@@ -50,17 +50,17 @@ Planning review is not user approval. A worker report is not completion approval
 | Review | Compare reports and evidence with acceptance criteria | Rewrite scope silently or clear an unresolved blocker |
 | Coordination | Route Skills, maintain state, persist memory, dispatch messages, and audit transitions | Infer approval, fabricate evidence, or claim an unavailable adapter completed work |
 
-For a project series, planning and execution controllers have persistent session identities. Task workers and reviewers remain task-scoped. An extension reuses the series controller identities; a genuinely parallel branch gets a new series and a `parallel_of` link.
+For a project series, planning, execution, and independent review controllers have three persistent, distinct session identities. Task workers remain task-scoped. An extension reuses the controller trio; a genuinely parallel branch gets a new series and a `parallel_of` link.
 
-When no repository or project is available, the orchestrator still performs planning, execution reasoning, and acceptance in the current Codex window. It uses an explicit unscoped project identity, keeps planning/execution/review as logical roles in the state record, and does not modify unknown product files or dispatch external work without a concrete scope and approval.
+When no repository or project is available, the orchestrator may still perform read-only planning in the current Codex window. Logical roles in one window are not independent review evidence, so acceptance remains unavailable until a concrete scope, approval, and distinct reviewer session exist.
 
 ## Planning Controller Responsibilities
 
-The planning controller owns the workflow from a clarified objective through final acceptance. It works with the user to define the goal, target outcome, modification scope, excluded scope, acceptance criteria, evidence, rollback, risks, blockers, assumptions, and stop conditions. It does not proactively deepen implementation details beyond what the user requested.
+The planning controller owns the plan lifecycle and blocker disposition. It works with the user to define the goal, target outcome, modification scope, excluded scope, acceptance criteria, evidence, rollback, risks, blockers, assumptions, and stop conditions. It does not accept its own plan or proactively deepen implementation details beyond what the user requested.
 
 For a long plan, the controller splits work into explicit stages and marks each stage as serial or parallel. Every stage and task declares the required Skills and, when applicable, an agent selector. Serial stages must be accepted before later stages activate. Parallel stages may fan out only for independent tasks with isolated workspaces and a later fan-in review.
 
-After each execution report, the controller sends the result through independent planning review:
+After each normal execution report, the dispatcher sends the result to the bound independent reviewer:
 
 ```text
 accepted          -> record evidence -> unlock the next stage/task
@@ -75,7 +75,7 @@ with `PLANNING_BLOCKER_OPINION`: if every blocker is resolvable inside the appro
 resolutions and re-dispatches the stopped task; otherwise it sends `USER_ACTION_REQUIRED` in the planning conversation
 and keeps execution paused. Silent retries and silent blocker state changes are forbidden.
 
-An ordinary correction is limited to work the approved plan already required: redo an omitted item, repair a defect, or use another implementation method that preserves the approved contract. These corrections can be automatically re-dispatched while the revision limit and original approval remain valid. A new risk or blocker always pauses progression for planning disposition; it invalidates the old approval only when resolution changes permission, acceptance, architecture, rollback, scope, or another approved contract term. The controller repeats correction and review until the task is accepted or a stop condition is reached; it never silently skips a failed correction.
+An ordinary correction is limited to work the approved plan already required: redo an omitted item, repair a defect, or use another implementation method that preserves the approved contract. These corrections can be automatically re-dispatched while the revision limit and original approval remain valid. A new risk or blocker always pauses progression for planning disposition. After the first failed-review baseline, two completed correction rounds that repeat the same issue without new evidence stop as `repeated-no-progress`; partial progress or new evidence resets that count.
 
 When every task is accepted, no blocker is open, no new risk is awaiting disposition, and the current plan status is `completed`, the controller may prepare a declared next plan in the same series. The new version remains `awaiting-user-approval` and cannot be dispatched automatically. Brainstorming is used during planning discovery to compare options; it is not an execution authorization.
 
@@ -87,7 +87,7 @@ Continuous automatic dispatch means that the runtime advances a previously appro
 approved plan
   -> dispatch ready task A
   -> receive execution report
-  -> planning accepts report A
+  -> independent review accepts report A
   -> dispatch ready dependent task B
   -> receive report B
   -> continue until the series is complete or a gate stops it
@@ -160,7 +160,7 @@ Use a stable series ID and a descriptive plan title. A recommended human-readabl
 PROJECT-YYYYMMDD-NNN-readable-topic-vN
 ```
 
-The `plan_series_id` is reused for a scope-preserving extension. The extension creates a new immutable version and reuses the same planning/execution controller identities. A parallel objective creates a new series, uses new controller identities, and records `parallel_of` so its accepted result can be synchronized back to the parent.
+The `plan_series_id` is reused for a scope-preserving extension. The extension creates a new immutable version and reuses the same planning/execution/review controller identities. A parallel objective creates a new series, uses a new controller trio, and records `parallel_of` so its accepted result can be synchronized back to the parent.
 
 ## Conversation memory and indexes
 
@@ -178,6 +178,8 @@ indexes/knowledge-index.json
 ```
 
 The dispatcher emits derived `plan-index.json` and `session-index.json` beside its state file. Indexes are discovery aids; source records remain authoritative. Every cross-session read is recorded in the current session.
+
+Capability learning is persisted only when evidence from the current run proves it effective and it is reusable across tasks. Prefer updating an existing knowledge note; do not create empty directories or static capability directories.
 
 ## Scenario-based Skill routing
 
@@ -213,7 +215,9 @@ Fourteen workflow baselines are held in a read-only integration archive. The mac
 
 ## Specialist Agent catalog
 
-The locked catalog contains 271 specialist Agent prompts across 18 divisions. Each prompt has evidence-backed metadata for routing, integrity verification, and audit.
+The currently verified catalog provides specialist Agent prompts with evidence-backed metadata for routing, integrity verification, and audit.
+
+When the user asks for `能力图` or `为什么选它`, BossCoding reads the catalog verifiable at query time and uses this fixed query and selection order: the host's currently available roles, the currently installed and available Persona and Skill catalog, then the manifest hash-verified external Agent catalog. It queries the relevant live sources before answering. The explanation does not hard-code role or Persona counts or a complete inventory, and does not expose internal IDs. README, cache, memory, and static excerpt are reference clues, not real-time sources.
 
 Search by the concrete scenario and division, then use the exact `external_agent_id` in the approved dispatch. Only high-confidence entries with structured inputs and outputs can be selected automatically; the remaining entries are `manual-only`. An external Agent cannot approve a plan, close a blocker, change scope, or replace independent review. Department candidate divisions and required Skills are defined in `profiles/pdgo-agent-routing.json`.
 
@@ -223,37 +227,93 @@ Search by the concrete scenario and division, then use the exact `external_agent
 
 | Adapter | Use | Limitation |
 | --- | --- | --- |
-| `FileQueueAdapter` | Local, CI, manual handoff, and audit review | Requires a queue consumer; it does not claim a remote conversation exists |
-| `CodexAppServerAdapter` | Real `thread/start` and `turn/start` transport | Requires an injected reachable transport |
+| `FileQueueAdapter` | Local, CI, manual handoff, and audit review | Logical IDs are not author authentication; queued reviews remain non-authoritative without host source attestation |
+| `CodexAppServerAdapter` | Real planning, execution, reviewer, and worker threads | Requires an injected reachable transport |
 | `AgencyAgentsAdapter` | Scenario-based external role selection wrapped around a base adapter | External role prompts remain advisory and cannot approve, expand scope, or clear blockers |
 
-Adapters must return real session identifiers or an explicit `adapter-unavailable` status. They must never fabricate a completion.
+Adapters must return real session identifiers or an explicit `adapter-unavailable` status. The Codex-native integration lives under `integrations/codex-native/`; its Skill calls built-in subagent tools, then binds the real returned IDs. Node never fabricates or launches a Codex subagent.
 
-## Quick start
+### Three-mode bootstrap
 
-Install or copy the project-method Skill:
+The Codex-native source now routes each request before loading mode-specific side effects. The current Agent is always
+the secretary front desk at substantive intake, material boundary or risk changes, and closeout. That presentation
+layer does not load secretary governance and does not require a mechanical label on every message. Lightweight work
+therefore still has zero extra model calls, subagents, PDGO state writes, new PDGO approval rounds, formal plans,
+governance prompts, or role processes. Standard work uses the current Agent with a proportionate self-check, without
+secretary-governance loads or new PDGO approval rounds. High-assurance work loads the full secretary contract but remains with
+the current Agent by default. External, destructive, difficult-to-reverse, or explicitly independently reviewed work
+adds at most one read-only reviewer. Full PDGO three-role execution is an explicit opt-in after its extra Token and
+process cost is shown.
+
+The executable risk gate runs before workload depth. Lightweight and standard require a structured
+`current_request_boundary` with source, action, targets, and an approved absolute local root. The action must be in the
+closed ordinary-action set and match the local action; file targets are normalized, must match the request, and must
+stay inside that root. Traversal, out-of-root paths, broad targets, publish/delete/format actions, contradictions,
+missing fields, and any declared risk fail closed to high assurance. Both report
+`authorization_source=explicit-current-user-request` and `pdgo_new_approval_rounds=0`; only work depth differs. This
+source-level contract is not live host attestation. A real bounded local write has verified current-Agent file behavior,
+but trusted ordinary-routing attestation remains unavailable because the current Codex host exposes no injected
+routing/telemetry receipt; the run therefore cannot prove automatic mode selection.
+High-assurance plans may also enable an optional authorization envelope: a trusted injected host adapter attests one
+SHA-256 digest over the immutable approved boundary, and the same envelope must survive dispatch, report, and review.
+Self-reported verification and plain FileQueue messages are not host attestation. The one approved batch reuses that
+authorization across its unchanged internal plan, binding, dispatch, report, and review records; a material target,
+object, action, risk, third-party effect, authorization-boundary, or acceptance change requires a new exact approval.
+
+Local validation previously passed for a recorded checkout, including a Codex installation whose schema-1.1 descriptor
+and runtime-tree digest verified. That evidence applies only to the recorded checkout; it does not prove that every
+clone is installed or unchanged. No provider billable-Token record or fair paired latency/quality benchmark is
+available, so no real cost saving is claimed and `savings_proven` remains `false`.
+
+### BossCoding cold start
+
+When high assurance or an explicit secretary/BossCoding entry is selected, full secretary governance starts in memory with the current Agent. It resolves the schema-1.1 descriptor at `<CodexHome>/runtime/bosscoding/runtime.json` only when the user explicitly opts into full PDGO three-role execution. The descriptor contains `schema_version`, `integration_id`, `runtime_root`, nested `manifest` and `dispatcher` objects, and mandatory `runtime_tree`. The descriptor pins the manifest; that hashed manifest is the single source for the complete runtime path list, including the dispatcher, its imported libraries, the cold-start resolver, and the configured specialist index, metadata index, and prompt tree. A missing descriptor, path escape, integration mismatch, incomplete tree, or hash mismatch is a blocker rather than permission to search the disk or use an unverified runtime.
+
+Each consuming project uses isolated state at `<CodexHome>/state/bosscoding/projects/<name>-<hash16>`, where the suffix is derived from the canonical project root. The secretary and bridge resolve these paths themselves. A BossCoding user is not asked to run the CLI or move dispatch JSON between Agents.
+
+Explicit full PDGO cold start is deliberately ordered so inspection cannot become an unapproved write: resolve and verify the runtime with zero writes; draft the exact baseline, IDs, roles, file/test batch, and state root in memory; obtain one approval covering state creation and all three roles; then ensure state, persist and approve the exact plan, and spawn/bind planning, review, and execution. Only these explicit full PDGO plans use the complete `bosscoding-v2` role contract. `host_agent_type` is recorded from the real `spawn_agent.agent_type` argument; `selection_source` is the approved role-selection record, not a spawn argument or cryptographic proof. The installed resolver's verified invoke entry rechecks the descriptor, recomputes the project state root, and forbids arbitrary root or catalog overrides before every BossCoding state action. Direct dispatcher CLI remains a separately opted-in legacy PDGO interface. These checks protect against mistakes and ordinary local drift; they do not claim isolation from a malicious process already running as the same OS user.
+
+The dispatcher separates resolver-owned verified BossCoding invocation from the direct legacy CLI: the direct CLI rejects caller-supplied interface claims and BossCoding v2 state, while resolver-owned creation rejects legacy plans. State and queue writers reject linked or non-canonical paths inside the isolated state tree. The installer publishes a complete ownership record atomically, snapshots every existing target before staging, refuses concurrent target or source drift, verifies committed targets, and preserves externally modified files instead of deleting them during rollback. For an existing CodexHome, it strips the managed overlay and checks the older unmanaged absolute write-approval rule before creating a directory or installation lock, then rechecks inside the lock before any target change. Normal whitespace and line-ending variation are accepted. This is a narrow known-rule detector, not a claim to understand arbitrary natural-language policy.
+
+Users can invoke the combined flow directly: `秘书，用 Agency Agents 选合适专家完成 <任务>，并用 $munger 的 Lens 检查可避免的失败。` Agency Agents selects functional roles, while `$munger` is only an advisory method lens. `$nuwa-skill` is reserved for creating, updating, or auditing Persona Skills; ordinary work invokes the installed Persona Skill itself. Optional lens `purpose` and `evidence_cutoff` survive into the execution dispatch without gaining authority.
+
+An adapter may mark review identity as authenticated only for the exact transport its `receiveReviews` method polls;
+wrapping a trusted worker launcher around a plain file queue does not make queued reviews trusted.
+
+### Optional Persona Skills
+
+PDGO works independently without [Nuwa](https://github.com/alchaincyf/nuwa-skill). Leaving Nuwa uninstalled does not affect normal tasks or Agency Agents specialist-role selection. Agency Agents provides functional specialists, but it does not replace a named-person Persona perspective.
+
+Install Nuwa separately only when you need to create, update, or audit Persona Skills. To use a particular person's perspective, install the corresponding Persona Skill separately.
+
+## BossCoding quick start
+
+The secretary front desk is always on in the current Agent, so ordinary requests need no special prefix. This does not load secretary governance for lightweight or standard work. To enter the governed BossCoding flow explicitly, say
+`秘书：<任务>`, `秘书，按 BossCoding 做：<任务>`, or invoke
+`$bosscoding-secretary <任务>`. The secretary drafts one exact batch and the current Agent completes it by default;
+one read-only reviewer is added only when the risk requires it. Say `完整 PDGO 三角色` only when that extra process
+and Token cost is wanted. BossCoding users do not run a dispatcher CLI or move JSON between Agents.
+
+## Legacy PDGO direct CLI
+
+The direct CLI is developer compatibility for plans that explicitly declare
+`role_contract.version: legacy-v1` and `migration: role-assignments-not-recorded`. It cannot create or operate
+BossCoding v2 state. Use a legacy-specific input rather than the v2 `schemas/plan.yaml` template:
 
 ```powershell
-Copy-Item -Recurse -Force .\skills\pdgo-route-work `
-  "$env:USERPROFILE\.codex\skills\pdgo-route-work"
+node scripts/flowstate-dispatcher.mjs --action create-plan --input legacy-plan.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action approve --input legacy-approval.json --root .flowstate --project demo
+node scripts/flowstate-dispatcher.mjs --action dispatch --input legacy-dispatch.json --root .flowstate --project demo
 ```
 
-Create and approve a plan, then dispatch it through the deterministic CLI:
-
-```powershell
-node scripts/flowstate-dispatcher.mjs --action create-plan --input plan.json --root .flowstate --project demo
-node scripts/flowstate-dispatcher.mjs --action approve --input approval.json --root .flowstate --project demo
-node scripts/flowstate-dispatcher.mjs --action dispatch --input dispatch.json --root .flowstate --project demo
-```
-
-Recover after a restart or run a continuous local queue consumer:
+Legacy recovery remains explicit; `watch` is opt-in and must not be started by BossCoding:
 
 ```powershell
 node scripts/flowstate-dispatcher.mjs --action resume --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action watch --root .flowstate --project demo --interval-ms 1000
 ```
 
-`watch` is opt-in and explicit. It should be supervised by a service manager or CI when unattended operation is desired.
+The direct CLI cannot authenticate review identity from input JSON. Its retained `review` action fails closed; authenticated reviews are ingested only through the host adapter used by `resume` or `watch`.
 
 ## Repository layout
 
@@ -283,10 +343,25 @@ New fields must be additive and optional unless a contract explicitly makes them
 ```powershell
 npm.cmd run test:node
 npm.cmd run validate
+npm.cmd run test
 ```
 
-The test suite covers Skill inventory, approval binding, series continuity, dispatch contracts, queue idempotency, restart recovery, blocker handling, external-role boundaries, and generated indexes.
+The CI workflow runs all three gates. Repository validation includes both Codex-native integration Skills; the Node
+suite covers Skill inventory, approval binding, authorization-risk drift, series continuity, dispatch contracts, queue
+idempotency, restart recovery, blocker handling, external-role boundaries, and generated indexes.
+
+### BossCoding attribution
+
+The BossCoding-related integration is an independent PDGO adaptation based on
+BossCoding 0.5.1 by Khazix, licensed under the MIT License. It is not presented
+as an official BossCoding release, collaboration, or endorsement. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Status and license
+
+The current three-mode routing source candidate has passed local validation. Installation evidence belongs to an
+earlier recorded source revision with a verified runtime tree; the current repository checkout has not been reinstalled.
+Trusted automatic-routing attestation and provider billable-Token evidence remain unavailable, so real paired Token,
+latency, and quality benchmarks remain pending.
 
 PDGO is an MIT-licensed reference implementation of the FlowState method. The repository is intentionally platform-neutral; a platform adapter is required for any conversation or background capability that the local file system cannot provide.

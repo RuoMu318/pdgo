@@ -1,6 +1,7 @@
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { realpathSync } from "node:fs";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 const STATE_VERSION = "1.0";
 const TERMINAL_TASK_STATUSES = new Set(["accepted"]);
@@ -24,6 +25,27 @@ function idFactory(prefix) {
   return `${prefix}-${randomUUID()}`;
 }
 
+function processIsAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return null;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error.code === "ESRCH" || error.code === "EINVAL") return false;
+    return true;
+  }
+}
+
+function lockRecoveryId(owner) {
+  return createHash("sha256")
+    .update(`${String(owner?.token ?? "")}:${String(owner?.pid ?? "")}`)
+    .digest("hex");
+}
+
+async function readLockOwner(lockPath) {
+  return JSON.parse(await readFile(path.join(lockPath, "owner.json"), "utf8"));
+}
+
 function required(value, name) {
   if (value === undefined || value === null || value === "") throw new Error(`${name} is required`);
   return value;
@@ -32,6 +54,393 @@ function required(value, name) {
 function asArray(value) {
   if (value === undefined || value === null) return [];
   return Array.isArray(value) ? value : [value];
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function sha256(value) {
+  return createHash("sha256").update(stableJson(value), "utf8").digest("hex");
+}
+
+function normalizeAuthorizationPolicy(value) {
+  if (value === undefined || value === null) return null;
+  return {
+    required: value.required === true,
+    attestation_source: String(value.attestation_source ?? "host-transport"),
+    fail_closed: value.fail_closed !== false,
+  };
+}
+
+function normalizeResourcePolicy(value) {
+  if (value === undefined || value === null) return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("resource_policy must be an object");
+  const result = {
+    context: String(required(value.context, "resource_policy.context")),
+    reasoning: {
+      source: String(required(value.reasoning?.source, "resource_policy.reasoning.source")),
+      effort: String(required(value.reasoning?.effort, "resource_policy.reasoning.effort")),
+    },
+    planning: { max_agents: Number(value.planning?.max_agents), followup_tasks: Number(value.planning?.followup_tasks) },
+    execution: { max_agents: Number(value.execution?.max_agents), followup_tasks: Number(value.execution?.followup_tasks) },
+    review: { max_agents: Number(value.review?.max_agents), followup_tasks: Number(value.review?.followup_tasks) },
+    evidence: String(required(value.evidence, "resource_policy.evidence")),
+    failure: String(required(value.failure, "resource_policy.failure")),
+    host_enforced: value.host_enforced,
+    savings_proven: value.savings_proven,
+  };
+  for (const role of ["planning", "execution", "review"]) {
+    for (const field of ["max_agents", "followup_tasks"]) {
+      if (!Number.isInteger(result[role][field]) || result[role][field] < 0) {
+        throw new Error(`resource_policy.${role}.${field} must be a non-negative integer`);
+      }
+    }
+  }
+  if (typeof result.host_enforced !== "boolean") throw new Error("resource_policy.host_enforced must be boolean");
+  if (typeof result.savings_proven !== "boolean") throw new Error("resource_policy.savings_proven must be boolean");
+  return result;
+}
+
+function authorizationApprovalBoundary(approval) {
+  return {
+    approval_id: String(approval?.approval_id ?? ""),
+    approver: String(approval?.approver ?? ""),
+    decision: String(approval?.decision ?? ""),
+    approved_scope: clone(asArray(approval?.approved_scope)),
+    acknowledged_risks: clone(asArray(approval?.acknowledged_risks)),
+    resolved_blockers: clone(asArray(approval?.resolved_blockers)),
+    accepted_assumptions: clone(asArray(approval?.accepted_assumptions)),
+    accepted_residual_risks: clone(asArray(approval?.accepted_residual_risks)),
+    conditions: clone(asArray(approval?.conditions)),
+    exception_approvals: clone(asArray(approval?.exception_approvals)),
+  };
+}
+
+function authorizationTaskBoundary(task) {
+  return {
+    task_id: task.task_id,
+    title: task.title,
+    objective: task.objective,
+    stage_id: task.stage_id,
+    stage_order: task.stage_order,
+    stage_kind: task.stage_kind,
+    dependencies: clone(task.dependencies),
+    required_skills: clone(task.required_skills),
+    external_agent_id: clone(task.external_agent_id),
+    external_agent_query: clone(task.external_agent_query),
+    external_agent_division: clone(task.external_agent_division),
+    allowed_paths: clone(task.allowed_paths),
+    forbidden_actions: clone(task.forbidden_actions),
+    acceptance_criteria: clone(task.acceptance_criteria),
+    expected_evidence: clone(task.expected_evidence),
+    risk_profile: clone(task.risk_profile),
+    stop_conditions: clone(task.stop_conditions),
+  };
+}
+
+function authorizationStageBoundary(stage) {
+  return {
+    stage_id: stage.stage_id,
+    title: stage.title,
+    order: stage.order,
+    kind: stage.kind,
+    required_skills: clone(stage.required_skills),
+    agent_selectors: clone(stage.agent_selectors),
+    acceptance_criteria: clone(stage.acceptance_criteria),
+  };
+}
+
+function authorizationBoundary(plan, approval) {
+  const acknowledgedRiskIds = new Set(asArray(approval?.acknowledged_risks).map(String));
+  return {
+    plan_series_id: plan.plan_series_id,
+    plan_id: plan.plan_id,
+    plan_version: plan.plan_version,
+    project_id: plan.project_id,
+    title: plan.title,
+    summary: plan.summary,
+    objective: plan.objective,
+    goal: plan.goal,
+    target_outcome: plan.target_outcome,
+    execution_baseline: clone(plan.execution_baseline),
+    role_contract: clone(plan.role_contract),
+    role_assignments: clone(plan.role_assignments),
+    method_lenses: clone(plan.method_lenses),
+    planning_policy: clone(plan.planning_policy),
+    modification_scope: clone(plan.modification_scope),
+    excluded_scope: clone(plan.excluded_scope),
+    non_goals: clone(plan.non_goals),
+    stages: plan.stages.map(authorizationStageBoundary),
+    tasks: plan.tasks.map(authorizationTaskBoundary),
+    acceptance_criteria: clone(plan.acceptance_criteria),
+    expected_evidence: clone(plan.expected_evidence),
+    rollback: clone(plan.rollback),
+    allowed_paths: clone(plan.allowed_paths),
+    forbidden_actions: clone(plan.forbidden_actions),
+    risks: clone(asArray(plan.risks).filter((risk) => acknowledgedRiskIds.has(String(risk.risk_id)))),
+    serial_parallel_policy: plan.serial_parallel_policy,
+    max_parallel: plan.max_parallel,
+    authorization_policy: clone(plan.authorization_policy),
+    resource_policy: clone(plan.resource_policy),
+    approval: authorizationApprovalBoundary(approval),
+  };
+}
+
+function approvalReuseBoundary(plan) {
+  return {
+    project_id: plan.project_id,
+    objective: plan.objective,
+    goal: plan.goal,
+    target_outcome: plan.target_outcome,
+    execution_baseline: clone(plan.execution_baseline),
+    role_contract: clone(plan.role_contract),
+    role_assignments: clone(plan.role_assignments),
+    method_lenses: clone(plan.method_lenses),
+    planning_policy: clone(plan.planning_policy),
+    modification_scope: clone(plan.modification_scope),
+    excluded_scope: clone(plan.excluded_scope),
+    non_goals: clone(plan.non_goals),
+    stages: plan.stages.map(authorizationStageBoundary),
+    tasks: plan.tasks.map(authorizationTaskBoundary),
+    acceptance_criteria: clone(plan.acceptance_criteria),
+    expected_evidence: clone(plan.expected_evidence),
+    rollback: clone(plan.rollback),
+    allowed_paths: clone(plan.allowed_paths),
+    forbidden_actions: clone(plan.forbidden_actions),
+    risks: clone(plan.risks),
+    serial_parallel_policy: plan.serial_parallel_policy,
+    max_parallel: plan.max_parallel,
+    authorization_policy: clone(plan.authorization_policy),
+    resource_policy: clone(plan.resource_policy),
+  };
+}
+
+function assertAuthorizationEnvelope(plan, suppliedEnvelope, clock) {
+  if (plan.authorization_policy?.required !== true) return null;
+  const envelope = plan.authorization_envelope;
+  if (!envelope) throw new Error("authorization envelope is required");
+  if (!suppliedEnvelope) throw new Error("authorization envelope is missing");
+  if (stableJson(suppliedEnvelope) !== stableJson(envelope)) throw new Error("authorization envelope does not match the approved envelope");
+  if (envelope.plan_id !== plan.plan_id || envelope.plan_version !== plan.plan_version) {
+    throw new Error("authorization envelope plan id or version does not match");
+  }
+  const expectedDigest = sha256(authorizationBoundary(plan, envelope.approval_boundary));
+  if (envelope.boundary_digest !== expectedDigest) throw new Error("authorization boundary digest does not match the current approved scope and roles");
+  const expiresAt = Date.parse(envelope.expires_at);
+  if (!Number.isFinite(expiresAt) || expiresAt <= clock()) throw new Error("authorization envelope is expired or has an invalid expiry");
+  return envelope;
+}
+
+const HIGH_ASSURANCE_RISK_KEYS = [
+  "external_action",
+  "production",
+  "sensitive_data",
+  "destructive",
+  "difficult_to_reverse",
+  "cross_session",
+  "independent_review",
+  "critical_ambiguity",
+];
+
+const BOUNDED_LOCAL_ACTION_RISK_KEYS = [
+  "wildcard",
+  "administrator",
+  "account",
+  "global",
+  "network",
+  "secrets",
+  "production",
+  "third_party",
+  "destructive",
+  "irreversible",
+  "sensitive_data",
+];
+
+const ORDINARY_MODE_ACTIONS = new Set([
+  "analyze",
+  "create",
+  "diagnose",
+  "edit",
+  "explain",
+  "fix",
+  "read",
+  "review",
+  "rewrite",
+  "test",
+  "translate",
+]);
+
+function isExactLiteral(value) {
+  const literal = typeof value === "string" ? value.trim() : "";
+  return literal !== "" && !["*", "?", "[", "]", "{", "}"].some((marker) => literal.includes(marker));
+}
+
+function hasParentTraversal(value) {
+  return String(value).split(/[\\/]+/).some((part) => part === "..");
+}
+
+function pathApiForAbsolute(value) {
+  if (path.posix.isAbsolute(value)) return path.posix;
+  if (/^[A-Za-z]:[\\/]/.test(value) || /^\\\\[^\\]+\\[^\\]+/.test(value)) return path.win32;
+  return null;
+}
+
+function pathIsInside(rootApi, root, target) {
+  const relative = rootApi.relative(root, target);
+  return relative !== ""
+    && !rootApi.isAbsolute(relative)
+    && relative !== ".."
+    && !relative.startsWith(`..${rootApi.sep}`);
+}
+
+function realTargetIsInside(rootApi, normalizedRoot, normalizedTarget) {
+  const hostPathApi = process.platform === "win32" ? path.win32 : path.posix;
+  if (rootApi !== hostPathApi) return true;
+
+  let canonicalRoot;
+  try {
+    canonicalRoot = realpathSync(normalizedRoot);
+  } catch {
+    return false;
+  }
+
+  let existingAncestor = normalizedTarget;
+  const unresolvedSegments = [];
+  while (true) {
+    try {
+      const canonicalAncestor = realpathSync(existingAncestor);
+      const canonicalTarget = rootApi.resolve(canonicalAncestor, ...unresolvedSegments);
+      return pathIsInside(rootApi, canonicalRoot, canonicalTarget);
+    } catch (error) {
+      if (!new Set(["ENOENT", "ENOTDIR"]).has(error?.code)) return false;
+      const parent = rootApi.dirname(existingAncestor);
+      if (parent === existingAncestor) return false;
+      unresolvedSegments.unshift(rootApi.basename(existingAncestor));
+      existingAncestor = parent;
+    }
+  }
+}
+
+function normalizedLocalTarget(root, target) {
+  if (!isExactLiteral(target) || hasParentTraversal(target) || /^[A-Za-z]:[^\\/]/.test(target)) return null;
+  const broad = target.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+  if (/^(all|all files?|every(?:thing| file)?|entire (?:workspace|repository|repo|directory|folder)|whole (?:workspace|repository|repo|directory|folder))$/.test(broad)) return null;
+  const rootApi = pathApiForAbsolute(root);
+  if (!rootApi) return null;
+  const targetApi = pathApiForAbsolute(target);
+  if (targetApi && targetApi !== rootApi) return null;
+  const normalizedRoot = rootApi.resolve(root);
+  const normalizedTarget = targetApi ? targetApi.resolve(target) : rootApi.resolve(normalizedRoot, target);
+  if (!pathIsInside(rootApi, normalizedRoot, normalizedTarget)) return null;
+  if (!realTargetIsInside(rootApi, normalizedRoot, normalizedTarget)) return null;
+  return rootApi === path.win32 ? normalizedTarget.toLowerCase() : normalizedTarget;
+}
+
+function boundCurrentRequest(input, localAction) {
+  const boundary = input.current_request_boundary;
+  if (!boundary || boundary.source !== "current-user-request") return null;
+  const action = typeof boundary.action === "string" ? boundary.action.trim() : "";
+  const localActionName = typeof localAction.action === "string" ? localAction.action.trim() : "";
+  if (!ORDINARY_MODE_ACTIONS.has(action) || localActionName !== action) return null;
+  if (!isExactLiteral(boundary.approved_local_root) || hasParentTraversal(boundary.approved_local_root)) return null;
+  const rootApi = pathApiForAbsolute(boundary.approved_local_root);
+  if (!rootApi) return null;
+  const normalizedRoot = rootApi.resolve(boundary.approved_local_root);
+  if (normalizedRoot === rootApi.parse(normalizedRoot).root) return null;
+  if (!Array.isArray(boundary.targets)
+    || !Array.isArray(localAction.targets)
+    || boundary.targets.length === 0
+    || boundary.targets.length !== localAction.targets.length) return null;
+  const requestedTargets = boundary.targets.map((target) => normalizedLocalTarget(normalizedRoot, target));
+  const actionTargets = localAction.targets.map((target) => normalizedLocalTarget(normalizedRoot, target));
+  if (requestedTargets.some((target) => target === null)
+    || actionTargets.some((target) => target === null)
+    || stableJson(requestedTargets) !== stableJson(actionTargets)) return null;
+  return { action, targets: actionTargets, approved_local_root: normalizedRoot };
+}
+
+const INDEPENDENT_REVIEW_RISK_KEYS = ["external_action", "destructive", "difficult_to_reverse", "independent_review"];
+
+function highAssuranceRoute(input, decisionStage, reason) {
+  if (input.explicit_full_pdgo === true) {
+    return {
+      mode: "high_assurance",
+      decision_stage: decisionStage,
+      reason: "explicit-full-pdgo-entry",
+      execution: "current-agent-coordinates-full-pdgo",
+      governance: "full-pdgo-explicit-opt-in",
+      planning_subagents: 1,
+      execution_subagents: 1,
+      review_subagents: 1,
+      subagents: 3,
+      pdgo_state_writes: 1,
+      review_trigger: "explicit-full-pdgo-entry",
+    };
+  }
+  const risk = input.risk ?? {};
+  const reviewTrigger = INDEPENDENT_REVIEW_RISK_KEYS.find((key) => risk[key] === true) ?? null;
+  const reviewSubagents = reviewTrigger ? 1 : 0;
+  return {
+    mode: "high_assurance",
+    decision_stage: decisionStage,
+    reason,
+    execution: "current-agent-with-governed-plan",
+    governance: reviewSubagents ? "single-agent-plus-review" : "single-agent",
+    planning_subagents: 0,
+    execution_subagents: 0,
+    review_subagents: reviewSubagents,
+    subagents: reviewSubagents,
+    pdgo_state_writes: 0,
+    review_trigger: reviewTrigger,
+  };
+}
+
+export function classifyBossCodingRoute(input = {}) {
+  const risk = input.risk ?? {};
+  const completeRiskProfile = HIGH_ASSURANCE_RISK_KEYS.every((key) => typeof risk[key] === "boolean");
+  if (input.explicit_full_pdgo === true || input.explicit_secretary === true || !completeRiskProfile) {
+    return highAssuranceRoute(
+      input,
+      "risk-gate",
+      input.explicit_secretary === true ? "explicit-secretary-entry" : "risk-profile-incomplete",
+    );
+  }
+  const highRisk = HIGH_ASSURANCE_RISK_KEYS.find((key) => risk[key] === true);
+  if (highRisk) {
+    return highAssuranceRoute(input, "risk-gate", highRisk);
+  }
+  const localAction = input.local_action ?? {};
+  const currentRequest = boundCurrentRequest(input, localAction);
+  const boundedLocalAction = currentRequest !== null
+    && localAction.location === "local"
+    && localAction.reversible === true
+    && localAction.explicit_current_request !== false
+    && BOUNDED_LOCAL_ACTION_RISK_KEYS.every((key) => localAction[key] === false);
+  if (!boundedLocalAction) {
+    return highAssuranceRoute(input, "authorization-gate", "bounded-local-action-missing-incomplete-or-risky");
+  }
+  if (!new Set(["lightweight", "standard"]).has(input.workload)) {
+    return highAssuranceRoute(input, "workload", "workload-depth-missing-or-unknown");
+  }
+  const lightweight = input.workload === "lightweight";
+  return {
+    mode: lightweight ? "lightweight" : "standard",
+    decision_stage: "workload",
+    execution: lightweight ? "current-agent-direct" : "current-agent-with-proportionate-self-check",
+    authorization_source: "explicit-current-user-request",
+    extra_model_calls: 0,
+    subagents: 0,
+    state_writes: 0,
+    pdgo_new_approval_rounds: 0,
+    formal_plan_generations: 0,
+    governance_prompt_loads: 0,
+    role_process_loads: 0,
+  };
 }
 
 function statusOf(item) {
@@ -75,12 +484,114 @@ function normalizeReportedBlocker(blocker, index, report, fallbackIndex = index)
   };
 }
 
+function normalizeReportedRisks(value) {
+  return asArray(value).map((risk, index) => {
+    if (!risk || typeof risk !== "object" || Array.isArray(risk)) throw new Error(`new_risks[${index}] must be an object`);
+    const id = String(required(risk.risk_id ?? risk.id, `new_risks[${index}].risk_id`));
+    const severity = String(required(risk.severity ?? risk.level, `new_risks[${index}].severity`)).toLowerCase();
+    if (!new Set(["low", "medium", "high", "critical"]).has(severity)) {
+      throw new Error(`new_risks[${index}].severity must be low, medium, high, or critical`);
+    }
+    const impact = String(required(risk.impact, `new_risks[${index}].impact`));
+    return { ...clone(risk), risk_id: id, severity, impact, status: String(risk.status ?? "open") };
+  });
+}
+
 function safeQueueSegment(value, name) {
   const segment = String(required(value, name));
   if (segment === "." || segment === ".." || segment !== path.basename(segment) || segment.includes("..")) {
     throw new Error(`${name} must be a safe queue path segment`);
   }
   return segment;
+}
+
+function pathIsWithin(root, target) {
+  const relative = path.relative(path.resolve(root), path.resolve(target));
+  return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
+}
+
+async function assertCanonicalDirectory(directory, label) {
+  const resolved = path.resolve(directory);
+  const info = await lstat(resolved);
+  if (info.isSymbolicLink() || !info.isDirectory()) {
+    throw new Error(`${label} cannot be a symbolic link, junction, reparse point, or non-directory`);
+  }
+  const canonical = await realpath(resolved);
+  if (path.normalize(canonical).toLowerCase() !== path.normalize(resolved).toLowerCase()) {
+    throw new Error(`${label} cannot traverse a symbolic link, junction, reparse point, or non-canonical path`);
+  }
+}
+
+async function ensureSafeDirectoryTree(root, target, label) {
+  const resolvedRoot = path.resolve(root);
+  const resolvedTarget = path.resolve(target);
+  if (!pathIsWithin(resolvedRoot, resolvedTarget)) throw new Error(`${label} must stay within its governed root`);
+  let existingAncestor = resolvedRoot;
+  while (true) {
+    try {
+      await assertCanonicalDirectory(existingAncestor, label);
+      break;
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+      const parent = path.dirname(existingAncestor);
+      if (parent === existingAncestor) throw new Error(`${label} has no safe existing ancestor`);
+      existingAncestor = parent;
+    }
+  }
+  let current = existingAncestor;
+  for (const component of path.relative(existingAncestor, resolvedRoot).split(path.sep).filter(Boolean)) {
+    current = path.join(current, component);
+    try {
+      await mkdir(current);
+    } catch (error) {
+      if (error.code !== "EEXIST") throw error;
+    }
+    await assertCanonicalDirectory(current, label);
+  }
+  await assertCanonicalDirectory(resolvedRoot, label);
+  current = resolvedRoot;
+  for (const component of path.relative(resolvedRoot, resolvedTarget).split(path.sep).filter(Boolean)) {
+    current = path.join(current, component);
+    try {
+      await assertCanonicalDirectory(current, label);
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+      await mkdir(current);
+      await assertCanonicalDirectory(current, label);
+    }
+  }
+}
+
+async function assertSafeFileTarget(root, target, label) {
+  const resolvedRoot = path.resolve(root);
+  const resolvedTarget = path.resolve(target);
+  if (!pathIsWithin(resolvedRoot, resolvedTarget) || resolvedTarget === resolvedRoot) {
+    throw new Error(`${label} must stay within its governed root`);
+  }
+  await ensureSafeDirectoryTree(resolvedRoot, path.dirname(resolvedTarget), label);
+  try {
+    const info = await lstat(resolvedTarget);
+    if (info.isSymbolicLink() || !info.isFile()) {
+      throw new Error(`${label} cannot be a symbolic link, junction, reparse point, or non-file`);
+    }
+    const canonical = await realpath(resolvedTarget);
+    if (path.normalize(canonical).toLowerCase() !== path.normalize(resolvedTarget).toLowerCase()) {
+      throw new Error(`${label} cannot traverse a symbolic link, junction, reparse point, or non-canonical path`);
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+}
+
+function queueSessionSegment(value, name) {
+  const sessionId = String(required(value, name));
+  try {
+    const safe = safeQueueSegment(sessionId, name);
+    if (!safe.startsWith("__pdgo_session_b64__")) return safe;
+  } catch {
+    // Fall through to the collision-free encoded namespace.
+  }
+  return `__pdgo_session_b64__${Buffer.from(sessionId, "utf8").toString("base64url")}`;
 }
 
 function versionNumber(value) {
@@ -163,9 +674,18 @@ function normalizeStage(stage, index) {
   };
 }
 
-function normalizeTask(task, index) {
+function normalizeTask(task, index, { planAllowedPaths = null, planForbiddenActions = [] } = {}) {
   const taskId = String(task.task_id ?? task.id ?? `T${String(index + 1).padStart(2, "0")}`);
   const stageOrder = Math.max(1, Number(task.stage_order ?? task.stageOrder ?? 1) || 1);
+  const taskAllowedPaths = asArray(task.allowed_paths ?? task.allowedPaths).map(String);
+  const explicitTaskPaths = Object.prototype.hasOwnProperty.call(task, "allowed_paths")
+    || Object.prototype.hasOwnProperty.call(task, "allowedPaths");
+  if (planAllowedPaths !== null && explicitTaskPaths) {
+    const allowed = new Set(planAllowedPaths);
+    if (taskAllowedPaths.some((item) => !allowed.has(item))) {
+      throw new Error(`tasks[${index}].allowed_paths can only narrow plan.allowed_paths`);
+    }
+  }
   return {
     task_id: taskId,
     title: required(task.title ?? task.objective, `tasks[${index}].title`),
@@ -175,8 +695,8 @@ function normalizeTask(task, index) {
     stage_order: stageOrder,
     stage_kind: stageKind(task.stage_kind ?? task.stageKind),
     dependencies: asArray(task.dependencies ?? task.depends_on).map(String),
-    allowed_paths: asArray(task.allowed_paths ?? task.allowedPaths).map(String),
-    forbidden_actions: asArray(task.forbidden_actions ?? task.forbiddenActions).map(String),
+    allowed_paths: planAllowedPaths !== null && !explicitTaskPaths ? clone(planAllowedPaths) : taskAllowedPaths,
+    forbidden_actions: [...new Set([...planForbiddenActions, ...asArray(task.forbidden_actions ?? task.forbiddenActions).map(String)])],
     required_skills: asArray(task.required_skills ?? task.requiredSkills).map(String),
     external_agent_id: task.external_agent_id ?? task.externalAgentId ?? null,
     external_agent_query: task.external_agent_query ?? task.externalAgentQuery ?? null,
@@ -189,10 +709,424 @@ function normalizeTask(task, index) {
     revision_attempts: Number(task.revision_attempts ?? task.revisionAttempts ?? 0),
     revision_feedback: asArray(task.revision_feedback ?? task.revisionFeedback),
     revision_history: asArray(task.revision_history ?? task.revisionHistory),
+    issue_progress: clone(task.issue_progress ?? task.issueProgress ?? {}),
+    stop_reason: task.stop_reason ?? task.stopReason ?? null,
+    stopped_issue_ids: asArray(task.stopped_issue_ids ?? task.stoppedIssueIds).map(String),
     dispatch_id: task.dispatch_id ?? null,
     report_id: task.report_id ?? null,
     review_id: task.review_id ?? null,
   };
+}
+
+const GOVERNED_ROLES = ["planning", "execution", "review"];
+const FORBIDDEN_METHOD_LENS_KEYS = [
+  "accepter",
+  "external_agent_id",
+  "externalAgentId",
+  "host_agent_type",
+  "hostAgentType",
+  "identity",
+  "permission",
+  "permission_mode",
+  "permissionMode",
+  "reviewer",
+  "role",
+];
+
+function normalizeRoleAssignments(value) {
+  if (value === undefined || value === null) return {};
+  if (typeof value !== "object" || Array.isArray(value)) throw new Error("role_assignments must be an object");
+  const unsupportedRoles = Object.keys(value).filter((role) => !GOVERNED_ROLES.includes(role));
+  if (unsupportedRoles.length) throw new Error(`unsupported role assignment: ${unsupportedRoles.join(", ")}`);
+  const result = {};
+  for (const role of GOVERNED_ROLES) {
+    const assignment = value[role];
+    if (assignment === undefined || assignment === null) continue;
+    if (typeof assignment !== "object" || Array.isArray(assignment)) {
+      throw new Error(`role_assignments.${role} must be an object`);
+    }
+    if (assignment.external_agent_id !== undefined || assignment.externalAgentId !== undefined) {
+      throw new Error(`role_assignments.${role} cannot use external_agent_id; Codex host agent types and external Agent selectors are separate contracts`);
+    }
+    const permissionMode = String(assignment.permission_mode ?? assignment.permissionMode ?? (role === "execution" ? "approved-scope-write" : "read-only"));
+    if (!new Set(["read-only", "approved-scope-write"]).has(permissionMode)) {
+      throw new Error(`role_assignments.${role}.permission_mode must be read-only or approved-scope-write`);
+    }
+    if (role !== "execution" && permissionMode !== "read-only") {
+      throw new Error(`role_assignments.${role}.permission_mode must be read-only`);
+    }
+    result[role] = {
+      host_agent_type: String(required(assignment.host_agent_type ?? assignment.hostAgentType, `role_assignments.${role}.host_agent_type`)),
+      selection_source: String(required(assignment.selection_source ?? assignment.selectionSource, `role_assignments.${role}.selection_source`)),
+      permission_mode: permissionMode,
+    };
+  }
+  return result;
+}
+
+function normalizeRoleContract(value, roleAssignments) {
+  if (value === undefined || value === null) throw new Error("role_contract is required");
+  if (typeof value !== "object" || Array.isArray(value)) throw new Error("role_contract must be an object");
+  const version = String(required(value.version, "role_contract.version"));
+  if (version === "legacy-v1") {
+    const migration = value.migration === undefined || value.migration === null ? "" : String(value.migration);
+    if (migration !== "role-assignments-not-recorded") {
+      throw new Error("legacy-v1 role_contract.migration must be role-assignments-not-recorded");
+    }
+    if (Object.keys(roleAssignments).length) throw new Error("legacy-v1 role_contract cannot carry role_assignments");
+    return { version, migration };
+  }
+  if (version !== "bosscoding-v2") throw new Error("role_contract.version must be bosscoding-v2 or legacy-v1");
+  if (!GOVERNED_ROLES.every((role) => roleAssignments[role]) || Object.keys(roleAssignments).length !== GOVERNED_ROLES.length) {
+    throw new Error("bosscoding-v2 role_contract requires complete planning, execution, and review role_assignments");
+  }
+  return { version };
+}
+
+function normalizeMethodLenses(value, tasks) {
+  const validTargets = new Set(["planning", "execution"]);
+  for (const task of tasks) {
+    const taskId = String(task.task_id).toLowerCase();
+    validTargets.add(taskId);
+    validTargets.add(`task:${taskId}`);
+  }
+  return asArray(value).map((lens, index) => {
+    if (!lens || typeof lens !== "object" || Array.isArray(lens)) throw new Error(`method_lenses[${index}] must be an object`);
+    for (const key of FORBIDDEN_METHOD_LENS_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(lens, key)) {
+        throw new Error(`method_lenses[${index}].${key} cannot grant identity, permission, or acceptance authority`);
+      }
+    }
+    const mode = String(lens.mode ?? "lens").toLowerCase();
+    if (!new Set(["lens", "voice", "rehearsal"]).has(mode)) throw new Error(`method_lenses[${index}].mode is invalid`);
+    const explicitOptIn = lens.explicit_opt_in === true || lens.explicitOptIn === true;
+    if (mode !== "lens" && !explicitOptIn) throw new Error(`method_lenses[${index}].explicit_opt_in must be true for ${mode} mode`);
+    const authority = String(lens.authority ?? "advisory").toLowerCase();
+    if (authority !== "advisory") throw new Error(`method_lenses[${index}].authority must be advisory`);
+    const appliesTo = asArray(lens.applies_to ?? lens.appliesTo).map(String);
+    if (!appliesTo.length) throw new Error(`method_lenses[${index}].applies_to is required`);
+    if (appliesTo.some((target) => {
+      const normalizedTarget = target.toLowerCase();
+      return normalizedTarget === "review" || normalizedTarget === "reviewer" || normalizedTarget.startsWith("review:");
+    })) {
+      throw new Error(`method_lenses[${index}] cannot apply to review`);
+    }
+    if (appliesTo.some((target) => !validTargets.has(target.toLowerCase()))) {
+      throw new Error(`method_lenses[${index}] has an invalid applies_to target`);
+    }
+    const normalized = {
+      skill_id: String(required(lens.skill_id ?? lens.skillId, `method_lenses[${index}].skill_id`)),
+      mode,
+      applies_to: appliesTo,
+      explicit_opt_in: explicitOptIn,
+      authority,
+    };
+    if (lens.purpose !== undefined && lens.purpose !== null) normalized.purpose = String(lens.purpose);
+    if (lens.evidence_cutoff !== undefined || lens.evidenceCutoff !== undefined) {
+      normalized.evidence_cutoff = String(lens.evidence_cutoff ?? lens.evidenceCutoff);
+    }
+    return normalized;
+  });
+}
+
+function roleAssignmentHash(assignment) {
+  if (!assignment) return null;
+  return createHash("sha256").update(stableJson(assignment), "utf8").digest("hex");
+}
+
+function observedRoleBinding(series, { planVersion, role, hostAgentType, selectionSource }) {
+  const currentVersion = String(series.current_plan_version ?? "");
+  const plan = series.plans?.[currentVersion];
+  const assignments = plan?.role_assignments ?? {};
+  if (plan?.role_contract?.version !== "bosscoding-v2") return null;
+  if (planVersion !== undefined && String(planVersion) !== currentVersion) {
+    throw new Error(`host binding planVersion must match the current approved plan version ${currentVersion}`);
+  }
+  if (!plan?.approval || plan.approval.plan_id !== plan.plan_id || plan.approval.plan_version !== currentVersion) {
+    throw new Error("governed host binding requires the current approved plan");
+  }
+  const assignment = assignments[role];
+  if (!assignment) throw new Error(`current approved plan has no role_assignments.${role}`);
+  const observedAgentType = String(required(hostAgentType, "hostAgentType"));
+  const observedSelectionSource = String(required(selectionSource, "selectionSource"));
+  if (observedAgentType !== assignment.host_agent_type) {
+    throw new Error(`hostAgentType does not match current approved role_assignments.${role}`);
+  }
+  if (observedSelectionSource !== assignment.selection_source) {
+    throw new Error(`selectionSource does not match current approved role_assignments.${role}`);
+  }
+  return {
+    plan_version: currentVersion,
+    host_agent_type: observedAgentType,
+    selection_source: observedSelectionSource,
+    permission_mode: assignment.permission_mode,
+  };
+}
+
+function registerHostSessionIdentity(series, { sessionId, bindingRole, hostAgentType = null, planVersion }) {
+  series.host_session_identities ??= {};
+  const normalizedSessionId = String(required(sessionId, "sessionId"));
+  const normalizedAgentType = hostAgentType === undefined || hostAgentType === null ? null : String(hostAgentType);
+  const existing = series.host_session_identities[normalizedSessionId];
+  if (existing) {
+    if (existing.binding_role !== bindingRole) throw new Error("bound host session role is immutable");
+    if (existing.host_agent_type === null && normalizedAgentType !== null) {
+      throw new Error("host_agent_type is immutable for a bound session; use a new host session");
+    }
+    if (existing.host_agent_type !== normalizedAgentType) {
+      throw new Error("host_agent_type is immutable for a bound session; use a new host session");
+    }
+    return existing;
+  }
+
+  const priorVersions = Object.keys(series.plans ?? {}).filter((version) => version !== String(planVersion));
+  const alreadyBound = Object.values(series.host_bound_sessions ?? {}).includes(normalizedSessionId)
+    || Object.values(series.dispatches ?? {}).some((dispatch) => dispatch.worker_session_id === normalizedSessionId);
+  if (alreadyBound && priorVersions.length > 0) {
+    throw new Error("host_agent_type is immutable for a bound session; use a new host session");
+  }
+  const identity = {
+    session_id: normalizedSessionId,
+    binding_role: bindingRole,
+    host_agent_type: normalizedAgentType,
+    first_plan_version: String(planVersion),
+  };
+  series.host_session_identities[normalizedSessionId] = identity;
+  return identity;
+}
+
+function executionMethodLenses(plan, task) {
+  const taskTargets = new Set(["execution", task.task_id.toLowerCase(), `task:${task.task_id.toLowerCase()}`]);
+  return asArray(plan.method_lenses).filter((lens) => lens.applies_to.some((target) => taskTargets.has(String(target).toLowerCase())));
+}
+
+function normalizeExecutionBaseline(plan) {
+  const baseline = plan.execution_baseline ?? plan.executionBaseline ?? {};
+  const scope = baseline.scope ?? {};
+  const completion = baseline.completion ?? {};
+  const tasks = asArray(plan.tasks);
+  return {
+    goal: String(baseline.goal ?? plan.goal ?? plan.objective ?? ""),
+    confirmed_decisions: clone(asArray(
+      baseline.confirmed_decisions
+      ?? baseline.confirmedDecisions
+      ?? plan.confirmed_decisions
+      ?? plan.confirmedDecisions,
+    )),
+    allowed_objects: clone(asArray(
+      baseline.allowed_objects
+      ?? baseline.allowedObjects
+      ?? scope.allowed_objects
+      ?? scope.allowedObjects
+      ?? scope.allowed
+      ?? plan.modification_scope
+      ?? plan.modificationScope
+      ?? plan.allowed_paths
+      ?? plan.allowedPaths,
+    )),
+    forbidden_objects: clone(asArray(
+      baseline.forbidden_objects
+      ?? baseline.forbiddenObjects
+      ?? scope.forbidden_objects
+      ?? scope.forbiddenObjects
+      ?? scope.forbidden
+      ?? plan.excluded_scope
+      ?? plan.excludedScope
+      ?? plan.non_goals
+      ?? plan.nonGoals,
+    )),
+    allowed_actions: clone(asArray(
+      baseline.allowed_actions
+      ?? baseline.allowedActions
+      ?? scope.allowed_actions
+      ?? scope.allowedActions
+      ?? plan.allowed_actions
+      ?? plan.allowedActions,
+    )),
+    forbidden_actions: clone(asArray(
+      baseline.forbidden_actions
+      ?? baseline.forbiddenActions
+      ?? scope.forbidden_actions
+      ?? scope.forbiddenActions
+      ?? plan.forbidden_actions
+      ?? plan.forbiddenActions,
+    )),
+    completion_criteria: clone(asArray(
+      baseline.completion_criteria
+      ?? baseline.completionCriteria
+      ?? completion.criteria
+      ?? plan.acceptance_criteria
+      ?? plan.acceptanceCriteria
+      ?? tasks.flatMap((task) => asArray(task?.acceptance_criteria ?? task?.acceptanceCriteria)),
+    )),
+    accepter: String(baseline.accepter ?? completion.accepter ?? plan.accepter ?? "independent reviewer"),
+    current_action: String(
+      baseline.current_action
+      ?? baseline.currentAction
+      ?? plan.current_action
+      ?? plan.currentAction
+      ?? tasks[0]?.objective
+      ?? tasks[0]?.title
+      ?? "",
+    ),
+  };
+}
+
+function assertExplicitBossExecutionBaseline(plan, roleContract) {
+  if (roleContract.version !== "bosscoding-v2") return;
+  const baseline = plan.execution_baseline ?? plan.executionBaseline;
+  if (!baseline || typeof baseline !== "object" || Array.isArray(baseline)) {
+    throw new Error("BossCoding v2 execution_baseline is required and must be an object");
+  }
+  const own = (snake, camel) => Object.prototype.hasOwnProperty.call(baseline, snake)
+    ? baseline[snake]
+    : (Object.prototype.hasOwnProperty.call(baseline, camel) ? baseline[camel] : undefined);
+  for (const [snake, camel] of [
+    ["confirmed_decisions", "confirmedDecisions"],
+    ["allowed_objects", "allowedObjects"],
+    ["forbidden_objects", "forbiddenObjects"],
+    ["allowed_actions", "allowedActions"],
+    ["forbidden_actions", "forbiddenActions"],
+    ["completion_criteria", "completionCriteria"],
+  ]) {
+    if (!Array.isArray(own(snake, camel))) throw new Error(`BossCoding v2 execution_baseline.${snake} is required and must be an explicit array`);
+    for (const [index, item] of own(snake, camel).entries()) {
+      const decisionField = snake === "confirmed_decisions";
+      if ((!decisionField && (typeof item !== "string" || item.trim() === ""))
+        || (decisionField && (item === undefined || item === null || (typeof item === "string" && item.trim() === "")))) {
+        throw new Error(`BossCoding v2 execution_baseline.${snake}[${index}] must be meaningful and cannot be blank`);
+      }
+    }
+  }
+  for (const [snake, camel] of [["goal", "goal"], ["accepter", "accepter"], ["current_action", "currentAction"]]) {
+    const value = own(snake, camel);
+    if (value === undefined || value === null || String(value).trim() === "") {
+      throw new Error(`BossCoding v2 execution_baseline.${snake} is required`);
+    }
+  }
+  const decisions = own("confirmed_decisions", "confirmedDecisions");
+  for (const [index, decision] of decisions.entries()) {
+    if (!decision || typeof decision !== "object" || Array.isArray(decision)
+      || String(decision.decision ?? "").trim() === ""
+      || String(decision.source ?? "").trim() === "") {
+      throw new Error(`BossCoding v2 execution_baseline.confirmed_decisions[${index}] requires decision and source`);
+    }
+  }
+  if (own("allowed_objects", "allowedObjects").length + own("forbidden_objects", "forbiddenObjects").length === 0) {
+    throw new Error("BossCoding v2 execution_baseline must explicitly bound allowed_objects or forbidden_objects");
+  }
+  if (own("allowed_actions", "allowedActions").length + own("forbidden_actions", "forbiddenActions").length === 0) {
+    throw new Error("BossCoding v2 execution_baseline must explicitly bound allowed_actions or forbidden_actions");
+  }
+  if (own("completion_criteria", "completionCriteria").length === 0) {
+    throw new Error("BossCoding v2 execution_baseline.completion_criteria must not be empty");
+  }
+}
+
+function assertBossTaskAcceptance(tasks, roleContract) {
+  if (roleContract.version !== "bosscoding-v2") return;
+  if (!tasks.length) throw new Error("BossCoding v2 requires at least one executable task");
+  for (const [taskIndex, task] of tasks.entries()) {
+    for (const field of ["acceptance_criteria", "expected_evidence"]) {
+      const items = asArray(task[field]);
+      if (!items.length) throw new Error(`BossCoding v2 tasks[${taskIndex}].${field} must not be empty`);
+      const canonicalKeys = field === "acceptance_criteria"
+        ? ["criterion", "name", "id"]
+        : ["evidence", "item", "name", "id", "path", "type"];
+      for (const [itemIndex, item] of items.entries()) {
+        const meaningfulString = typeof item === "string" && item.trim() !== "";
+        const meaningfulObject = item && typeof item === "object" && !Array.isArray(item)
+          && canonicalKeys.some((key) => item[key] !== undefined && item[key] !== null && String(item[key]).trim() !== "");
+        if (!meaningfulString && !meaningfulObject) {
+          throw new Error(`BossCoding v2 tasks[${taskIndex}].${field}[${itemIndex}] must be meaningful and cannot be blank`);
+        }
+      }
+    }
+  }
+}
+
+function acceptanceItemLabel(item, fallbackKeys = []) {
+  if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") return String(item);
+  if (!item || typeof item !== "object" || Array.isArray(item)) return "";
+  for (const key of fallbackKeys) {
+    if (item[key] !== undefined && item[key] !== null && String(item[key]).trim() !== "") return String(item[key]);
+  }
+  return stableJson(item);
+}
+
+function expectedReviewRequirements(plan, task) {
+  const finalAcceptance = plan.tasks.every((candidate) => candidate.task_id === task.task_id || candidate.status === "accepted");
+  const uniqueItems = (items, keys) => {
+    const seen = new Set();
+    const result = [];
+    for (const item of items) {
+      const label = acceptanceItemLabel(item, keys).trim();
+      if (!label || seen.has(label)) continue;
+      seen.add(label);
+      result.push(clone(item));
+    }
+    return result;
+  };
+  return {
+    final_acceptance: finalAcceptance,
+    acceptance_criteria: uniqueItems([
+      ...asArray(task.acceptance_criteria),
+      ...(finalAcceptance ? asArray(plan.acceptance_criteria) : []),
+      ...(finalAcceptance && plan.role_contract?.version === "bosscoding-v2"
+        ? asArray(plan.execution_baseline?.completion_criteria)
+        : []),
+    ], ["criterion", "name", "id"]),
+    expected_evidence: uniqueItems([
+      ...asArray(task.expected_evidence),
+      ...(finalAcceptance ? asArray(plan.expected_evidence) : []),
+    ], ["evidence", "item", "name", "id", "path", "type"]),
+  };
+}
+
+function assertAcceptedReviewComplete(review, task, plan, { requirements = null } = {}) {
+  if (asArray(review.required_changes).length) throw new Error("accepted review cannot contain required_changes; they must be empty");
+  if (asArray(review.defects).length) throw new Error("accepted review cannot contain defects; they must be empty");
+
+  const passing = new Set(["pass", "passed", "accepted", "resolved"]);
+  const criteriaResults = asArray(review.criteria_results ?? review.criteriaResults);
+  for (const result of criteriaResults) {
+    if (!passing.has(String(result?.result ?? result?.status ?? "").toLowerCase())) {
+      throw new Error("accepted review requires every criterion result to pass");
+    }
+  }
+  const passedCriteria = new Set(criteriaResults
+    .map((item) => acceptanceItemLabel(item, ["criterion", "name", "id"]).trim())
+    .filter(Boolean));
+  const activeRequirements = requirements ?? expectedReviewRequirements(plan, task);
+  for (const criterion of activeRequirements.acceptance_criteria) {
+    const label = acceptanceItemLabel(criterion, ["criterion", "name", "id"]).trim();
+    if (!passedCriteria.has(label)) throw new Error(`accepted review criteria_results must cover acceptance criterion: ${label}`);
+  }
+
+  const issueResults = asArray(review.issue_results ?? review.issueResults);
+  if (issueResults.some((issue) => !passing.has(String(issue?.status ?? issue?.result ?? "").toLowerCase()))) {
+    throw new Error("accepted review cannot contain an unresolved issue; issue_results must be resolved or passed");
+  }
+
+  const evidenceChecked = asArray(review.evidence_checked ?? review.evidenceChecked);
+  for (const item of evidenceChecked) {
+    if (plan.role_contract?.version === "bosscoding-v2"
+      && (!item || typeof item !== "object" || Array.isArray(item)
+        || (item.result === undefined && item.status === undefined))) {
+      throw new Error("BossCoding v2 evidence_checked requires every checked evidence item to carry an explicit passing result");
+    }
+    if (item && typeof item === "object" && !Array.isArray(item) && (item.result !== undefined || item.status !== undefined)
+      && !passing.has(String(item.result ?? item.status).toLowerCase())) {
+      throw new Error("accepted review requires every checked evidence item to pass");
+    }
+  }
+  const checkedEvidence = new Set(evidenceChecked
+    .map((item) => acceptanceItemLabel(item, ["evidence", "item", "name", "id", "path", "type"]).trim())
+    .filter(Boolean));
+  for (const expected of activeRequirements.expected_evidence) {
+    const label = acceptanceItemLabel(expected, ["evidence", "item", "name", "id", "path", "type"]).trim();
+    if (!checkedEvidence.has(label)) throw new Error(`accepted review evidence_checked must cover expected evidence: ${label}`);
+  }
 }
 
 function normalizePlan(input, seriesId, version) {
@@ -201,7 +1135,22 @@ function normalizePlan(input, seriesId, version) {
   const summary = required(plan.summary, "summary");
   const searchTerms = asArray(plan.search_terms ?? plan.searchTerms);
   const knowledgeDomains = asArray(plan.knowledge_domains ?? plan.knowledgeDomains);
-  const tasks = asArray(plan.tasks).map(normalizeTask);
+  const roleAssignments = normalizeRoleAssignments(plan.role_assignments ?? plan.roleAssignments);
+  const roleContract = normalizeRoleContract(plan.role_contract ?? plan.roleContract, roleAssignments);
+  assertExplicitBossExecutionBaseline(plan, roleContract);
+  const hasPlanAllowedPaths = Object.prototype.hasOwnProperty.call(plan, "allowed_paths")
+    || Object.prototype.hasOwnProperty.call(plan, "allowedPaths");
+  const planAllowedPaths = asArray(plan.allowed_paths ?? plan.allowedPaths).map(String);
+  const planForbiddenActions = asArray(plan.forbidden_actions ?? plan.forbiddenActions).map(String);
+  const tasks = asArray(plan.tasks).map((task, index) => normalizeTask(task, index, {
+    planAllowedPaths: hasPlanAllowedPaths ? planAllowedPaths : null,
+    planForbiddenActions,
+  }));
+  assertBossTaskAcceptance(tasks, roleContract);
+  const methodLenses = normalizeMethodLenses(plan.method_lenses ?? plan.methodLenses, tasks);
+  if (roleAssignments.execution?.permission_mode === "read-only" && tasks.some((task) => task.allowed_paths.length > 0)) {
+    throw new Error("read-only execution cannot have modification allowed_paths");
+  }
   const explicitStages = asArray(plan.stages).map(normalizeStage);
   const derivedStages = new Map();
   for (const task of tasks) {
@@ -242,12 +1191,22 @@ function normalizePlan(input, seriesId, version) {
     summary,
     objective: String(plan.objective ?? ""),
     goal: String(plan.goal ?? plan.objective ?? ""),
+    execution_baseline: normalizeExecutionBaseline(plan),
+    role_contract: roleContract,
+    role_assignments: roleAssignments,
+    method_lenses: methodLenses,
     target_outcome: String(plan.target_outcome ?? plan.expected_outcome ?? ""),
     modification_scope: asArray(plan.modification_scope ?? plan.modificationScope ?? plan.allowed_paths ?? plan.allowedPaths),
     excluded_scope: asArray(plan.excluded_scope ?? plan.excludedScope ?? plan.non_goals ?? plan.nonGoals),
     detail_policy: String(plan.detail_policy ?? plan.detailPolicy ?? "do-not-deepen-without-request"),
     brainstorming: clone(plan.brainstorming ?? plan.brainstorming_brief ?? { enabled: false, options: [], decisions: [] }),
-    planning_policy: clone(plan.planning_policy ?? plan.planningPolicy ?? { auto_split_long_plan: true, auto_revision_in_scope: true }),
+    planning_policy: {
+      auto_split_long_plan: true,
+      auto_revision_in_scope: true,
+      max_revision_cycles: 6,
+      no_progress_limit: 2,
+      ...clone(plan.planning_policy ?? plan.planningPolicy ?? {}),
+    },
     non_goals: asArray(plan.non_goals ?? plan.nonGoals),
     current_state: String(plan.current_state ?? plan.currentState ?? ""),
     inputs: asArray(plan.inputs),
@@ -258,8 +1217,11 @@ function normalizePlan(input, seriesId, version) {
     acceptance_criteria: asArray(plan.acceptance_criteria ?? plan.acceptanceCriteria),
     expected_evidence: asArray(plan.expected_evidence ?? plan.expectedEvidence),
     rollback: asArray(plan.rollback),
-    allowed_paths: asArray(plan.allowed_paths ?? plan.allowedPaths),
-    forbidden_actions: asArray(plan.forbidden_actions ?? plan.forbiddenActions),
+    allowed_paths: planAllowedPaths,
+    forbidden_actions: planForbiddenActions,
+    authorization_policy: normalizeAuthorizationPolicy(plan.authorization_policy ?? plan.authorizationPolicy),
+    resource_policy: normalizeResourcePolicy(plan.resource_policy ?? plan.resourcePolicy),
+    authorization_envelope: null,
     risks,
     blockers,
     questions_decisions: asArray(plan.questions_decisions ?? plan.questionsDecisions),
@@ -297,6 +1259,17 @@ function syncStageStatuses(plan) {
   }
 }
 
+function isResolvedUndispatchedTransportBlock(plan, task) {
+  if (task.status !== "blocked"
+    || task.dispatch_id !== null
+    || task.report_id !== null
+    || asArray(task.revision_history).length > 0
+    || !String(task.last_error ?? "").startsWith("automatic transport unavailable:")) return false;
+  if (plan.blockers.some(blockerIsOpen)) return false;
+  const blocker = plan.blockers.find((item) => item.blocker_id === `transport-${task.task_id}`);
+  return blocker?.status === "resolved" && blocker.dependency === "live Agent transport";
+}
+
 function activateReadyTasks(plan) {
   const order = currentStageOrder(plan);
   if (order === null) {
@@ -304,7 +1277,8 @@ function activateReadyTasks(plan) {
     return null;
   }
   for (const task of plan.tasks) {
-    if (task.status !== "pending" || task.stage_order !== order) continue;
+    const eligible = task.status === "pending" || isResolvedUndispatchedTransportBlock(plan, task);
+    if (!eligible || task.stage_order !== order) continue;
     if (task.dependencies.every((dependency) => plan.tasks.find((item) => item.task_id === dependency)?.status === "accepted")) {
       task.status = "ready";
     }
@@ -327,11 +1301,13 @@ function initialState(projectId) {
 }
 
 export class FlowStateStore {
-  constructor({ root, fileName = "flowstate-state.json", clock = Date.now } = {}) {
+  constructor({ root, fileName = "flowstate-state.json", clock = Date.now, lockTimeoutMs = 5000 } = {}) {
     if (!root) throw new Error("FlowStateStore root is required");
     this.root = path.resolve(root);
     this.filePath = path.join(this.root, fileName);
+    this.lockPath = `${this.filePath}.lock`;
     this.clock = clock;
+    this.lockTimeoutMs = Math.max(100, Number(lockTimeoutMs) || 5000);
   }
 
   async load(projectId = null) {
@@ -340,6 +1316,24 @@ export class FlowStateStore {
       if (!value || typeof value !== "object") throw new Error("state must be an object");
       value.series ??= {};
       value.events ??= [];
+      for (const series of Object.values(value.series)) {
+        series.reviewer_session_id ??= null;
+        series.review_delivery_status ??= series.reviewer_session_id ? (series.delivery_status ?? "connected") : "review-unavailable";
+        series.platform_session_ids ??= {
+          planning: series.planning_session_id ?? null,
+          execution: series.execution_session_id ?? null,
+        };
+        series.platform_session_ids.review ??= series.reviewer_session_id;
+        series.host_bound_sessions ??= {};
+        series.host_session_identities ??= {};
+        if (series.delivery_status === "connected") {
+          series.host_bound_sessions.planning ??= series.planning_session_id;
+          series.host_bound_sessions.execution ??= series.execution_session_id;
+        }
+        if (series.review_delivery_status === "connected" || series.delivery_status === "connected") {
+          series.host_bound_sessions.review ??= series.reviewer_session_id;
+        }
+      }
       return value;
     } catch (error) {
       if (error.code === "ENOENT") return initialState(projectId);
@@ -348,8 +1342,12 @@ export class FlowStateStore {
   }
 
   async save(state) {
-    await mkdir(this.root, { recursive: true });
+    const planIndexPath = path.join(this.root, "plan-index.json");
+    const sessionIndexPath = path.join(this.root, "session-index.json");
     const tempPath = `${this.filePath}.${process.pid}.${randomUUID()}.tmp`;
+    for (const target of [this.filePath, planIndexPath, sessionIndexPath, tempPath]) {
+      await assertSafeFileTarget(this.root, target, "unsafe state write path");
+    }
     await writeFile(tempPath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
     await rename(tempPath, this.filePath);
     const planIndex = [];
@@ -366,7 +1364,7 @@ export class FlowStateStore {
           search_terms: plan.search_terms,
           knowledge_domains: plan.knowledge_domains,
           status: plan.status,
-          related_sessions: [series.planning_session_id, series.execution_session_id],
+          related_sessions: [series.planning_session_id, series.execution_session_id, series.reviewer_session_id].filter(Boolean),
           task_ids: plan.tasks.map((task) => task.task_id),
           parallel_of: series.parallel_of ?? null,
         });
@@ -374,23 +1372,121 @@ export class FlowStateStore {
       sessionIndex.push(
         { session_id: series.planning_session_id, project_id: series.project_id, department: "planning", role: "controller", plan_series_id: series.plan_series_id },
         { session_id: series.execution_session_id, project_id: series.project_id, department: "execution", role: "controller", plan_series_id: series.plan_series_id },
+        series.reviewer_session_id
+          ? { session_id: series.reviewer_session_id, project_id: series.project_id, department: "review", role: "controller", plan_series_id: series.plan_series_id }
+          : null,
       );
       for (const dispatch of Object.values(series.dispatches ?? {})) {
         if (dispatch.worker_session_id) sessionIndex.push({ session_id: dispatch.worker_session_id, project_id: series.project_id, department: "execution", role: "worker", plan_series_id: series.plan_series_id, task_id: dispatch.task_id });
       }
     }
     planIndex.sort((left, right) => `${left.plan_series_id}/${left.plan_version}`.localeCompare(`${right.plan_series_id}/${right.plan_version}`));
-    sessionIndex.sort((left, right) => left.session_id.localeCompare(right.session_id));
-    await writeFile(path.join(this.root, "plan-index.json"), `${JSON.stringify({ schema_version: STATE_VERSION, plans: planIndex }, null, 2)}\n`, "utf8");
-    await writeFile(path.join(this.root, "session-index.json"), `${JSON.stringify({ schema_version: STATE_VERSION, sessions: sessionIndex }, null, 2)}\n`, "utf8");
+    const validSessionIndex = sessionIndex.filter(Boolean);
+    validSessionIndex.sort((left, right) => left.session_id.localeCompare(right.session_id));
+    await assertSafeFileTarget(this.root, planIndexPath, "unsafe state write path");
+    await writeFile(planIndexPath, `${JSON.stringify({ schema_version: STATE_VERSION, plans: planIndex }, null, 2)}\n`, "utf8");
+    await assertSafeFileTarget(this.root, sessionIndexPath, "unsafe state write path");
+    await writeFile(sessionIndexPath, `${JSON.stringify({ schema_version: STATE_VERSION, sessions: validSessionIndex }, null, 2)}\n`, "utf8");
     return this.filePath;
   }
 
   async transaction(projectId, mutator) {
-    const state = await this.load(projectId);
-    const result = await mutator(state);
-    await this.save(state);
-    return result;
+    await ensureSafeDirectoryTree(this.root, this.root, "unsafe state write path");
+    const deadline = Date.now() + this.lockTimeoutMs;
+    const lockToken = randomUUID();
+    const owner = { token: lockToken, pid: process.pid, acquired_at: new Date().toISOString() };
+    let ownsLock = false;
+    while (!ownsLock) {
+      const candidatePath = `${this.lockPath}.candidate-${lockToken}`;
+      try {
+        await mkdir(candidatePath);
+        await writeFile(path.join(candidatePath, "owner.json"), `${JSON.stringify(owner)}\n`, "utf8");
+      } catch (error) {
+        await rm(candidatePath, { recursive: true, force: true });
+        throw error;
+      }
+      try {
+        await rename(candidatePath, this.lockPath);
+        ownsLock = true;
+        continue;
+      } catch (error) {
+        await rm(candidatePath, { recursive: true, force: true });
+        if (!["EEXIST", "ENOTEMPTY", "EPERM"].includes(error.code)) throw error;
+      }
+
+      try {
+        const observedOwner = await readLockOwner(this.lockPath);
+        if (processIsAlive(Number(observedOwner.pid)) === false) {
+          const recoveryRoot = `${this.lockPath}.recovery-${lockRecoveryId(observedOwner)}`;
+          const recoveredLockPath = path.join(recoveryRoot, "lock");
+          await mkdir(recoveryRoot, { recursive: true });
+          try {
+            await writeFile(
+              path.join(recoveryRoot, "recovery.json"),
+              `${JSON.stringify({ owner: observedOwner, detected_at: new Date().toISOString() })}\n`,
+              { encoding: "utf8", flag: "wx" },
+            );
+          } catch (error) {
+            if (error.code !== "EEXIST") throw error;
+          }
+
+          try {
+            const currentOwner = await readLockOwner(this.lockPath);
+            if (
+              currentOwner.token === observedOwner.token
+              && Number(currentOwner.pid) === Number(observedOwner.pid)
+              && processIsAlive(Number(currentOwner.pid)) === false
+            ) {
+              try {
+                await rename(this.lockPath, recoveredLockPath);
+                continue;
+              } catch (error) {
+                if (!["ENOENT", "EEXIST", "ENOTEMPTY", "EPERM"].includes(error.code)) throw error;
+              }
+            }
+          } catch (error) {
+            if (error.code === "ENOENT") continue;
+            throw error;
+          }
+        }
+      } catch (error) {
+        if (error.code === "ENOENT") continue;
+        // Invalid or unverifiable owner data fails closed until an operator
+        // inspects the one exact lock directory.
+      }
+
+      if (Date.now() >= deadline) throw new Error(`Timed out waiting for FlowState state lock: ${this.lockPath}`);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+
+    try {
+      const state = await this.load(projectId);
+      const result = await mutator(state);
+      await this.save(state);
+      return result;
+    } finally {
+      const releasedPath = `${this.lockPath}.released-${lockToken}`;
+      const releaseDeadline = Date.now() + this.lockTimeoutMs;
+      while (true) {
+        try {
+          const currentOwner = await readLockOwner(this.lockPath);
+          if (currentOwner.token !== lockToken) {
+            throw new Error(`FlowState state lock ownership changed before release: ${this.lockPath}`);
+          }
+          await rename(this.lockPath, releasedPath);
+          break;
+        } catch (error) {
+          if (error.code === "ENOENT") {
+            throw new Error(`FlowState state lock disappeared before release: ${this.lockPath}`);
+          }
+          if (!["EACCES", "EBUSY", "EPERM"].includes(error.code) || Date.now() >= releaseDeadline) {
+            throw error;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+      }
+      await rm(releasedPath, { recursive: true, force: true });
+    }
   }
 }
 
@@ -400,13 +1496,16 @@ export class FileQueueAdapter {
     this.root = path.resolve(root);
     this.clock = clock;
     this.id = id;
+    this.authenticatedReviewSource = false;
   }
 
   async ensureSeriesSessions({ seriesId }) {
     return {
       planning_session_id: `local-planning-${seriesId}`,
       execution_session_id: `local-execution-${seriesId}`,
-      platform_session_ids: { planning: null, execution: null },
+      reviewer_session_id: `local-review-${seriesId}`,
+      platform_session_ids: { planning: null, execution: null, review: null },
+      review_delivery_status: "adapter-unavailable",
       delivery_status: "adapter-unavailable",
       adapter: "file-queue",
     };
@@ -421,13 +1520,14 @@ export class FileQueueAdapter {
   }
 
   async send(message) {
-    const target = safeQueueSegment(message.target_session_id ?? message.return_to, "target_session_id");
+    const target = queueSessionSegment(message.target_session_id ?? message.return_to, "target_session_id");
     const directory = path.join(this.root, "outbox", target);
-    await mkdir(directory, { recursive: true });
+    await ensureSafeDirectoryTree(this.root, directory, "unsafe queue write path");
     const messageId = String(message.message_id ?? message.dispatch_id ?? this.id("message"));
     const idempotencyKey = String(message.idempotency_key ?? message.dispatch_id ?? messageId);
     const fileName = `${safeQueueSegment(idempotencyKey, "idempotency_key")}.json`;
     const filePath = path.join(directory, fileName);
+    await assertSafeFileTarget(this.root, filePath, "unsafe queue write path");
     try {
       const existing = JSON.parse(await readFile(filePath, "utf8"));
       return { message_id: existing.message_id ?? messageId, path: filePath, deduplicated: true };
@@ -439,11 +1539,13 @@ export class FileQueueAdapter {
   }
 
   async enqueueReport(report) {
-    const target = safeQueueSegment(report.return_to ?? report.planning_session_id, "return_to");
+    const target = queueSessionSegment(report.return_to ?? report.planning_session_id, "return_to");
     const directory = path.join(this.root, "inbox", target);
-    await mkdir(directory, { recursive: true });
+    await ensureSafeDirectoryTree(this.root, directory, "unsafe queue write path");
     const reportId = String(report.report_id ?? this.id("report"));
-    const filePath = path.join(directory, `${reportId}.json`);
+    const safeReportId = safeQueueSegment(reportId, "report_id");
+    const filePath = path.join(directory, `${safeReportId}.json`);
+    await assertSafeFileTarget(this.root, filePath, "unsafe queue write path");
     try {
       await readFile(filePath, "utf8");
       return { report_id: reportId, path: filePath, deduplicated: true };
@@ -457,11 +1559,16 @@ export class FileQueueAdapter {
   }
 
   async enqueueReview(review) {
-    const target = safeQueueSegment(review.return_to ?? review.execution_session_id, "return_to");
+    const target = queueSessionSegment(
+      review.return_to ?? review.reviewer_session_id ?? review.planning_session_id,
+      "return_to",
+    );
     const directory = path.join(this.root, "inbox", target);
-    await mkdir(directory, { recursive: true });
+    await ensureSafeDirectoryTree(this.root, directory, "unsafe queue write path");
     const reviewId = String(review.review_id ?? this.id("review"));
-    const filePath = path.join(directory, `${reviewId}.json`);
+    const safeReviewId = safeQueueSegment(reviewId, "review_id");
+    const filePath = path.join(directory, `${safeReviewId}.json`);
+    await assertSafeFileTarget(this.root, filePath, "unsafe queue write path");
     try {
       await readFile(filePath, "utf8");
       return { review_id: reviewId, path: filePath, deduplicated: true };
@@ -473,7 +1580,7 @@ export class FileQueueAdapter {
   }
 
   async receiveReports(sessionId) {
-    const directory = path.join(this.root, "inbox", safeQueueSegment(sessionId, "sessionId"));
+    const directory = path.join(this.root, "inbox", queueSessionSegment(sessionId, "sessionId"));
     let names;
     try {
       names = (await readdir(directory)).filter((name) => name.endsWith(".json")).sort();
@@ -486,7 +1593,7 @@ export class FileQueueAdapter {
   }
 
   async receiveReviews(sessionId) {
-    const directory = path.join(this.root, "inbox", safeQueueSegment(sessionId, "sessionId"));
+    const directory = path.join(this.root, "inbox", queueSessionSegment(sessionId, "sessionId"));
     let names;
     try {
       names = (await readdir(directory)).filter((name) => name.endsWith(".json")).sort();
@@ -499,10 +1606,11 @@ export class FileQueueAdapter {
   }
 
   async acknowledgeMessage(sessionId, messageId) {
-    const safeSession = safeQueueSegment(sessionId, "sessionId");
+    const safeSession = queueSessionSegment(sessionId, "sessionId");
     const safeMessage = safeQueueSegment(messageId, "messageId");
     const directory = path.join(this.root, "inbox", safeSession);
     const directPath = path.join(directory, `${safeMessage}.json`);
+    await assertSafeFileTarget(this.root, directPath, "unsafe queue write path");
     let sourcePath = directPath;
     try {
       await readFile(sourcePath, "utf8");
@@ -527,8 +1635,10 @@ export class FileQueueAdapter {
       if (!sourcePath) return { acknowledged: false };
     }
     const archiveDirectory = path.join(this.root, "processed", safeSession);
-    await mkdir(archiveDirectory, { recursive: true });
+    await ensureSafeDirectoryTree(this.root, archiveDirectory, "unsafe queue write path");
     const archivePath = path.join(archiveDirectory, path.basename(sourcePath));
+    await assertSafeFileTarget(this.root, sourcePath, "unsafe queue write path");
+    await assertSafeFileTarget(this.root, archivePath, "unsafe queue write path");
     try {
       await rename(sourcePath, archivePath);
     } catch (error) {
@@ -553,6 +1663,7 @@ export class CodexAppServerAdapter {
     this.request = request;
     this.receive = receive;
     this.id = id;
+    this.authenticatedReviewSource = true;
   }
 
   async ensureSeriesSessions({ seriesId, projectId }) {
@@ -562,14 +1673,20 @@ export class CodexAppServerAdapter {
     const execution = await this.request("thread/start", {
       metadata: { flowstate_role: "execution-controller", project_id: projectId, plan_series_id: seriesId },
     });
+    const reviewer = await this.request("thread/start", {
+      metadata: { flowstate_role: "review-controller", project_id: projectId, plan_series_id: seriesId },
+    });
     return {
       planning_session_id: planning?.thread?.id ?? planning?.id ?? planning?.threadId,
       execution_session_id: execution?.thread?.id ?? execution?.id ?? execution?.threadId,
+      reviewer_session_id: reviewer?.thread?.id ?? reviewer?.id ?? reviewer?.threadId,
       platform_session_ids: {
         planning: planning?.thread?.id ?? planning?.id ?? planning?.threadId ?? null,
         execution: execution?.thread?.id ?? execution?.id ?? execution?.threadId ?? null,
+        review: reviewer?.thread?.id ?? reviewer?.id ?? reviewer?.threadId ?? null,
       },
       delivery_status: "connected",
+      review_delivery_status: "connected",
       adapter: "codex-app-server",
     };
   }
@@ -656,8 +1773,11 @@ export class FlowStateDispatcher {
       if (!series) {
         seriesId ??= `series-${this.id("plan")}`;
         const sessions = await this.adapter.ensureSeriesSessions({ seriesId, projectId: this.projectId });
-        if (!sessions?.planning_session_id || !sessions?.execution_session_id) {
-          throw new Error("adapter did not return planning and execution session ids");
+        if (!sessions?.planning_session_id || !sessions?.execution_session_id || !sessions?.reviewer_session_id) {
+          throw new Error("adapter did not return planning, execution, and reviewer session ids");
+        }
+        if (new Set([sessions.planning_session_id, sessions.execution_session_id, sessions.reviewer_session_id]).size !== 3) {
+          throw new Error("planning, execution, and reviewer sessions must be distinct");
         }
         series = {
           plan_series_id: seriesId,
@@ -666,7 +1786,25 @@ export class FlowStateDispatcher {
           parallel_of: relation === "parallel" ? String(parallelOf) : null,
           planning_session_id: sessions.planning_session_id,
           execution_session_id: sessions.execution_session_id,
-          platform_session_ids: sessions.platform_session_ids ?? { planning: sessions.planning_session_id, execution: sessions.execution_session_id },
+          reviewer_session_id: sessions.reviewer_session_id,
+          review_delivery_status: sessions.review_delivery_status ?? sessions.delivery_status ?? "connected",
+          platform_session_ids: sessions.platform_session_ids ?? {
+            planning: sessions.planning_session_id,
+            execution: sessions.execution_session_id,
+            review: sessions.reviewer_session_id,
+          },
+          host_bound_sessions: {
+            ...(sessions.delivery_status === "connected"
+              ? {
+                  planning: sessions.planning_session_id,
+                  execution: sessions.execution_session_id,
+                }
+              : {}),
+            ...((sessions.review_delivery_status === "connected" || sessions.delivery_status === "connected")
+              ? { review: sessions.reviewer_session_id }
+              : {}),
+          },
+          host_session_identities: {},
           delivery_status: sessions.delivery_status ?? "connected",
           adapter: sessions.adapter ?? "custom",
           current_plan_version: null,
@@ -674,6 +1812,9 @@ export class FlowStateDispatcher {
           dispatches: {},
           reports: {},
           reviews: {},
+          review_requirements: {},
+          pending_final_reviews: {},
+          archived_final_reviews: {},
           blockers: {},
           parallel_branches: {},
           status: "planning",
@@ -698,6 +1839,21 @@ export class FlowStateDispatcher {
       if (relation === "extension") {
         const previous = series.plans[series.current_plan_version];
         if (previous) {
+          if (previous.role_contract?.version !== normalized.role_contract?.version) {
+            throw new Error("role contract version cannot change across a plan series; start a new series for migration");
+          }
+          series.pending_final_reviews ??= {};
+          series.archived_final_reviews ??= {};
+          for (const [reportId, message] of Object.entries(series.pending_final_reviews)) {
+            if (message.plan_id !== previous.plan_id || message.plan_version !== previous.plan_version) continue;
+            series.archived_final_reviews[`${reportId}:${previous.plan_version}`] = {
+              status: "superseded",
+              superseded_by_plan_version: version,
+              archived_at: nowIso(this.clock),
+              message: clone(message),
+            };
+            delete series.pending_final_reviews[reportId];
+          }
           previous.status = "superseded";
           const accepted = new Map(previous.tasks.filter((task) => task.status === "accepted").map((task) => [task.task_id, task]));
           for (const task of normalized.tasks) {
@@ -711,46 +1867,339 @@ export class FlowStateDispatcher {
       series.current_plan_version = version;
       series.updated_at = nowIso(this.clock);
       this.event(state, "PLAN_CREATED", { plan_series_id: seriesId, plan_version: version, relation });
-      return clone({ plan_series_id: seriesId, plan_id: normalized.plan_id, plan_version: version, planning_session_id: series.planning_session_id, execution_session_id: series.execution_session_id });
+      return clone({
+        plan_series_id: seriesId,
+        plan_id: normalized.plan_id,
+        plan_version: version,
+        planning_session_id: series.planning_session_id,
+        execution_session_id: series.execution_session_id,
+        reviewer_session_id: series.reviewer_session_id,
+      });
     });
   }
 
-  async approvePlan({ planSeriesId, planVersion, approval } = {}) {
+  async bindHostSession({
+    planSeriesId,
+    planVersion,
+    role,
+    sessionId,
+    hostAgentType,
+    selectionSource,
+    host_agent_type: hostAgentTypeSnake,
+    selection_source: selectionSourceSnake,
+  } = {}) {
+    return this.store.transaction(this.projectId, async (state) => {
+      const series = state.series[required(planSeriesId, "planSeriesId")];
+      if (!series) throw new Error(`Plan series not found: ${planSeriesId}`);
+      const normalizedRole = String(required(role, "role")).toLowerCase();
+      const field = {
+        planning: "planning_session_id",
+        execution: "execution_session_id",
+        review: "reviewer_session_id",
+        reviewer: "reviewer_session_id",
+      }[normalizedRole];
+      if (!field) throw new Error(`unsupported host session role: ${role}`);
+      const platformRole = field === "reviewer_session_id" ? "review" : normalizedRole;
+      const observedBinding = observedRoleBinding(series, {
+        planVersion,
+        role: platformRole,
+        hostAgentType: hostAgentType ?? hostAgentTypeSnake,
+        selectionSource: selectionSource ?? selectionSourceSnake,
+      });
+      const normalizedSessionId = String(required(sessionId, "sessionId"));
+      series.host_bound_sessions ??= {};
+      series.host_bound_role_observations ??= {};
+      const existingHostSession = series.host_bound_sessions[platformRole];
+      if (existingHostSession) {
+        if (existingHostSession !== normalizedSessionId) throw new Error(`cannot rebind the ${platformRole} host session`);
+        registerHostSessionIdentity(series, {
+          sessionId: normalizedSessionId,
+          bindingRole: `${platformRole}-controller`,
+          hostAgentType: observedBinding?.host_agent_type ?? null,
+          planVersion: series.current_plan_version,
+        });
+        if (observedBinding) series.host_bound_role_observations[platformRole] = observedBinding;
+        return clone({
+          plan_series_id: planSeriesId,
+          role: platformRole,
+          session_id: normalizedSessionId,
+          ...(observedBinding ?? {}),
+          idempotent: true,
+        });
+      }
+      if (Object.keys(series.dispatches ?? {}).length > 0) {
+        throw new Error("controller sessions must be bound before the first dispatch");
+      }
+      const otherControllerIds = [
+        series.planning_session_id,
+        series.execution_session_id,
+        series.reviewer_session_id,
+      ].filter((candidate) => candidate && candidate !== series[field]);
+      if (otherControllerIds.includes(normalizedSessionId)) {
+        throw new Error("bound planning, execution, and reviewer sessions must be distinct");
+      }
+      registerHostSessionIdentity(series, {
+        sessionId: normalizedSessionId,
+        bindingRole: `${platformRole}-controller`,
+        hostAgentType: observedBinding?.host_agent_type ?? null,
+        planVersion: series.current_plan_version,
+      });
+      series[field] = normalizedSessionId;
+      series.platform_session_ids ??= {};
+      series.platform_session_ids[platformRole] = normalizedSessionId;
+      series.host_bound_sessions[platformRole] = normalizedSessionId;
+      if (observedBinding) series.host_bound_role_observations[platformRole] = observedBinding;
+      if (field === "reviewer_session_id") series.review_delivery_status = "connected";
+      series.updated_at = nowIso(this.clock);
+      this.event(state, "HOST_CONTROLLER_BOUND", {
+        plan_series_id: planSeriesId,
+        role: platformRole,
+        session_id: normalizedSessionId,
+        ...(observedBinding ?? {}),
+      });
+      return clone({
+        plan_series_id: planSeriesId,
+        role: platformRole,
+        session_id: normalizedSessionId,
+        ...(observedBinding ?? {}),
+      });
+    });
+  }
+
+  async bindHostWorker({
+    planSeriesId,
+    planVersion,
+    taskId,
+    dispatchId,
+    workerSessionId,
+    hostAgentType,
+    selectionSource,
+    host_agent_type: hostAgentTypeSnake,
+    selection_source: selectionSourceSnake,
+  } = {}) {
+    return this.store.transaction(this.projectId, async (state) => {
+      const series = state.series[required(planSeriesId, "planSeriesId")];
+      const plan = series?.plans[String(required(planVersion, "planVersion"))];
+      const dispatch = series?.dispatches[required(dispatchId, "dispatchId")];
+      const task = plan?.tasks.find((candidate) => candidate.task_id === required(taskId, "taskId"));
+      if (!series || !plan || !dispatch || !task) throw new Error("host worker binding identifiers do not match a known dispatch");
+      if (dispatch.plan_version !== plan.plan_version || dispatch.task_id !== task.task_id || task.dispatch_id !== dispatch.dispatch_id) {
+        throw new Error("host worker binding does not match the active task dispatch");
+      }
+      if (series.reports[task.report_id]?.dispatch_id === dispatch.dispatch_id || dispatch.status === "report-received") {
+        throw new Error("cannot bind a host worker after its report was received");
+      }
+      const observedBinding = observedRoleBinding(series, {
+        planVersion,
+        role: "execution",
+        hostAgentType: hostAgentType ?? hostAgentTypeSnake,
+        selectionSource: selectionSource ?? selectionSourceSnake,
+      });
+      if (observedBinding && (
+        dispatch.host_agent_type !== observedBinding.host_agent_type
+        || dispatch.selection_source !== observedBinding.selection_source
+        || dispatch.permission_mode !== observedBinding.permission_mode
+        || dispatch.role_assignment_hash !== roleAssignmentHash(plan.role_assignments.execution)
+      )) {
+        throw new Error("dispatch role assignment does not match the current approved execution role");
+      }
+      const normalizedWorkerId = String(required(workerSessionId, "workerSessionId"));
+      registerHostSessionIdentity(series, {
+        sessionId: normalizedWorkerId,
+        bindingRole: "execution-worker",
+        hostAgentType: observedBinding?.host_agent_type ?? null,
+        planVersion: plan.plan_version,
+      });
+      if (dispatch.host_bound) {
+        if (dispatch.worker_session_id !== normalizedWorkerId) throw new Error("cannot rebind a host worker session");
+        return clone({
+          plan_series_id: planSeriesId,
+          plan_version: plan.plan_version,
+          task_id: task.task_id,
+          dispatch_id: dispatch.dispatch_id,
+          worker_session_id: normalizedWorkerId,
+          ...(observedBinding ?? {}),
+          idempotent: true,
+        });
+      }
+      const reservedIds = [
+        series.planning_session_id,
+        series.execution_session_id,
+        series.reviewer_session_id,
+        ...Object.values(series.dispatches)
+          .filter((candidate) => candidate.dispatch_id !== dispatch.dispatch_id)
+          .map((candidate) => candidate.worker_session_id),
+      ].filter(Boolean);
+      if (reservedIds.includes(normalizedWorkerId)) {
+        throw new Error("bound worker session must be distinct from controllers and other workers");
+      }
+      dispatch.worker_session_id = normalizedWorkerId;
+      dispatch.target_session_id = normalizedWorkerId;
+      dispatch.platform_worker_session_id = normalizedWorkerId;
+      dispatch.worker_delivery_status = "connected";
+      dispatch.manual_handoff = false;
+      dispatch.host_bound = true;
+      dispatch.host_bound_at = nowIso(this.clock);
+      if (observedBinding) {
+        dispatch.observed_host_agent_type = observedBinding.host_agent_type;
+        dispatch.observed_selection_source = observedBinding.selection_source;
+        dispatch.observed_permission_mode = observedBinding.permission_mode;
+        dispatch.observed_plan_version = observedBinding.plan_version;
+      }
+      series.updated_at = dispatch.host_bound_at;
+      this.event(state, "HOST_WORKER_BOUND", {
+        plan_series_id: planSeriesId,
+        plan_version: plan.plan_version,
+        task_id: task.task_id,
+        dispatch_id: dispatch.dispatch_id,
+        worker_session_id: normalizedWorkerId,
+        ...(observedBinding ?? {}),
+      });
+      return clone({
+        plan_series_id: planSeriesId,
+        plan_version: plan.plan_version,
+        task_id: task.task_id,
+        dispatch_id: dispatch.dispatch_id,
+        worker_session_id: normalizedWorkerId,
+        ...(observedBinding ?? {}),
+      });
+    });
+  }
+
+  async createAuthorizationEnvelope(plan, approval) {
+    if (plan.authorization_policy?.required !== true) return null;
+    if (plan.authorization_policy.fail_closed !== true || plan.authorization_policy.attestation_source !== "host-transport") {
+      throw new Error("required authorization policy must fail closed and use host-transport attestation");
+    }
+    if (typeof this.adapter.attestAuthorization !== "function") {
+      throw new Error("required authorization attestation is unavailable from the injected host transport adapter");
+    }
+    const boundaryDigest = sha256(authorizationBoundary(plan, approval));
+    const proof = await this.adapter.attestAuthorization({
+      plan_series_id: plan.plan_series_id,
+      plan_id: plan.plan_id,
+      plan_version: plan.plan_version,
+      approval_id: String(approval.approval_id ?? ""),
+      boundary_digest: boundaryDigest,
+    });
+    if (!proof || typeof proof !== "object") throw new Error("host transport did not return authorization attestation");
+    if (proof.boundary_digest !== boundaryDigest) throw new Error("authorization attestation boundary digest does not match");
+    if (proof.plan_id !== plan.plan_id || proof.plan_version !== plan.plan_version) {
+      throw new Error("authorization attestation plan id or version does not match");
+    }
+    const expiresAt = Date.parse(proof.expires_at);
+    if (!Number.isFinite(expiresAt) || expiresAt <= this.clock()) throw new Error("authorization attestation is expired or has an invalid expiry");
+    return {
+      schema_version: "1.0",
+      plan_series_id: plan.plan_series_id,
+      plan_id: plan.plan_id,
+      plan_version: plan.plan_version,
+      approval_id: String(approval.approval_id ?? ""),
+      boundary_digest: boundaryDigest,
+      approval_boundary: authorizationApprovalBoundary(approval),
+      expires_at: new Date(expiresAt).toISOString(),
+      attestation: {
+        proof_id: String(required(proof.proof_id, "authorization attestation proof_id")),
+        transport: String(required(proof.transport, "authorization attestation transport")),
+        attested_at: String(required(proof.attested_at, "authorization attestation attested_at")),
+      },
+    };
+  }
+
+  async approvePlan({ planSeriesId, planVersion, approval, approval_reuse: approvalReuse } = {}) {
     return this.store.transaction(this.projectId, async (state) => {
       const series = state.series[required(planSeriesId, "planSeriesId")];
       const version = String(planVersion ?? series?.current_plan_version);
       const plan = series?.plans[version];
       if (!series || !plan) throw new Error(`Plan not found: ${planSeriesId}/${version}`);
-      if (approval?.approver !== "user") throw new Error("approval.approver must be user");
-      if (approval?.plan_version !== version) throw new Error("approval.plan_version must exactly match the plan version");
-      if (approval?.plan_id && approval.plan_id !== plan.plan_id) throw new Error("approval.plan_id does not match the plan");
-      if (!new Set(["approved", "approved-with-conditions"]).has(approval?.decision)) {
+      if (approval && approvalReuse) throw new Error("provide approval or approval_reuse, not both");
+      let effectiveApproval = approval;
+      let reusedFrom = null;
+      if (approvalReuse) {
+        const sourceVersion = String(required(approvalReuse.source_plan_version, "approval_reuse.source_plan_version"));
+        const sourcePlan = series.plans[sourceVersion];
+        if (!sourcePlan || sourcePlan.plan_id !== required(approvalReuse.source_plan_id, "approval_reuse.source_plan_id")) {
+          throw new Error("approval_reuse must reference a plan in the same series");
+        }
+        const sourceApproval = sourcePlan.approval;
+        if (!sourceApproval || sourceApproval.approver !== "user"
+          || sourceApproval.approval_id !== required(approvalReuse.approval_id, "approval_reuse.approval_id")) {
+          throw new Error("approval_reuse must reference a real stored user approval");
+        }
+        if (stableJson(approvalReuseBoundary(sourcePlan)) !== stableJson(approvalReuseBoundary(plan))) {
+          throw new Error("approval reuse cannot expand or change the approved boundary");
+        }
+        reusedFrom = { plan_id: sourcePlan.plan_id, plan_version: sourceVersion };
+        effectiveApproval = {
+          ...clone(sourceApproval),
+          plan_id: plan.plan_id,
+          plan_version: version,
+        };
+        delete effectiveApproval.authorization_envelope;
+        delete effectiveApproval.approved_at;
+      }
+      if (effectiveApproval?.approver !== "user") throw new Error("approval.approver must be user");
+      if (effectiveApproval?.plan_version !== version) throw new Error("approval.plan_version must exactly match the plan version");
+      if (required(effectiveApproval?.plan_id, "approval.plan_id") !== plan.plan_id) throw new Error("approval.plan_id does not match the plan");
+      if (!new Set(["approved", "approved-with-conditions"]).has(effectiveApproval?.decision)) {
         throw new Error("approval decision must be approved or approved-with-conditions");
       }
       const risks = plan.risks.map((risk) => risk.risk_id);
-      const acknowledged = new Set(asArray(approval.acknowledged_risks).map(String));
+      const acknowledged = new Set(asArray(effectiveApproval.acknowledged_risks).map(String));
       const missingRisks = risks.filter((riskIdValue) => !acknowledged.has(riskIdValue));
       if (missingRisks.length) throw new Error(`approval must acknowledge every risk: ${missingRisks.join(", ")}`);
       const openBlockers = plan.blockers.filter(blockerIsOpen);
       if (openBlockers.length) throw new Error(`plan has unresolved blockers: ${openBlockers.map((item) => item.blocker_id).join(", ")}`);
-      const conditions = asArray(approval.conditions);
-      if (approval.decision === "approved-with-conditions" && !conditions.length) throw new Error("conditional approval requires conditions");
-      if (approval.decision === "approved-with-conditions" && approval.conditions_satisfied !== true && !conditions.every((condition) => condition?.status === "satisfied" || condition?.satisfied === true)) {
+      const conditions = asArray(effectiveApproval.conditions);
+      if (effectiveApproval.decision === "approved-with-conditions" && !conditions.length) throw new Error("conditional approval requires conditions");
+      if (effectiveApproval.decision === "approved-with-conditions" && effectiveApproval.conditions_satisfied !== true && !conditions.every((condition) => condition?.status === "satisfied" || condition?.satisfied === true)) {
         throw new Error("all conditional approval conditions must be machine-checkable and satisfied");
       }
 
+      const authorizationEnvelope = await this.createAuthorizationEnvelope(plan, effectiveApproval);
+      const storedApproval = clone(effectiveApproval);
+      delete storedApproval.authorization_envelope;
+      delete storedApproval.host_attestation;
+      delete storedApproval.attestation;
+      delete storedApproval.verified;
       plan.approval = {
-        ...clone(approval),
+        ...storedApproval,
         plan_id: plan.plan_id,
         plan_version: version,
         approved_at: nowIso(this.clock),
+        ...(reusedFrom ? { reused_from: reusedFrom } : {}),
+        ...(authorizationEnvelope ? { authorization_envelope: authorizationEnvelope } : {}),
       };
+      plan.authorization_envelope = authorizationEnvelope;
       plan.status = "approved";
       activateReadyTasks(plan);
       series.status = "approved";
+      let finalReviewRequestsSent = 0;
+      for (const [reportId, message] of Object.entries(series.pending_final_reviews ?? {})) {
+        if (message.plan_id !== plan.plan_id || message.plan_version !== version) continue;
+        const authorizedMessage = authorizationEnvelope
+          ? { ...clone(message), authorization_envelope: clone(authorizationEnvelope) }
+          : message;
+        const delivery = await this.adapter.send(authorizedMessage);
+        delete series.pending_final_reviews[reportId];
+        finalReviewRequestsSent += 1;
+        this.event(state, "FINAL_REVIEW_REQUEST_SENT_AFTER_APPROVAL", {
+          plan_series_id: planSeriesId,
+          plan_version: version,
+          report_id: reportId,
+          review_request_id: message.review_request_id,
+          message_id: delivery?.message_id ?? authorizedMessage.message_id,
+        });
+      }
       series.updated_at = nowIso(this.clock);
-      this.event(state, "USER_PLAN_APPROVED", { plan_series_id: planSeriesId, plan_version: version, decision: approval.decision });
-      return clone({ plan_series_id: planSeriesId, plan_version: version, ready_tasks: plan.tasks.filter((task) => task.status === "ready").map((task) => task.task_id) });
+      this.event(state, reusedFrom ? "APPROVAL_REUSED" : "USER_PLAN_APPROVED", {
+        plan_series_id: planSeriesId,
+        plan_version: version,
+        approval_id: storedApproval.approval_id,
+        decision: effectiveApproval.decision,
+        ...(reusedFrom ? { source_plan_id: reusedFrom.plan_id, source_plan_version: reusedFrom.plan_version } : {}),
+      });
+      return clone({ plan_series_id: planSeriesId, plan_version: version, ready_tasks: plan.tasks.filter((task) => task.status === "ready").map((task) => task.task_id), final_review_requests_sent: finalReviewRequestsSent, ...(authorizationEnvelope ? { authorization_envelope: authorizationEnvelope } : {}) });
     });
   }
 
@@ -761,8 +2210,23 @@ export class FlowStateDispatcher {
       const plan = series?.plans[version];
       if (!series || !plan) throw new Error(`Plan not found: ${planSeriesId}/${version}`);
       if (plan.status !== "approved") throw new Error(`plan is not executable in status ${plan.status}`);
+      if (!series.reviewer_session_id) throw new Error("plan review is unavailable until an independent reviewer session is bound");
       if (!plan.approval || plan.approval.plan_id !== plan.plan_id || plan.approval.plan_version !== version) {
         throw new Error("plan is missing exact user approval for this plan id and version");
+      }
+      assertAuthorizationEnvelope(plan, plan.approval.authorization_envelope, this.clock);
+      if (plan.role_contract?.version === "bosscoding-v2") {
+        for (const role of ["planning", "review"]) {
+          const assignment = plan.role_assignments[role];
+          const observation = series.host_bound_role_observations?.[role];
+          if (!assignment || !observation
+            || observation.plan_version !== version
+            || observation.host_agent_type !== assignment.host_agent_type
+            || observation.selection_source !== assignment.selection_source
+            || observation.permission_mode !== assignment.permission_mode) {
+            throw new Error(`dispatch requires a host-observed ${role} role binding for the current approved plan`);
+          }
+        }
       }
       if (plan.blockers.some(blockerIsOpen)) throw new Error("plan has unresolved blockers");
       const activeStageOrder = currentStageOrder(plan);
@@ -823,6 +2287,7 @@ export class FlowStateDispatcher {
           task_id: task.task_id,
           parent_session_id: series.execution_session_id,
           planning_session_id: series.planning_session_id,
+          reviewer_session_id: series.reviewer_session_id,
           target_session_id: worker.worker_session_id,
           worker_session_id: worker.worker_session_id,
           platform_worker_session_id: Object.prototype.hasOwnProperty.call(worker, "platform_session_id") ? worker.platform_session_id : worker.worker_session_id,
@@ -842,6 +2307,14 @@ export class FlowStateDispatcher {
           external_agent_id: task.external_agent_id ?? worker.external_agent_id ?? agentSelectorFor(task, taskStage)?.external_agent_id ?? null,
           external_agent_query: task.external_agent_query ?? worker.external_agent_query ?? agentSelectorFor(task, taskStage)?.external_agent_query ?? null,
           external_agent_division: task.external_agent_division ?? worker.external_agent_division ?? agentSelectorFor(task, taskStage)?.external_agent_division ?? null,
+          host_agent_type: plan.role_assignments.execution?.host_agent_type ?? null,
+          selection_source: plan.role_assignments.execution?.selection_source ?? null,
+          permission_mode: plan.role_assignments.execution?.permission_mode ?? null,
+          role_assignment_hash: roleAssignmentHash(plan.role_assignments.execution),
+          method_lenses: clone(executionMethodLenses(plan, task)),
+          execution_baseline: clone(plan.execution_baseline),
+          resource_policy: clone(plan.resource_policy),
+          ...(plan.authorization_envelope ? { authorization_envelope: clone(plan.authorization_envelope) } : {}),
           allowed_paths: task.allowed_paths,
           forbidden_actions: task.forbidden_actions,
           dependencies: task.dependencies,
@@ -929,6 +2402,7 @@ export class FlowStateDispatcher {
   }
 
   async ingestExecutionReport(report) {
+    const validatedReportRisks = normalizeReportedRisks(report?.new_risks);
     let reviewMessage = null;
     const result = await this.store.transaction(this.projectId, async (state) => {
       required(report.report_id, "report.report_id");
@@ -940,6 +2414,44 @@ export class FlowStateDispatcher {
       if (dispatch.task_id !== report.task_id) throw new Error("execution report task_id does not match the dispatch");
       if (dispatch.plan_version !== String(report.plan_version)) throw new Error("execution report plan_version does not match the dispatch");
       if (dispatch.plan_id !== plan.plan_id) throw new Error("dispatch plan_id does not match the plan");
+      assertAuthorizationEnvelope(plan, report.authorization_envelope, this.clock);
+      if (
+        report.session_id
+        && report.worker_session_id
+        && report.session_id !== report.worker_session_id
+        && report.session_id !== series.execution_session_id
+      ) {
+        throw new Error("execution report session_id must identify the execution controller or the same worker");
+      }
+      const reportWorkerSessionId = report.worker_session_id
+        ?? (report.session_id && report.session_id !== series.execution_session_id ? report.session_id : null);
+      if (plan.role_contract?.version === "bosscoding-v2") {
+        const assignment = plan.role_assignments?.execution;
+        const expectedAssignmentHash = roleAssignmentHash(assignment);
+        if (!dispatch.host_bound || !reportWorkerSessionId) {
+          throw new Error("BossCoding v2 execution report requires the exact host-bound worker");
+        }
+        if (reportWorkerSessionId !== dispatch.worker_session_id) {
+          throw new Error("BossCoding v2 execution report must come from the exact host-bound worker");
+        }
+        if (!assignment
+          || dispatch.host_agent_type !== assignment.host_agent_type
+          || dispatch.selection_source !== assignment.selection_source
+          || dispatch.permission_mode !== assignment.permission_mode
+          || dispatch.role_assignment_hash !== expectedAssignmentHash
+          || dispatch.observed_host_agent_type !== assignment.host_agent_type
+          || dispatch.observed_selection_source !== assignment.selection_source
+          || dispatch.observed_permission_mode !== assignment.permission_mode
+          || dispatch.observed_plan_version !== plan.plan_version) {
+          throw new Error("BossCoding v2 execution report requires the approved execution role observation and assignment hash");
+        }
+      }
+      if (dispatch.host_bound && !reportWorkerSessionId) {
+        throw new Error("execution report from a host-bound dispatch requires worker_session_id");
+      }
+      if (dispatch.host_bound && reportWorkerSessionId !== dispatch.worker_session_id) {
+        throw new Error("execution report must come from the bound worker session");
+      }
       if (series.reports[report.report_id]) return { duplicate: true, report_id: report.report_id };
       if (report.plan_id && report.plan_id !== plan.plan_id) throw new Error("execution report plan_id does not match");
       const reportStatus = statusOf(report) || "returned-to-planning";
@@ -956,6 +2468,12 @@ export class FlowStateDispatcher {
       ));
       const stored = {
         ...clone(report),
+        session_id: report.session_id ?? null,
+        worker_session_id: reportWorkerSessionId ?? null,
+        worker_identity_verified: Boolean(dispatch.host_bound && reportWorkerSessionId === dispatch.worker_session_id),
+        identity_format: report.worker_session_id
+          ? "worker-session-field"
+          : (reportWorkerSessionId ? "worker-in-session-id" : "legacy-controller-session"),
         message_type: abnormalStop ? "EXECUTION_STOPPED" : String(report.message_type ?? "EXECUTION_REPORT"),
         abnormal_stop: abnormalStop,
         new_blockers: clone(normalizedBlockers),
@@ -965,24 +2483,23 @@ export class FlowStateDispatcher {
       dispatch.status = "report-received";
       task.report_id = report.report_id;
       task.status = "report-returned";
-      const reportRisks = asArray(report.new_risks);
-      const highRisk = reportRisks.some((risk) => ["high", "critical"].includes(String(risk.severity ?? risk.level).toLowerCase()));
+      const highRisk = validatedReportRisks.some((risk) => ["high", "critical"].includes(risk.severity));
       for (const blocker of normalizedBlockers) {
         series.blockers[blocker.blocker_id] = blocker;
         if (!plan.blockers.some((item) => item.blocker_id === blocker.blocker_id)) plan.blockers.push(blocker);
       }
-      const normalizedReportRisks = reportRisks.map((risk, index) => ({
-        ...clone(risk),
-        risk_id: riskId(risk, plan.risks.length + index),
-        severity: String(risk.severity ?? risk.level ?? "medium"),
-        status: String(risk.status ?? "open"),
-      }));
+      const normalizedReportRisks = clone(validatedReportRisks);
       for (const risk of normalizedReportRisks) {
         if (!plan.risks.some((item) => item.risk_id === risk.risk_id)) plan.risks.push(risk);
       }
       if (normalizedReportRisks.length) stored.new_risks = clone(normalizedReportRisks);
       const blockingReport = normalizedBlockers.length > 0 || abnormalStop || reportStatus === "blocked";
       const requiresUser = normalizedBlockers.some((blocker) => blocker.requires_user);
+      const reviewRequirements = expectedReviewRequirements(plan, task);
+      if (!blockingReport) {
+        series.review_requirements ??= {};
+        series.review_requirements[report.report_id] = clone(reviewRequirements);
+      }
       if (blockingReport || normalizedReportRisks.length) {
         task.status = "blocked";
         plan.status = "paused-needs-review";
@@ -994,11 +2511,13 @@ export class FlowStateDispatcher {
         series.status = task.status === "blocked" ? "waiting-on-planning" : "approved";
       }
       reviewMessage = {
-        message_type: blockingReport ? "BLOCKER_REPORT" : "EXECUTION_REPORT",
-        message_id: blockingReport ? `blocker-${report.report_id}` : `review-${report.report_id}`,
-        idempotency_key: blockingReport ? `blocker-${report.report_id}` : `review-${report.report_id}`,
-        target_session_id: series.planning_session_id,
-        return_to: series.execution_session_id,
+        message_type: blockingReport ? "BLOCKER_REPORT" : "REVIEW_REQUEST",
+        message_id: blockingReport ? `blocker-${report.report_id}` : `review-request-${report.report_id}`,
+        idempotency_key: blockingReport ? `blocker-${report.report_id}` : `review-request-${report.report_id}`,
+        review_request_id: blockingReport ? null : `review-request-${report.report_id}`,
+        report_id: report.report_id,
+        target_session_id: blockingReport ? series.planning_session_id : series.reviewer_session_id,
+        return_to: blockingReport ? series.planning_session_id : series.reviewer_session_id,
         project_id: this.projectId,
         plan_series_id: report.plan_series_id,
         plan_id: plan.plan_id,
@@ -1007,6 +2526,11 @@ export class FlowStateDispatcher {
         dispatch_id: report.dispatch_id,
         execution_session_id: series.execution_session_id,
         planning_session_id: series.planning_session_id,
+        reviewer_session_id: series.reviewer_session_id,
+        final_acceptance: reviewRequirements.final_acceptance,
+        acceptance_criteria: clone(reviewRequirements.acceptance_criteria),
+        expected_evidence: clone(reviewRequirements.expected_evidence),
+        read_only: !blockingReport,
         blocker_report_id: blockingReport ? `blocker-${report.report_id}` : null,
         abnormal_stop: abnormalStop,
         blockers: clone(normalizedBlockers),
@@ -1014,6 +2538,7 @@ export class FlowStateDispatcher {
         summary: String(report.summary ?? ""),
         recommended_next_action: blockingReport ? (requiresUser ? "planning-review-then-user-escalation" : "planning-review-then-resume") : String(report.recommended_next_action ?? "independent-review"),
         report: stored,
+        ...(plan.authorization_envelope ? { authorization_envelope: clone(plan.authorization_envelope) } : {}),
         review_required: true,
       };
       this.event(state, "EXECUTION_REPORT_RECEIVED", { plan_series_id: report.plan_series_id, plan_version: report.plan_version, task_id: report.task_id, dispatch_id: report.dispatch_id, blocker_count: normalizedBlockers.length, high_risk: highRisk, abnormal_stop: abnormalStop });
@@ -1044,12 +2569,12 @@ export class FlowStateDispatcher {
       };
     });
 
-    if (!result.duplicate && reviewMessage?.message_type === "EXECUTION_REPORT") {
+    if (!result.duplicate && reviewMessage?.message_type === "REVIEW_REQUEST") {
       try {
         await this.adapter.send(reviewMessage);
       } catch (error) {
         await this.store.transaction(this.projectId, async (state) => {
-          this.event(state, "PLANNING_REVIEW_SEND_FAILED", { report_id: report.report_id, error: error.message });
+          this.event(state, "REVIEW_REQUEST_SEND_FAILED", { report_id: report.report_id, error: error.message });
         });
         return { ...result, notification_error: error.message };
       }
@@ -1057,30 +2582,156 @@ export class FlowStateDispatcher {
     return result;
   }
 
-  async ingestPlanningReview(review) {
+  async ingestPlanningReview(review, { observedSessionId = null, sourceVerified = false } = {}) {
     let planningOpinionMessage = null;
     let userActionMessage = null;
     const result = await this.store.transaction(this.projectId, async (state) => {
       const series = state.series[required(review.plan_series_id, "review.plan_series_id")];
       const plan = series?.plans[String(review.plan_version)];
       const task = plan?.tasks.find((item) => item.task_id === review.task_id);
-      if (!series || !plan || !task) throw new Error("planning review identifiers do not match a known task");
-      if (review.plan_id && review.plan_id !== plan.plan_id) throw new Error("planning review plan_id does not match");
-      if (review.report_id && task.report_id && review.report_id !== task.report_id) throw new Error("planning review report_id does not match the task report");
+      if (!series || !plan || !task) throw new Error("review identifiers do not match a known task");
+      if (review.plan_id && review.plan_id !== plan.plan_id) throw new Error("review plan_id does not match");
+      assertAuthorizationEnvelope(plan, review.authorization_envelope, this.clock);
+      if (review.report_id && task.report_id && review.report_id !== task.report_id) throw new Error("review report_id does not match the task report");
       if (review.review_id && series.reviews[review.review_id]) return { duplicate: true, review_id: review.review_id };
       const reviewId = required(review.review_id ?? this.id("review"), "review_id");
       const decision = String(review.decision);
-      if (!["accepted", "revision-required", "blocked", "failed", "continue", "await-user"].includes(decision)) throw new Error(`unsupported planning review decision: ${decision}`);
+      if (!["accepted", "revision-required", "blocked", "failed", "continue", "await-user"].includes(decision)) throw new Error(`unsupported review decision: ${decision}`);
       const taskReport = series.reports[review.report_id ?? task.report_id];
       const formalBlockerReport = asArray(taskReport?.new_blockers ?? taskReport?.blockers).length > 0;
       if (decision === "blocked" && formalBlockerReport) throw new Error("formal blocker report requires continue or await-user");
       const blockerDecision = ["continue", "await-user"].includes(decision);
+      const expectedReviewerSessionId = blockerDecision ? series.planning_session_id : series.reviewer_session_id;
+      const sourceSessionId = String(required(observedSessionId, "observedSessionId"));
+      if (sourceVerified !== true) throw new Error("review source must be authenticated by the host transport");
+      if (sourceSessionId !== expectedReviewerSessionId) {
+        throw new Error(
+          blockerDecision
+            ? "planning blocker decision must come from the planning session"
+            : "review decision must come from the independent reviewer session",
+        );
+      }
       const opinion = blockerDecision ? String(required(review.opinion, "review.opinion")) : String(review.opinion ?? "");
       const requiresUser = review.requires_user ?? review.requiresUser;
       if (blockerDecision && typeof requiresUser !== "boolean") throw new Error("review.requires_user must be boolean for a blocker decision");
       if (decision === "continue" && requiresUser) throw new Error("continue cannot require user action");
       if (decision === "await-user" && !requiresUser) throw new Error("await-user requires user action");
-      const stored = { ...clone(review), review_id: reviewId, received_at: nowIso(this.clock) };
+      const reportId = review.report_id ?? task.report_id;
+      const currentReviewRequirements = expectedReviewRequirements(plan, task);
+      const requestRequirements = clone(series.review_requirements?.[reportId] ?? currentReviewRequirements);
+      if (decision === "accepted") assertAcceptedReviewComplete(review, task, plan, { requirements: requestRequirements });
+      const requirementsChanged = stableJson(requestRequirements) !== stableJson(currentReviewRequirements);
+      if (decision === "accepted" && requirementsChanged) {
+        const refreshRequestId = `review-refresh-${reportId}-${reviewId}`;
+        const preliminaryBlockers = asArray(review.new_blockers).map((blocker, index) => ({
+          ...clone(blocker),
+          blocker_id: blockerId(blocker, Object.keys(series.blockers).length + index),
+          status: String(blocker.status ?? "open"),
+        }));
+        for (const blocker of preliminaryBlockers) {
+          series.blockers[blocker.blocker_id] = blocker;
+          if (!plan.blockers.some((item) => item.blocker_id === blocker.blocker_id)) plan.blockers.push(blocker);
+        }
+        const preliminaryRisks = asArray(review.new_risks).map((risk, index) => ({
+          ...clone(risk),
+          risk_id: riskId(risk, plan.risks.length + index),
+          severity: String(risk.severity ?? risk.level ?? "medium"),
+          status: String(risk.status ?? "open"),
+        }));
+        for (const risk of preliminaryRisks) {
+          if (!plan.risks.some((item) => item.risk_id === risk.risk_id)) plan.risks.push(risk);
+        }
+        const approvalRequired = preliminaryRisks.length > 0
+          || preliminaryBlockers.some(blockerIsOpen)
+          || Boolean(review.scope_change || review.material_change || review.requires_reapproval);
+        const refreshMessage = {
+          message_type: "REVIEW_REQUEST",
+          message_id: refreshRequestId,
+          idempotency_key: refreshRequestId,
+          review_request_id: refreshRequestId,
+          refreshes_review_id: reviewId,
+          report_id: reportId,
+          target_session_id: series.reviewer_session_id,
+          return_to: series.reviewer_session_id,
+          project_id: this.projectId,
+          plan_series_id: review.plan_series_id,
+          plan_id: plan.plan_id,
+          plan_version: review.plan_version,
+          task_id: review.task_id,
+          dispatch_id: taskReport?.dispatch_id ?? task.dispatch_id,
+          execution_session_id: series.execution_session_id,
+          planning_session_id: series.planning_session_id,
+          reviewer_session_id: series.reviewer_session_id,
+          final_acceptance: currentReviewRequirements.final_acceptance,
+          acceptance_criteria: clone(currentReviewRequirements.acceptance_criteria),
+          expected_evidence: clone(currentReviewRequirements.expected_evidence),
+          read_only: true,
+          summary: String(taskReport?.summary ?? ""),
+          recommended_next_action: "independent-final-review",
+          report: clone(taskReport ?? {}),
+          ...(!approvalRequired && plan.authorization_envelope
+            ? { authorization_envelope: clone(plan.authorization_envelope) }
+            : {}),
+          prior_review_findings: {
+            new_risks: clone(preliminaryRisks),
+            new_blockers: clone(preliminaryBlockers),
+            scope_change: Boolean(review.scope_change),
+            material_change: Boolean(review.material_change),
+            requires_reapproval: Boolean(review.requires_reapproval),
+          },
+          review_required: true,
+        };
+        series.review_requirements ??= {};
+        series.review_requirements[reportId] = clone(currentReviewRequirements);
+        series.pending_final_reviews ??= {};
+        let delivery = null;
+        if (approvalRequired) {
+          series.pending_final_reviews[reportId] = clone(refreshMessage);
+          plan.approval = null;
+          plan.status = preliminaryBlockers.some(blockerIsOpen) ? "paused-needs-review" : "awaiting-user-approval";
+          series.status = "waiting-on-planning";
+        } else {
+          delivery = await this.adapter.send(refreshMessage);
+        }
+        series.reviews[reviewId] = {
+          ...clone(review),
+          review_id: reviewId,
+          observed_source_session_id: sourceSessionId,
+          source_verified: true,
+          preliminary_acceptance: true,
+          final_acceptance_required: true,
+          final_review_waiting_for_approval: approvalRequired,
+          superseded_by_review_request_id: refreshRequestId,
+          received_at: nowIso(this.clock),
+        };
+        this.event(state, "REVIEW_REQUIREMENTS_REFRESHED", {
+          plan_series_id: review.plan_series_id,
+          plan_version: review.plan_version,
+          task_id: review.task_id,
+          review_id: reviewId,
+          report_id: reportId,
+          review_request_id: refreshRequestId,
+          message_id: delivery?.message_id ?? null,
+          approval_required: approvalRequired,
+        });
+        return {
+          duplicate: false,
+          review_id: reviewId,
+          decision: "review-refresh-required",
+          plan_completed: false,
+          series_status: series.status,
+          final_acceptance_required: true,
+          approval_required: approvalRequired,
+          review_request_id: refreshRequestId,
+        };
+      }
+      const stored = {
+        ...clone(review),
+        review_id: reviewId,
+        observed_source_session_id: sourceSessionId,
+        source_verified: true,
+        received_at: nowIso(this.clock),
+      };
       series.reviews[reviewId] = stored;
       task.review_id = reviewId;
 
@@ -1113,6 +2764,9 @@ export class FlowStateDispatcher {
         ...asArray(review.criteria_results).filter((item) => ["fail", "failed", "revision-required"].includes(String(item?.result ?? item?.status).toLowerCase())),
       ];
       let autoRevisionReady = false;
+      let noProgressCount = 0;
+      let stopReason = null;
+      let stoppedIssueIds = [];
       const approvalStillValid = Boolean(plan.approval && plan.approval.plan_id === plan.plan_id && plan.approval.plan_version === plan.plan_version);
       let requiresReapproval = materialChange || highRisk || reviewRisks.length > 0 || hasReviewBlockers || !approvalStillValid;
       let planCompleted = false;
@@ -1211,11 +2865,54 @@ export class FlowStateDispatcher {
         plan.status = requiresUser ? "awaiting-user-action" : "paused-needs-review";
         series.status = "waiting-on-planning";
       } else if (decision === "revision-required") {
-        const maxRevisionCycles = Math.max(1, Number(plan.planning_policy?.max_revision_cycles ?? this.retryLimit) || this.retryLimit);
+        task.issue_progress ??= {};
+        const rawIssueResults = asArray(review.issue_results ?? review.issueResults);
+        if (!rawIssueResults.length) throw new Error("revision-required review requires issue_results");
+        const issueResults = rawIssueResults
+          .map((issue) => {
+            const evidence = asArray(issue?.evidence);
+            if (!evidence.length) throw new Error("revision-required issue_results require evidence");
+            return {
+              issue_id: String(required(issue?.issue_id ?? issue?.issueId, "issue_results.issue_id")),
+              status: String(required(issue?.status, "issue_results.status")).toLowerCase(),
+              progress: String(required(issue?.progress, "issue_results.progress")).toLowerCase(),
+              evidence,
+            };
+          })
+          .filter((issue) => !["resolved", "accepted", "pass", "passed"].includes(issue.status));
+        if (!issueResults.length) throw new Error("revision-required review requires at least one unresolved issue_result");
+        for (const issue of issueResults) {
+          const previous = task.issue_progress[issue.issue_id] ?? null;
+          const evidenceSignature = stableJson(issue.evidence);
+          const explicitProgress = !["", "none", "no-progress", "unchanged"].includes(issue.progress);
+          const sameEvidence = previous?.evidence_signature === evidenceSignature;
+          const repeatedWithoutProgress = Boolean(previous && sameEvidence && !explicitProgress);
+          const issueNoProgressCount = repeatedWithoutProgress
+            ? Number(previous.no_progress_count ?? 0) + 1
+            : 0;
+          task.issue_progress[issue.issue_id] = {
+            issue_id: issue.issue_id,
+            status: issue.status,
+            progress: issue.progress,
+            evidence: clone(issue.evidence),
+            evidence_signature: evidenceSignature,
+            no_progress_count: issueNoProgressCount,
+            last_review_id: reviewId,
+            updated_at: nowIso(this.clock),
+          };
+          noProgressCount = Math.max(noProgressCount, issueNoProgressCount);
+        }
+        const noProgressLimit = Math.max(1, Number(plan.planning_policy?.no_progress_limit ?? 2) || 2);
+        stoppedIssueIds = issueResults
+          .filter((issue) => Number(task.issue_progress[issue.issue_id]?.no_progress_count ?? 0) >= noProgressLimit)
+          .map((issue) => issue.issue_id);
+        const repeatedNoProgress = stoppedIssueIds.length > 0;
+        const maxRevisionCycles = Math.max(1, Number(plan.planning_policy?.max_revision_cycles ?? 6) || 6);
         const inScopeCorrection = this.autoRevision
           && plan.planning_policy?.auto_revision_in_scope !== false
           && !requiresReapproval
           && !plan.blockers.some(blockerIsOpen)
+          && !repeatedNoProgress
           && task.revision_attempts < maxRevisionCycles;
         if (inScopeCorrection && plan.approval) {
           task.revision_history ??= [];
@@ -1226,6 +2923,22 @@ export class FlowStateDispatcher {
           plan.status = "approved";
           series.status = "approved";
           autoRevisionReady = true;
+        } else if (repeatedNoProgress) {
+          task.revision_history ??= [];
+          task.stop_reason = "repeated-no-progress";
+          task.stopped_issue_ids = clone(stoppedIssueIds);
+          task.revision_history.push({
+            review_id: reviewId,
+            status: "stopped-no-progress",
+            issue_ids: clone(stoppedIssueIds),
+            no_progress_count: noProgressCount,
+            created_at: nowIso(this.clock),
+          });
+          task.status = "blocked";
+          plan.status = "paused-needs-review";
+          series.status = "waiting-on-planning";
+          autoRevisionReady = false;
+          stopReason = task.stop_reason;
         } else {
           task.status = "revision-required";
           plan.status = requiresReapproval ? "awaiting-user-approval" : "revision-required";
@@ -1238,7 +2951,7 @@ export class FlowStateDispatcher {
         series.status = task.status === "blocked" ? "waiting-on-planning" : "approved";
       }
       syncStageStatuses(plan);
-      this.event(state, "PLANNING_REVIEW_RECORDED", {
+      this.event(state, "REVIEW_DECISION_RECORDED", {
         plan_series_id: review.plan_series_id,
         plan_version: review.plan_version,
         task_id: review.task_id,
@@ -1247,6 +2960,9 @@ export class FlowStateDispatcher {
         requires_user: Boolean(requiresUser),
         revision_attempt: task.revision_attempts,
         auto_revision_ready: autoRevisionReady,
+        no_progress_count: noProgressCount,
+        stop_reason: stopReason,
+        stopped_issue_ids: clone(stoppedIssueIds),
         requires_reapproval: requiresReapproval,
         plan_completed: planCompleted,
       });
@@ -1271,6 +2987,9 @@ export class FlowStateDispatcher {
         auto_dispatch_ready: plan.status === "approved" && Boolean(plan.approval) && !plan.blockers.some(blockerIsOpen),
         auto_revision_ready: autoRevisionReady,
         revision_attempt: task.revision_attempts,
+        no_progress_count: noProgressCount,
+        stop_reason: stopReason,
+        stopped_issue_ids: clone(stoppedIssueIds),
         plan_completed: planCompleted,
         planning_opinion_required: blockerDecision,
         user_action_required: Boolean(userActionMessage),
@@ -1499,8 +3218,18 @@ export class FlowStateRuntime {
 
   async processReviews(state, result) {
     if (typeof this.adapter.receiveReviews !== "function") return;
-    const sessions = uniqueValues(Object.values(state.series ?? {}).map((series) => series.execution_session_id));
-    for (const sessionId of sessions) {
+    const deliveries = new Map();
+    for (const series of Object.values(state.series ?? {})) {
+      for (const [sessionId, role] of [
+        [series.reviewer_session_id, "review"],
+        [series.planning_session_id, "planning"],
+        [series.execution_session_id, "legacy-execution"],
+      ]) {
+        if (!sessionId || deliveries.has(String(sessionId))) continue;
+        deliveries.set(String(sessionId), role);
+      }
+    }
+    for (const [sessionId, role] of deliveries) {
       let reviews;
       try {
         reviews = await this.adapter.receiveReviews(sessionId);
@@ -1509,8 +3238,36 @@ export class FlowStateRuntime {
         continue;
       }
       for (const review of reviews) {
+        if (role === "legacy-execution") {
+          let quarantined = false;
+          if (typeof this.adapter.acknowledgeReview === "function" && review.review_id) {
+            try {
+              const disposition = await this.adapter.acknowledgeReview(sessionId, review.review_id);
+              quarantined = disposition?.acknowledged === true;
+            } catch (error) {
+              result.errors.push({
+                phase: "legacy-review-quarantine",
+                session_id: sessionId,
+                review_id: review.review_id,
+                error: error.message,
+              });
+              continue;
+            }
+          }
+          result.errors.push({
+            phase: "legacy-review-routing",
+            session_id: sessionId,
+            review_id: review.review_id ?? null,
+            quarantined,
+            error: "legacy review was isolated and must be requeued to the bound reviewer session before it can be authenticated",
+          });
+          continue;
+        }
         try {
-          const ingested = await this.dispatcher.ingestPlanningReview(review);
+          const ingested = await this.dispatcher.ingestPlanningReview(review, {
+            observedSessionId: sessionId,
+            sourceVerified: this.adapter.authenticatedReviewSource === true,
+          });
           if (typeof this.adapter.acknowledgeReview === "function" && review.review_id) {
             await this.adapter.acknowledgeReview(sessionId, review.review_id);
           }

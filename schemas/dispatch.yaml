@@ -12,6 +12,7 @@ parent_session_id: execution-session-id
 target_session_id: execution-worker-session-id
 planning_session_id: planning-session-id
 execution_session_id: execution-session-id
+reviewer_session_id: review-session-id
 worker_session_id: execution-worker-session-id
 platform_worker_session_id: null
 worker_delivery_status: connected | adapter-unavailable
@@ -29,11 +30,74 @@ required_skills: []
 external_agent_id: null
 external_agent_query: null
 external_agent_division: null
+host_agent_type: null
+selection_source: null
+permission_mode: null
+role_assignment_hash: null
+# Items preserve optional purpose and evidence_cutoff from the approved plan.
+method_lenses: []
+execution_baseline:
+  goal: "The exact approved goal."
+  confirmed_decisions:
+    - decision: "Preserve the approved source."
+      source: "user-approved plan v1"
+  allowed_objects:
+    - result.txt
+  forbidden_objects:
+    - input.txt
+  allowed_actions:
+    - create
+  forbidden_actions:
+    - overwrite-source
+  completion_criteria:
+    - result.txt exists with the approved content
+  accepter: independent reviewer
+  current_action: "The one approved current action."
+resource_policy:
+  context: clean
+  reasoning:
+    source: user-approved-or-host-default
+    effort: medium
+  planning:
+    max_agents: 1
+    followup_tasks: 0
+  execution:
+    max_agents: 2
+    followup_tasks: 1
+  review:
+    max_agents: 2
+    followup_tasks: 1
+  evidence: compact
+  failure: stop-and-report
+  host_enforced: false
+  savings_proven: false
+# Required only when the approved plan enables authorization_policy.required.
+authorization_envelope:
+  schema_version: "1.0"
+  plan_series_id: PROJECT-YYYYMMDD-NNN
+  plan_id: PROJECT-YYYYMMDD-NNN-topic-v1
+  plan_version: v1
+  approval_id: approval-YYYYMMDD-NNN
+  boundary_digest: sha256-hex
+  approval_boundary:
+    approval_id: approval-YYYYMMDD-NNN
+    approver: user
+    decision: approved
+    approved_scope: []
+    acknowledged_risks: []
+    conditions: []
+  expires_at: "YYYY-MM-DDThh:mm:ssZ"
+  attestation:
+    proof_id: host-proof-id
+    transport: trusted-host-adapter
+    attested_at: "YYYY-MM-DDThh:mm:ssZ"
 allowed_paths: []
 forbidden_actions: []
 dependencies: []
-acceptance_criteria: []
-expected_evidence: []
+acceptance_criteria:
+  - result.txt exists with the approved content
+expected_evidence:
+  - result.txt content inspection
 risk_profile: []
 stop_conditions: []
 return_to: planning-session-id

@@ -1,0 +1,6 @@
+interface:
+  display_name: "BossCoding Secretary"
+  short_description: "以大白话统筹正式任务的策划、执行、独立审核与状态记录"
+  default_prompt: "Use $bosscoding-secretary to govern this formal task and report to the user in plain Chinese."
+policy:
+  allow_implicit_invocation: true

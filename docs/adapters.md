@@ -32,8 +32,14 @@ blockers, and events through `FlowStateStore`, then delegates conversation opera
 - `CodexAppServerAdapter` maps `thread/start` and `turn/start` calls through an injected request function. It creates
   the two controller threads once for a series, creates task-scoped worker threads, and sends structured messages.
   An optional `receive({ session_id, message_types })` function lets `FlowStateRuntime` poll execution reports and
-  planning review decisions from a host transport. If no receive function is injected, the adapter exposes an empty
+  independent review decisions and planning blocker opinions from a host transport. If no receive function is injected, the adapter exposes an empty
   receive boundary and makes no claim that a platform message was delivered.
 
 The adapter must return real session identifiers. A failed or unavailable adapter is recorded as a dispatch failure;
 the dispatcher never claims that a task or conversation ran when the platform did not confirm it.
+
+When a plan enables the optional authorization policy, the injected host transport or adapter must implement
+`attestAuthorization` and return proof bound to the dispatcher-supplied plan id, plan version, immutable boundary
+digest, and expiry. The dispatcher does not trust an envelope, `verified` flag, or parent-Agent statement carried in
+ordinary JSON. `FileQueueAdapter` intentionally has no authenticated proof channel, so required authorization fails
+closed instead of treating a queue file as host attestation.
