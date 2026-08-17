@@ -171,8 +171,9 @@ test("manifest is the single runtime-tree path contract used by installer and re
 
 test("global BossCoding overlay is a bounded three-mode bootstrap", async () => {
   const overlay = await readFile(path.join(root, "integrations", "codex-native", "global-agents-overlay.md"), "utf8");
+  const normalizedOverlay = overlay.replaceAll("\r\n", "\n");
   assert.doesNotMatch(overlay, /<!-- (BEGIN|END) BOSSCODING-PDGO OVERLAY -->/);
-  assert.ok(Buffer.byteLength(overlay, "utf8") <= 3500);
+  assert.ok(Buffer.byteLength(normalizedOverlay, "utf8") <= 3500);
   assert.match(overlay, /轻量模式/);
   assert.match(overlay, /标准模式/);
   assert.match(overlay, /高保障模式/);
