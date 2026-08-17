@@ -109,6 +109,26 @@ function expectSuccess(result) {
   return JSON.parse(result.stdout);
 }
 
+test("direct CLI rejects a self-reported review identity instead of marking it trusted", async () => {
+  const fixtureRoot = await mkdtemp(path.join(canonicalTempBase, "flowstate-cli-review-trust-"));
+  const inputPath = path.join(fixtureRoot, "review.json");
+  try {
+    await writeFile(inputPath, `${JSON.stringify({ observed_session_id: "self-reported-reviewer" })}\n`, "utf8");
+    const result = runNode(dispatcherSource, [
+      "--action", "review",
+      "--input", inputPath,
+      "--root", path.join(fixtureRoot, "state"),
+      "--project", "demo",
+      "--external-agents", "false",
+    ]);
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /direct dispatcher CLI cannot authenticate review identity/i);
+  } finally {
+    await rm(fixtureRoot, { recursive: true, force: true });
+  }
+});
+
 async function makeRuntimeFixture(parent, directoryName = "runtime-source") {
   const runtimeRoot = path.join(parent, directoryName);
   const manifestPath = path.join(runtimeRoot, "integrations", "codex-native", "manifest.json");

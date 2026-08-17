@@ -51,7 +51,7 @@
 
 依赖安装、依赖升级、锁文件变更和联网下载必须作为单独动作重新评估其权限、来源、影响和回滚方式，不能随其他修改搭便车进入轻量模式。
 
-轻量和标准共用同一个有界本地动作门：必须提供结构化 `current_request_boundary`，其 `source` 为 `current-user-request`，`action` 属于普通模式动作封闭集并与 `local_action.action` 一致，`targets` 与待执行目标逐项一致，`approved_local_root` 是非文件系统根的本地绝对路径。文件目标必须先规范化再验证仍位于该根内；路径遍历、根外绝对路径、宽泛目标、`publish`／`delete`／`format` 等封闭集外动作以及字段矛盾全部拒绝。仅有 `explicit_current_request: true` 的布尔自报不能绑定请求。动作仍须仅本地、可撤销，并且 `wildcard`、`administrator`、`account`、`global`、`network`、`secrets`、`production`、`third_party`、`destructive`、`irreversible`、`sensitive_data` 十一项风险全部显式为 `false`。任一字段缺失、范围扩大或任一风险为真，都在工作量判断前进入高保障模式或停止。两种模式都输出 `authorization_source: explicit-current-user-request` 和 `pdgo_new_approval_rounds: 0`，只按工作深度选择直接执行或相称自检。这个源码级结构化边界不构成实时宿主证明；当前 Codex 没有注入可信的普通分流／遥测回执，所以一次真实文件写入只能证明文件行为，不能证明自动模式选择，也不取消宿主或操作系统仍要求的权限提示。
+轻量和标准共用同一个有界本地动作门：必须提供结构化 `current_request_boundary`，其 `source` 为 `current-user-request`，`action` 属于普通模式动作封闭集并与 `local_action.action` 一致，`targets` 与待执行目标逐项一致，`approved_local_root` 是非文件系统根的本地绝对路径。文件目标必须同时按字符串路径和实际文件系统路径规范化并验证仍位于该根内；根内符号链接或联接点实际指向根外时拒绝普通模式。路径遍历、根外绝对路径、宽泛目标、`publish`／`delete`／`format` 等封闭集外动作以及字段矛盾全部拒绝。仅有 `explicit_current_request: true` 的布尔自报不能绑定请求。动作仍须仅本地、可撤销，并且 `wildcard`、`administrator`、`account`、`global`、`network`、`secrets`、`production`、`third_party`、`destructive`、`irreversible`、`sensitive_data` 十一项风险全部显式为 `false`。任一字段缺失、范围扩大或任一风险为真，都在工作量判断前进入高保障模式或停止。两种模式都输出 `authorization_source: explicit-current-user-request` 和 `pdgo_new_approval_rounds: 0`，只按工作深度选择直接执行或相称自检。这个源码级结构化边界不构成实时宿主证明；当前 Codex 没有注入可信的普通分流／遥测回执，所以一次真实文件写入只能证明文件行为，不能证明自动模式选择，也不取消宿主或操作系统仍要求的权限提示。
 
 ### 3.3 高保障模式
 

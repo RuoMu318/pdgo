@@ -1,7 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdir, mkdtemp, realpath, rm, symlink } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { classifyBossCodingRoute } from "../scripts/lib/flowstate-dispatcher.mjs";
+
+const canonicalTempBase = await realpath(os.tmpdir());
+const safeApprovedRoot = await realpath(path.resolve("."));
 
 const SAFE_RISK_PROFILE = {
   external_action: false,
@@ -36,7 +41,7 @@ const SAFE_CURRENT_REQUEST_BOUNDARY = {
   source: "current-user-request",
   action: "edit",
   targets: ["README.md"],
-  approved_local_root: path.resolve("fixture-workspace"),
+  approved_local_root: safeApprovedRoot,
 };
 
 test("high-assurance risk gates run before lightweight workload routing", () => {
@@ -98,6 +103,33 @@ test("ordinary routing rejects unbound, out-of-root, broad, and forbidden curren
     });
     assert.equal(result.mode, "high_assurance", name);
     assert.equal(result.decision_stage, "authorization-gate", name);
+  }
+});
+
+test("ordinary routing rejects a linked target whose real ancestor escapes the approved root", async () => {
+  const fixtureRoot = await mkdtemp(path.join(canonicalTempBase, "bosscoding-routing-link-"));
+  const approvedRoot = path.join(fixtureRoot, "approved");
+  const outsideRoot = path.join(fixtureRoot, "outside");
+  try {
+    await mkdir(approvedRoot);
+    await mkdir(outsideRoot);
+    await symlink(outsideRoot, path.join(approvedRoot, "linked"), "junction");
+    const target = path.join("linked", "outside.md");
+    const result = classifyBossCodingRoute({
+      risk: SAFE_RISK_PROFILE,
+      local_action: { ...SAFE_LOCAL_ACTION, targets: [target] },
+      current_request_boundary: {
+        ...SAFE_CURRENT_REQUEST_BOUNDARY,
+        targets: [target],
+        approved_local_root: approvedRoot,
+      },
+      workload: "standard",
+    });
+
+    assert.equal(result.mode, "high_assurance");
+    assert.equal(result.decision_stage, "authorization-gate");
+  } finally {
+    await rm(fixtureRoot, { recursive: true, force: true });
   }
 });
 

@@ -93,6 +93,7 @@ test("plan and dispatch contracts separate host role assignments from advisory m
 test("public BossCoding quick start uses the secretary and isolates direct CLI as legacy-only", async () => {
   const english = await readFile(path.join(root, "README.md"), "utf8");
   const chinese = await readFile(path.join(root, "README.zh-CN.md"), "utf8");
+  const runtimeDocs = await readFile(path.join(root, "docs", "dispatch-runtime.md"), "utf8");
   const englishQuickStart = english.match(/## BossCoding quick start\r?\n([\s\S]*?)(?=\r?\n## )/)?.[1] ?? "";
   const chineseQuickStart = chinese.match(/## BossCoding 快速开始\r?\n([\s\S]*?)(?=\r?\n## )/)?.[1] ?? "";
   assert.match(englishQuickStart, /秘书(?:，按 BossCoding 做)?：<任务>/);
@@ -107,6 +108,8 @@ test("public BossCoding quick start uses the secretary and isolates direct CLI a
   assert.doesNotMatch(chineseQuickStart, /flowstate-dispatcher|--action/);
   assert.match(english, /## Legacy PDGO direct CLI[\s\S]*legacy-v1[\s\S]*flowstate-dispatcher/i);
   assert.match(chinese, /## 旧版 PDGO 直接 CLI[\s\S]*legacy-v1[\s\S]*flowstate-dispatcher/i);
+  assert.doesNotMatch(runtimeDocs, /flowstate-dispatcher\.mjs --action review/);
+  assert.match(runtimeDocs, /cannot authenticate a review identity[\s\S]*fails closed/i);
 });
 
 test("BossCoding profile pins the global schema-1.1 runtime tree and isolated project state layout", async () => {
@@ -506,7 +509,7 @@ test("Codex-native contracts describe risk-first bounded local routing and trust
       action: "must-match-local-action",
       targets: "must-match-local-action-targets",
       approved_local_root: "absolute-non-filesystem-root",
-      file_target_validation: "normalized-and-contained-within-approved-local-root",
+      file_target_validation: "lexical-and-realpath-contained-within-approved-local-root",
       live_host_attestation_implemented: false,
     },
     location: "local",
@@ -526,21 +529,27 @@ test("Codex-native contracts describe risk-first bounded local routing and trust
 test("status documents report the current routing closeout and residual host evidence limits", async () => {
   const status = await readFile(path.join(root, "STATUS.md"), "utf8");
   const progress = await readFile(path.join(root, "PROGRESS.md"), "utf8");
+  const english = await readFile(path.join(root, "README.md"), "utf8");
+  const chinese = await readFile(path.join(root, "README.zh-CN.md"), "utf8");
   const currentAction = status.match(/## Current action\r?\n([\s\S]*)$/)?.[1] ?? "";
 
+  assert.match(progress, /140\/140/);
   for (const document of [status, progress]) {
     assert.match(document, /feat\/lightweight-routing-v3/);
-    assert.match(document, /140\/140/);
+    assert.match(document, /143\/143/);
     assert.match(document, /host attestation|宿主证明/i);
     assert.match(document, /billable Token|账单 Token/i);
   }
-  assert.match(status, /Source base before the secretary-front-desk batch[^\n]*`[0-9a-f]{40}`/i);
-  assert.match(status, /commit SHA is historical evidence[^.\n]*not a self-referential current-HEAD assertion/i);
-  assert.match(currentAction, /No local implementation blocker remains/i);
+  assert.match(status, /Source base before the merge-safety batch[^\n]*`2cefff9c226a769904c6ccf1aebfed21e83dce0b`/i);
+  assert.match(status, /not a self-referential[\s\S]*current-HEAD assertion/i);
+  assert.match(currentAction, /No known local implementation blocker remains/i);
+  assert.match(currentAction, /draft PR #2 do not contain it/i);
   assert.match(currentAction, /host_enforced` remains `false`/i);
   assert.match(currentAction, /savings_proven`\s+remains `false`/i);
   assert.match(currentAction, /future trusted Codex host adapter or provider billing interface/i);
   assert.doesNotMatch(currentAction, /no acceptance is claimed/i);
+  assert.match(english, /current repository checkout has not been reinstalled/i);
+  assert.match(chinese, /当前仓库版本尚未重新安装/);
 });
 
 test("Codex-native resource policy is machine-readable and documented without savings or billing claims", async () => {

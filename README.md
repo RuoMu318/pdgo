@@ -313,6 +313,8 @@ node scripts/flowstate-dispatcher.mjs --action resume --root .flowstate --projec
 node scripts/flowstate-dispatcher.mjs --action watch --root .flowstate --project demo --interval-ms 1000
 ```
 
+The direct CLI cannot authenticate review identity from input JSON. Its retained `review` action fails closed; authenticated reviews are ingested only through the host adapter used by `resume` or `watch`.
+
 ## Repository layout
 
 ```text
@@ -357,8 +359,9 @@ as an official BossCoding release, collaboration, or endorsement. See
 
 ## Status and license
 
-The three-mode routing implementation has passed local source validation and is installed on this local Codex host with
-a verified runtime tree. Trusted automatic-routing attestation and provider billable-Token evidence remain unavailable;
-real paired Token, latency, and quality benchmarks therefore remain pending.
+The current three-mode routing source candidate has passed local validation. Installation evidence belongs to an
+earlier recorded source revision with a verified runtime tree; the current repository checkout has not been reinstalled.
+Trusted automatic-routing attestation and provider billable-Token evidence remain unavailable, so real paired Token,
+latency, and quality benchmarks remain pending.
 
 PDGO is an MIT-licensed reference implementation of the FlowState method. The repository is intentionally platform-neutral; a platform adapter is required for any conversation or background capability that the local file system cannot provide.

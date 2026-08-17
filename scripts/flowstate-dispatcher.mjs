@@ -129,12 +129,7 @@ try {
   else if (action === "dispatch") result = await dispatcher.dispatchReady(input);
   else if (action === "report") result = await dispatcher.ingestExecutionReport(input);
   else if (action === "review") {
-    const observedSessionId = input.observed_session_id ?? input.observedSessionId;
-    if (!observedSessionId) throw new Error("review action requires observed_session_id from the host transport");
-    result = await dispatcher.ingestPlanningReview(input, {
-      observedSessionId: String(observedSessionId),
-      sourceVerified: true,
-    });
+    throw new Error("direct dispatcher CLI cannot authenticate review identity; use an authenticated host adapter with resume or watch");
   }
   else if (action === "resume" || action === "run-once") result = await runtime.runOnce({ resume: true });
   else if (action === "watch") {

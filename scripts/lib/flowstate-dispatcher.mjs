@@ -1,4 +1,5 @@
 import { lstat, mkdir, readFile, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { realpathSync } from "node:fs";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 
@@ -289,6 +290,42 @@ function pathApiForAbsolute(value) {
   return null;
 }
 
+function pathIsInside(rootApi, root, target) {
+  const relative = rootApi.relative(root, target);
+  return relative !== ""
+    && !rootApi.isAbsolute(relative)
+    && relative !== ".."
+    && !relative.startsWith(`..${rootApi.sep}`);
+}
+
+function realTargetIsInside(rootApi, normalizedRoot, normalizedTarget) {
+  const hostPathApi = process.platform === "win32" ? path.win32 : path.posix;
+  if (rootApi !== hostPathApi) return true;
+
+  let canonicalRoot;
+  try {
+    canonicalRoot = realpathSync(normalizedRoot);
+  } catch {
+    return false;
+  }
+
+  let existingAncestor = normalizedTarget;
+  const unresolvedSegments = [];
+  while (true) {
+    try {
+      const canonicalAncestor = realpathSync(existingAncestor);
+      const canonicalTarget = rootApi.resolve(canonicalAncestor, ...unresolvedSegments);
+      return pathIsInside(rootApi, canonicalRoot, canonicalTarget);
+    } catch (error) {
+      if (!new Set(["ENOENT", "ENOTDIR"]).has(error?.code)) return false;
+      const parent = rootApi.dirname(existingAncestor);
+      if (parent === existingAncestor) return false;
+      unresolvedSegments.unshift(rootApi.basename(existingAncestor));
+      existingAncestor = parent;
+    }
+  }
+}
+
 function normalizedLocalTarget(root, target) {
   if (!isExactLiteral(target) || hasParentTraversal(target) || /^[A-Za-z]:[^\\/]/.test(target)) return null;
   const broad = target.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
@@ -299,8 +336,8 @@ function normalizedLocalTarget(root, target) {
   if (targetApi && targetApi !== rootApi) return null;
   const normalizedRoot = rootApi.resolve(root);
   const normalizedTarget = targetApi ? targetApi.resolve(target) : rootApi.resolve(normalizedRoot, target);
-  const relative = rootApi.relative(normalizedRoot, normalizedTarget);
-  if (relative === "" || rootApi.isAbsolute(relative) || relative === ".." || relative.startsWith(`..${rootApi.sep}`)) return null;
+  if (!pathIsInside(rootApi, normalizedRoot, normalizedTarget)) return null;
+  if (!realTargetIsInside(rootApi, normalizedRoot, normalizedTarget)) return null;
   return rootApi === path.win32 ? normalizedTarget.toLowerCase() : normalizedTarget;
 }
 

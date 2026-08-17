@@ -1,6 +1,6 @@
 # BossCoding Codex integration status
 
-Updated: 2026-08-15
+Updated: 2026-08-17
 
 ## Goal
 
@@ -57,18 +57,19 @@ then in-scope work advances until completion or a defined stop condition.
 
 ## Current action
 
-Source base before the secretary-front-desk batch was `41c5680e510ce334e690a3120bd2a6082911960e`.
-That commit SHA is historical evidence for the batch base, not a self-referential current-HEAD assertion.
-The current local branch is `feat/lightweight-routing-v3`; this approved local batch makes the
-secretary front desk always visible while retaining risk-based full-governance loading. The earlier
-clean routing baseline was 140/140, and the source base after the merge-review repair was 141/141.
-The current uncommitted batch passes the complete local validation set. It has not been committed,
-pushed, merged, or reinstalled, so the installed Codex runtime and draft PR do not contain it.
+Source base before the merge-safety batch was `2cefff9c226a769904c6ccf1aebfed21e83dce0b`.
+That commit is the pushed head of draft PR #2 before this local batch, not a self-referential
+current-HEAD assertion. On `feat/lightweight-routing-v3`, the approved local repair makes direct CLI
+reviews fail closed instead of trusting a self-reported session, and makes ordinary routing compare
+both lexical and real file-system paths so a linked target cannot escape the approved root.
+The full local validation set passes: Node 143/143, repository validation, smoke, and both Codex-native
+Skill quick validations. This local batch has not been pushed, merged, or reinstalled, so the installed
+Codex runtime and draft PR #2 do not contain it.
 
 ## Residual limitations
 
-- No local implementation blocker remains in the current uncommitted secretary-front-desk batch.
-  It has not been committed, pushed, merged, reinstalled, or independently reviewed.
+- No known local implementation blocker remains in the current local merge-safety batch after
+  deterministic self-check. It has not been independently re-reviewed, pushed, merged, or reinstalled.
 - Trusted ordinary-routing host attestation is unavailable because the current Codex tool surface
   does not expose an injected routing/telemetry receipt. The live write proves file behavior, not
   automatic mode selection, so `host_enforced` remains `false`.
@@ -80,12 +81,11 @@ pushed, merged, or reinstalled, so the installed Codex runtime and draft PR do n
 
 ## Closeout baseline
 
-- Scope: local secretary/front-desk source contracts, consumer profile, public documentation,
-  status records, and deterministic tests only.
+- Scope: local review-authentication and linked-path containment code, consumer profile, public
+  documentation, status records, and deterministic tests only.
 - Forbidden: global reinstall, Git commit/push, publication, production changes, R01 changes, Vault
   writes, and fabricated host or Token evidence.
-- Acceptance: current tests pass, the always-on front desk remains separate from risk-loaded
-  governance, status and public docs match the uncommitted source reality,
-  installed-runtime evidence is not carried across source drift, and unresolved external evidence
-  dependencies are explicit.
-- Rollback: revert only this uncommitted secretary-front-desk batch.
+- Acceptance: both new regressions fail before the fixes and pass after them; Node 143/143,
+  repository validation, smoke, and both Skill checks pass; public docs match the local source
+  reality; installed-runtime evidence is not carried across source drift; external evidence gaps stay explicit.
+- Rollback: revert only this local merge-safety batch.

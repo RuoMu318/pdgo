@@ -269,13 +269,10 @@ node scripts/flowstate-dispatcher.mjs --action approve --input approval.json --r
 node scripts/flowstate-dispatcher.mjs --action dispatch --input dispatch.json --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action bind-host-worker --input worker-binding.json --root .flowstate --project demo
 node scripts/flowstate-dispatcher.mjs --action report --input report.json --root .flowstate --project demo
-node scripts/flowstate-dispatcher.mjs --action review --input review.json --root .flowstate --project demo
 ```
 
 This direct dispatcher CLI is the legacy PDGO entry; it rejects any caller-supplied `--interface`. BossCoding uses the
-installed resolver's verified `invoke` entry instead. The direct CLI cannot create or operate current BossCoding v2 state. The `review` input must include the host-observed
-`observed_session_id`. The Codex-native Skill calls the built-in subagent tools itself, then binds their actual returned
-IDs; the Node CLI never fabricates or launches a Codex subagent.
+installed resolver's verified `invoke` entry instead. The direct CLI cannot create or operate current BossCoding v2 state and cannot authenticate a review identity from input JSON. Its retained `review` action therefore fails closed; reviews must arrive through an adapter that authenticates the exact transport polled by `resume` or `watch`. The Codex-native Skill calls the built-in subagent tools itself, then binds their actual returned IDs; the Node CLI never fabricates or launches a Codex subagent.
 
 Execution-report schema 1.1 preserves `session_id` as the legacy execution-controller field and adds
 `worker_session_id` for the task-scoped worker. A host-bound dispatch requires the latter to match the exact worker.

@@ -142,7 +142,7 @@ production change, R01 change, or Vault write is authorized or performed by this
 - 2026-08-15: The final local repair gates pass: Node 141/141 with zero failures, skips, or todos;
   repository validation; smoke; and both Codex-native Skill quick validations. CI now runs Node,
   repository/Skill validation, and smoke instead of reporting green from repository validation alone.
-  The batch remains uncommitted and has not been pushed, merged, reinstalled, or independently reviewed.
+  At that checkpoint the batch was uncommitted and had not been pushed, merged, reinstalled, or independently reviewed.
 - 2026-08-15: The user approved a local secretary-front-desk batch. The current Agent is now the
   always-on front desk at substantive intake, material boundary or risk changes, and closeout, while
   lightweight and standard modes still load no secretary governance Skill, governance prompt, PDGO
@@ -151,6 +151,15 @@ production change, R01 change, or Vault write is authorized or performed by this
   record that remains true after a future commit. Full Node tests pass 141/141; repository validation,
   smoke, and both Codex-native Skill quick validations pass. The first quick-validation attempt used
   Windows GBK and failed to decode UTF-8 Chinese; the same checks passed under Python UTF-8 mode.
-- 2026-08-15: This front-desk batch remains local and uncommitted. It has not been pushed, merged, or
+- 2026-08-15: At that checkpoint this front-desk batch was local and uncommitted. It had not been pushed, merged, or
   reinstalled; trusted ordinary-routing host attestation and billable Token evidence remain unavailable,
   so `host_enforced=false` and `savings_proven=false` remain unchanged.
+- 2026-08-17: The pushed draft-PR baseline reached `2cefff9c226a769904c6ccf1aebfed21e83dce0b` with
+  both GitHub Validate runs green and no workflow warning. A new read-only merge review then found that
+  direct CLI review input could be marked trusted and an approved-root link could resolve outside the root.
+- 2026-08-17: The user approved a narrower local-only repair for those two safety boundaries and stale
+  documentation, with no host-routing expansion, commit, push, merge, reinstall, Vault, or R01 change.
+  Both new regressions failed on the old code and passed after the minimal fixes.
+- 2026-08-17: The repaired local source passes Node 143/143 with zero failures, skips, or todos;
+  repository validation; smoke; and both Codex-native Skill quick validations. The repair remains
+  local and is not present in the installed runtime or draft PR #2.

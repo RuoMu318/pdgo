@@ -55,7 +55,7 @@
         "action": "must-match-local-action",
         "targets": "must-match-local-action-targets",
         "approved_local_root": "absolute-non-filesystem-root",
-        "file_target_validation": "normalized-and-contained-within-approved-local-root",
+        "file_target_validation": "lexical-and-realpath-contained-within-approved-local-root",
         "live_host_attestation_implemented": false
       },
       "location": "local",

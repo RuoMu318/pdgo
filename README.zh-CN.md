@@ -281,6 +281,8 @@ node scripts/flowstate-dispatcher.mjs --action resume --root .flowstate --projec
 node scripts/flowstate-dispatcher.mjs --action watch --root .flowstate --project demo --interval-ms 1000
 ~~~
 
+直接 CLI 不能把输入 JSON 中自填的审核身份认证为可信来源。保留的 `review` 动作会拒绝执行；可信审核只能由 `resume` 或 `watch` 实际轮询的宿主适配器接收。
+
 ## 仓库结构
 
 ~~~text
@@ -323,6 +325,6 @@ CI 会运行以上三道检查。仓库校验覆盖两个 Codex-native 集成 Sk
 
 ## 状态和许可
 
-三模式分流已完成本地源码验证并安装到本机 Codex，运行时树校验通过。可信的自动分流宿主证明和账单 Token 仍不可用，因此真实配对的 Token、耗时和质量基准仍待具备宿主接口后执行。
+当前三模式分流源码候选已完成本地验证。安装证据属于此前记录且运行时树校验通过的源码版本，当前仓库版本尚未重新安装。可信的自动分流宿主证明和账单 Token 仍不可用，因此真实配对的 Token、耗时和质量基准仍待具备宿主接口后执行。
 
 PDGO 是 FlowState 方法的 MIT 许可参考实现。仓库保持平台中立；任何文件系统无法提供的会话或后台能力，都必须通过平台适配器接入。
